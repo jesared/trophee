@@ -5,6 +5,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Accueil", href: "/" },
-  { label: "TrophÃ©e", href: "/trophee" },
+  { label: "Trophée", href: "/trophee" },
   { label: "Agenda & salles", href: "/agenda" },
   { label: "Classement", href: "/classement" },
   { label: "Inscription", href: "/inscription" },
@@ -97,7 +98,7 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
-          DÃ©connexion
+          Déconnexion
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -112,7 +113,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-sm font-semibold tracking-tight">
-            TrophÃ©e FG
+            Trophée FG
           </Link>
           <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
             {navItems.map((item) => {
@@ -134,7 +135,8 @@ export function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden md:flex">
+          <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
             <UserMenu />
           </div>
 
@@ -171,6 +173,9 @@ export function SiteHeader() {
                   })}
                 </nav>
                 <div className="md:hidden">
+                  <div className="mb-4">
+                    <ThemeToggle />
+                  </div>
                   <UserMenu />
                 </div>
               </div>
