@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Accueil", href: "/" },
-  { label: "Trophée", href: "/trophee" },
+  { label: "Troph\u00e9e", href: "/trophee" },
   { label: "Agenda & salles", href: "/agenda" },
   { label: "Classement", href: "/classement" },
   { label: "Inscription", href: "/inscription" },
@@ -98,7 +98,7 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
+          D\u00e9connexion
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -113,7 +113,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-sm font-semibold tracking-tight">
-            Trophée FG
+            Troph\u00e9e FG
           </Link>
           <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
             {navItems.map((item) => {
