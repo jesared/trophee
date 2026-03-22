@@ -3,7 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 
 export default async function AgendaPage() {
-  const season = await prisma.season.findFirst({
+  type TourItem = {
+    id: string;
+    name: string;
+    date: Date;
+    venue: string | null;
+    city: string | null;
+    address: string | null;
+    club: { name: string } | null;
+  };
+  type SeasonItem = {
+    year: number;
+    tours: TourItem[];
+  };
+
+  const season: SeasonItem | null = await prisma.season.findFirst({
     where: { isActive: true },
     include: { tours: { include: { club: true } } },
     orderBy: { year: "desc" },
@@ -12,19 +26,19 @@ export default async function AgendaPage() {
   const now = new Date();
 
   const sorted = (season?.tours ?? []).sort(
-    (a, b) => a.date.getTime() - b.date.getTime(),
+    (a: TourItem, b: TourItem) => a.date.getTime() - b.date.getTime(),
   );
-  const upcomingTours = sorted.filter((tour) => tour.date >= now);
-  const pastTours = sorted.filter((tour) => tour.date < now);
+  const upcomingTours = sorted.filter((tour: TourItem) => tour.date >= now);
+  const pastTours = sorted.filter((tour: TourItem) => tour.date < now);
   const tours = [...upcomingTours, ...pastTours];
 
-  const nextTour = tours.find((tour) => tour.date >= now);
+  const nextTour = tours.find((tour: TourItem) => tour.date >= now);
 
   const salles = Array.from(
     new Map(
       tours
-        .filter((tour) => tour.venue || tour.address || tour.city)
-        .map((tour) => [
+        .filter((tour: TourItem) => tour.venue || tour.address || tour.city)
+        .map((tour: TourItem) => [
           tour.venue ?? tour.address ?? tour.city ?? tour.id,
           {
             name: tour.venue ?? "Salle a confirmer",
