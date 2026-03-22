@@ -151,7 +151,10 @@ export default async function AdminRegistrationsPage({
       include: { season: true },
       orderBy: { date: "asc" },
     }),
-    prisma.player.findMany({ orderBy: { lastName: "asc" } }),
+    prisma.player.findMany({
+      select: { id: true, firstName: true, lastName: true },
+      orderBy: { lastName: "asc" },
+    }),
     prisma.tableau.findMany({
       include: {
         template: true,
