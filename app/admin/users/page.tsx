@@ -1,5 +1,5 @@
 ﻿import { revalidatePath } from "next/cache";
-import type { Role } from "@prisma/client";
+import type { Prisma, Role } from "@prisma/client";
 
 import { authOptions } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -111,20 +111,20 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     createdAt: Date;
   };
 
-  const where = {
+  const where: Prisma.UserWhereInput = {
     AND: [
       query
         ? {
             OR: [
-              { name: { contains: query, mode: "insensitive" } },
-              { email: { contains: query, mode: "insensitive" } },
+              { name: { contains: query, mode: "insensitive" as Prisma.QueryMode } },
+              { email: { contains: query, mode: "insensitive" as Prisma.QueryMode } },
             ],
           }
-        : {},
+        : undefined,
       roleFilter && roles.includes(roleFilter as Role)
         ? { role: roleFilter as Role }
-        : {},
-    ],
+        : undefined,
+    ].filter(Boolean) as Prisma.UserWhereInput[],
   };
 
   const users: UserItem[] = await prisma.user.findMany({
