@@ -69,7 +69,14 @@ async function activateSeason(formData: FormData) {
 export default async function AdminSeasonsPage() {
   await requireAdmin();
 
-  const seasons = await prisma.season.findMany({
+  type SeasonItem = {
+    id: string;
+    name: string;
+    year: number;
+    isActive: boolean;
+  };
+
+  const seasons: SeasonItem[] = await prisma.season.findMany({
     orderBy: { year: "desc" },
   });
 
@@ -117,7 +124,7 @@ export default async function AdminSeasonsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                seasons.map((season) => (
+                seasons.map((season: SeasonItem) => (
                   <TableRow key={season.id}>
                     <TableCell className="font-medium">
                       {season.name}
