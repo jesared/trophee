@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { LogOut, Menu, Shield, UserCircleIcon } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Accueil", href: "/" },
-  { label: "Troph\u00e9e", href: "/trophee" },
+  { label: "Trophée", href: "/trophee" },
   { label: "Agenda & salles", href: "/agenda" },
   { label: "Classement", href: "/classement" },
   { label: "Inscription", href: "/inscription" },
@@ -98,7 +98,7 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
-          D\u00e9connexion
+          Déconnexion
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -113,7 +113,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-sm font-semibold tracking-tight">
-            Troph\u00e9e FG
+            Trophée FG
           </Link>
           <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
             {navItems.map((item) => {
