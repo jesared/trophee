@@ -140,7 +140,14 @@ async function deleteTableauTemplate(
 export default async function AdminTableauTemplatesPage() {
   await requireAdmin();
 
-  const templates = await prisma.tableauTemplate.findMany({
+  type TemplateItem = {
+    id: string;
+    name: string;
+    minPoints: number | null;
+    maxPoints: number | null;
+  };
+
+  const templates: TemplateItem[] = await prisma.tableauTemplate.findMany({
     orderBy: { createdAt: "desc" },
   });
 
@@ -173,7 +180,7 @@ export default async function AdminTableauTemplatesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              templates.map((template) => (
+              templates.map((template: TemplateItem) => (
                 <TableRow key={template.id}>
                   <TableCell className="font-medium">{template.name}</TableCell>
                   <TableCell>
