@@ -1,0 +1,196 @@
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminTableauTemplateDialog } from "@/components/admin-tableau-template-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { requireAdmin } from "@/lib/require-admin";
+import { prisma } from "@/lib/prisma";
+
+type ActionState = {
+  ok: boolean;
+  message: string;
+};
+
+const pointsSchema = z.preprocess((value) => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const parsed = String(value).trim();
+  if (!parsed) {
+    return undefined;
+  }
+  const numeric = Number(parsed);
+  if (Number.isNaN(numeric)) {
+    return value;
+  }
+  return numeric;
+}, z.number().int().optional());
+
+const templateSchema = z
+  .object({
+    minPoints: pointsSchema,
+    maxPoints: pointsSchema,
+  })
+  .refine(
+    (data) => {
+      if (data.minPoints == null || data.maxPoints == null) {
+        return true;
+      }
+      return data.minPoints <= data.maxPoints;
+    },
+    { message: "La plage de points est invalide." },
+  );
+
+function formatRange(minPoints: number | null, maxPoints: number | null) {
+  if (minPoints != null && maxPoints != null) {
+    return `${minPoints} - ${maxPoints}`;
+  }
+  if (minPoints != null) {
+    return `>= ${minPoints}`;
+  }
+  if (maxPoints != null) {
+    return `<= ${maxPoints}`;
+  }
+  return "Libre";
+}
+
+async function createTableauTemplate(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
+  await requireAdmin();
+
+  const rawName = String(formData.get("name") ?? "").trim();
+  const parsed = templateSchema.safeParse({
+    minPoints: formData.get("minPoints"),
+    maxPoints: formData.get("maxPoints"),
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Donnees invalides.",
+    };
+  }
+
+  const { minPoints, maxPoints } = parsed.data;
+  const name = rawName || formatRange(minPoints ?? null, maxPoints ?? null);
+
+  if (!rawName && name === "Libre") {
+    return { ok: false, message: "Nom requis." };
+  }
+
+  await prisma.tableauTemplate.create({
+    data: {
+      name,
+      minPoints: minPoints ?? null,
+      maxPoints: maxPoints ?? null,
+    },
+  });
+
+  revalidatePath("/admin/tableau-templates");
+
+  return { ok: true, message: "Template cree." };
+}
+
+async function deleteTableauTemplate(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    return { ok: false, message: "Template introuvable." };
+  }
+
+  const linkedTableaux = await prisma.tableau.count({
+    where: { templateId: id },
+  });
+
+  if (linkedTableaux > 0) {
+    return {
+      ok: false,
+      message: "Supprimez d'abord les tableaux lies a ce template.",
+    };
+  }
+
+  await prisma.tableauTemplate.delete({
+    where: { id },
+  });
+
+  revalidatePath("/admin/tableau-templates");
+
+  return { ok: true, message: "Template supprime." };
+}
+
+export default async function AdminTableauTemplatesPage() {
+  await requireAdmin();
+
+  const templates = await prisma.tableauTemplate.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+
+  return (
+    <section className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
+          <p className="text-sm text-muted-foreground">
+            Gere les templates de tableaux.
+          </p>
+        </div>
+        <AdminTableauTemplateDialog action={createTableauTemplate} />
+      </div>
+
+      <div className="rounded-lg border border-border bg-background">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead>Plage de points</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {templates.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="py-10 text-center">
+                  Aucun template pour le moment.
+                </TableCell>
+              </TableRow>
+            ) : (
+              templates.map((template) => (
+                <TableRow key={template.id}>
+                  <TableCell className="font-medium">{template.name}</TableCell>
+                  <TableCell>
+                    {formatRange(template.minPoints, template.maxPoints)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <AdminDeleteForm
+                      id={template.id}
+                      action={deleteTableauTemplate}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </section>
+  );
+}

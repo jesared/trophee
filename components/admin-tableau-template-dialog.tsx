@@ -1,0 +1,97 @@
+"use client";
+
+import * as React from "react";
+import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+type ActionState = {
+  ok: boolean;
+  message: string;
+};
+
+type AdminTableauTemplateDialogProps = {
+  action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
+};
+
+function SubmitButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={disabled || pending}>
+      {pending ? "Enregistrement..." : "Creer"}
+    </Button>
+  );
+}
+
+export function AdminTableauTemplateDialog({
+  action,
+}: AdminTableauTemplateDialogProps) {
+  const [open, setOpen] = React.useState(false);
+  const [state, formAction] = React.useActionState(action, {
+    ok: false,
+    message: "",
+  });
+  const formRef = React.useRef<HTMLFormElement | null>(null);
+
+  React.useEffect(() => {
+    if (!state.message) {
+      return;
+    }
+
+    if (state.ok) {
+      toast.success(state.message);
+      formRef.current?.reset();
+      setOpen(false);
+      return;
+    }
+
+    toast.error(state.message);
+  }, [state.message, state.ok]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Creer un template</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Nouveau template</DialogTitle>
+          <DialogDescription>
+            Definissez la plage de points pour ce tableau.
+          </DialogDescription>
+        </DialogHeader>
+        <form ref={formRef} action={formAction} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nom</Label>
+            <Input id="name" name="name" placeholder="-1300" minLength={1} />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="minPoints">Points min</Label>
+              <Input id="minPoints" name="minPoints" type="number" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxPoints">Points max</Label>
+              <Input id="maxPoints" name="maxPoints" type="number" />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <SubmitButton disabled={false} />
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
