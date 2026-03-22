@@ -95,7 +95,11 @@ async function deleteClub(
 export default async function AdminClubsPage() {
   await requireAdmin();
 
-  const clubs = await prisma.club.findMany({
+  const clubs: Array<{
+    id: string;
+    name: string;
+    city: string | null;
+  }> = await prisma.club.findMany({
     orderBy: [{ name: "asc" }],
   });
 
