@@ -1,10 +1,13 @@
 ﻿import Link from "next/link";
+import { FileText, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { listDriveChildren, listDriveFolders } from "@/lib/google-drive";
 
 const pdfMime = "application/pdf";
+const NEW_DAYS = 7;
 
 function formatBytes(value?: string | null) {
   if (!value) return "-";
@@ -46,12 +49,28 @@ function sortTourDesc<T extends { name: string }>(items: T[]) {
   });
 }
 
-export default async function ClassementPage() {
+function isNewFile(modifiedTime?: string | null) {
+  if (!modifiedTime) return false;
+  const updated = new Date(modifiedTime).getTime();
+  const now = Date.now();
+  return now - updated <= NEW_DAYS * 24 * 60 * 60 * 1000;
+}
+
+export default async function ClassementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = q?.trim().toLowerCase();
+
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID ?? "";
 
   let seasons: Awaited<ReturnType<typeof listDriveFolders>> = [];
   let subfoldersBySeason: Record<string, Awaited<ReturnType<typeof listDriveFolders>>> = {};
+  let subsubfoldersByTour: Record<string, Awaited<ReturnType<typeof listDriveFolders>>> = {};
   let pdfsBySubfolder: Record<string, Awaited<ReturnType<typeof listDriveChildren>>> = {};
+  let pdfsBySubSubfolder: Record<string, Awaited<ReturnType<typeof listDriveChildren>>> = {};
   let pdfsBySeason: Record<string, Awaited<ReturnType<typeof listDriveChildren>>> = {};
   let error: string | null = null;
 
@@ -77,7 +96,7 @@ export default async function ClassementPage() {
       );
       pdfsBySeason = Object.fromEntries(seasonPdfEntries);
 
-      const pdfEntries = await Promise.all(
+      const tourPdfEntries = await Promise.all(
         seasonEntries.flatMap(([, subfolders]) =>
           subfolders.map(async (sub) => [
             sub.id,
@@ -85,7 +104,27 @@ export default async function ClassementPage() {
           ] as const),
         ),
       );
-      pdfsBySubfolder = Object.fromEntries(pdfEntries);
+      pdfsBySubfolder = Object.fromEntries(tourPdfEntries);
+
+      const subsubEntries = await Promise.all(
+        seasonEntries.flatMap(([, subfolders]) =>
+          subfolders.map(async (sub) => [
+            sub.id,
+            await listDriveFolders(sub.id),
+          ] as const),
+        ),
+      );
+      subsubfoldersByTour = Object.fromEntries(subsubEntries);
+
+      const subsubPdfEntries = await Promise.all(
+        subsubEntries.flatMap(([, subsubs]) =>
+          subsubs.map(async (sub) => [
+            sub.id,
+            await listDriveChildren(sub.id, { mimeType: pdfMime }),
+          ] as const),
+        ),
+      );
+      pdfsBySubSubfolder = Object.fromEntries(subsubPdfEntries);
     } catch (err) {
       error = err instanceof Error ? err.message : "Erreur inconnue.";
     }
@@ -96,13 +135,34 @@ export default async function ClassementPage() {
     timeStyle: "short",
   });
 
+  const filterFiles = <T extends { name: string }>(items: T[]) => {
+    if (!query) return items;
+    return items.filter((item) => item.name.toLowerCase().includes(query));
+  };
+
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Classement</h1>
-        <p className="text-sm text-muted-foreground">
-          Classements PDF par saison et par sous-dossier.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Classement</h1>
+          <p className="text-sm text-muted-foreground">
+            Classements PDF par saison, tour et sous-dossiers.
+          </p>
+        </div>
+        <form className="flex items-center gap-2" method="get">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              name="q"
+              placeholder="Rechercher un fichier"
+              defaultValue={q ?? ""}
+              className="h-9 w-64 pl-9"
+            />
+          </div>
+          <Button size="sm" variant="secondary" type="submit">
+            Rechercher
+          </Button>
+        </form>
       </div>
 
       {error ? (
@@ -127,7 +187,9 @@ export default async function ClassementPage() {
               const subfolders = sortTourDesc(
                 subfoldersBySeason[season.id] ?? [],
               );
-              const rootPdfs = sortByDateDesc(pdfsBySeason[season.id] ?? []);
+              const rootPdfs = sortByDateDesc(
+                filterFiles(pdfsBySeason[season.id] ?? []),
+              );
 
               return (
                 <Card key={season.id}>
@@ -135,7 +197,7 @@ export default async function ClassementPage() {
                     <div>
                       <CardTitle className="text-base">{season.name}</CardTitle>
                       <p className="text-xs text-muted-foreground">
-                        Sous-dossiers : {subfolders.length} • PDFs racine : {rootPdfs.length}
+                        Tours : {subfolders.length} • PDFs racine : {rootPdfs.length}
                       </p>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -154,17 +216,25 @@ export default async function ClassementPage() {
                           {rootPdfs.map((file) => (
                             <div key={file.id} className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
                               <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <p className="text-sm font-medium">{file.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {file.modifiedTime
-                                      ? formatter.format(new Date(file.modifiedTime))
-                                      : "-"}
-                                  </p>
+                                <div className="flex items-start gap-2">
+                                  <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                                  <div>
+                                    <p className="text-sm font-medium">{file.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {file.modifiedTime
+                                        ? formatter.format(new Date(file.modifiedTime))
+                                        : "-"}
+                                    </p>
+                                  </div>
                                 </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatBytes(file.size)}
-                                </span>
+                                <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                                  <span>{formatBytes(file.size)}</span>
+                                  {isNewFile(file.modifiedTime) ? (
+                                    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                                      Nouveau
+                                    </span>
+                                  ) : null}
+                                </div>
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {file.webViewLink ? (
@@ -190,44 +260,53 @@ export default async function ClassementPage() {
 
                     {subfolders.length === 0 ? (
                       <div className="text-sm text-muted-foreground">
-                        Aucun sous-dossier trouvé.
+                        Aucun tour trouvé.
                       </div>
                     ) : (
                       <div className="space-y-2">
                         {subfolders.map((sub) => {
-                          const pdfs = sortByDateDesc(pdfsBySubfolder[sub.id] ?? []);
+                          const pdfs = sortByDateDesc(
+                            filterFiles(pdfsBySubfolder[sub.id] ?? []),
+                          );
+                          const subsubs = sortByDateDesc(
+                            subsubfoldersByTour[sub.id] ?? [],
+                          );
                           return (
                             <details key={sub.id} className="group rounded-lg border border-border/70 bg-background">
                               <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold">
                                 <span>{sub.name}</span>
                                 <span className="text-xs font-normal text-muted-foreground">
-                                  PDFs : {pdfs.length}
+                                  PDFs : {pdfs.length} • Dossiers : {subsubs.length}
                                 </span>
                               </summary>
                               <div className="border-t border-border/60 px-4 py-3">
-                                {pdfs.length === 0 ? (
-                                  <div className="text-sm text-muted-foreground">
-                                    Aucun PDF dans ce sous-dossier.
-                                  </div>
-                                ) : (
-                                  <div className="grid gap-2 sm:grid-cols-2">
+                                {pdfs.length > 0 ? (
+                                  <div className="mb-3 grid gap-2 sm:grid-cols-2">
                                     {pdfs.map((file) => (
                                       <div
                                         key={file.id}
                                         className="rounded-md border border-border/60 bg-muted/30 px-3 py-2"
                                       >
                                         <div className="flex items-start justify-between gap-2">
-                                          <div>
-                                            <p className="text-sm font-medium">{file.name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                              {file.modifiedTime
-                                                ? formatter.format(new Date(file.modifiedTime))
-                                                : "-"}
-                                            </p>
+                                          <div className="flex items-start gap-2">
+                                            <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                                            <div>
+                                              <p className="text-sm font-medium">{file.name}</p>
+                                              <p className="text-xs text-muted-foreground">
+                                                {file.modifiedTime
+                                                  ? formatter.format(new Date(file.modifiedTime))
+                                                  : "-"}
+                                              </p>
+                                            </div>
                                           </div>
-                                          <span className="text-xs text-muted-foreground">
-                                            {formatBytes(file.size)}
-                                          </span>
+                                          <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                                            <span>{formatBytes(file.size)}</span>
+                                            {isNewFile(file.modifiedTime) ? (
+                                              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                                                Nouveau
+                                              </span>
+                                            ) : null}
+                                          </div>
                                         </div>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                           {file.webViewLink ? (
@@ -255,6 +334,95 @@ export default async function ClassementPage() {
                                         </div>
                                       </div>
                                     ))}
+                                  </div>
+                                ) : null}
+
+                                {subsubs.length === 0 ? (
+                                  <div className="text-sm text-muted-foreground">
+                                    Aucun sous-dossier supplémentaire.
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {subsubs.map((subsub) => {
+                                      const nestedPdfs = sortByDateDesc(
+                                        filterFiles(pdfsBySubSubfolder[subsub.id] ?? []),
+                                      );
+                                      return (
+                                        <details
+                                          key={subsub.id}
+                                          className="group rounded-lg border border-border/60 bg-background"
+                                        >
+                                          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2 text-sm font-medium">
+                                            <span>{subsub.name}</span>
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                              PDFs : {nestedPdfs.length}
+                                            </span>
+                                          </summary>
+                                          <div className="border-t border-border/60 px-4 py-3">
+                                            {nestedPdfs.length === 0 ? (
+                                              <div className="text-sm text-muted-foreground">
+                                                Aucun PDF dans ce dossier.
+                                              </div>
+                                            ) : (
+                                              <div className="grid gap-2 sm:grid-cols-2">
+                                                {nestedPdfs.map((file) => (
+                                                  <div
+                                                    key={file.id}
+                                                    className="rounded-md border border-border/60 bg-muted/30 px-3 py-2"
+                                                  >
+                                                    <div className="flex items-start justify-between gap-2">
+                                                      <div className="flex items-start gap-2">
+                                                        <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                                                        <div>
+                                                          <p className="text-sm font-medium">{file.name}</p>
+                                                          <p className="text-xs text-muted-foreground">
+                                                            {file.modifiedTime
+                                                              ? formatter.format(new Date(file.modifiedTime))
+                                                              : "-"}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+                                                      <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                                                        <span>{formatBytes(file.size)}</span>
+                                                        {isNewFile(file.modifiedTime) ? (
+                                                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                                                            Nouveau
+                                                          </span>
+                                                        ) : null}
+                                                      </div>
+                                                    </div>
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                      {file.webViewLink ? (
+                                                        <Button asChild size="sm" variant="secondary">
+                                                          <Link
+                                                            href={file.webViewLink}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                          >
+                                                            Ouvrir
+                                                          </Link>
+                                                        </Button>
+                                                      ) : null}
+                                                      {file.webContentLink ? (
+                                                        <Button asChild size="sm">
+                                                          <Link
+                                                            href={file.webContentLink}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                          >
+                                                            Télécharger
+                                                          </Link>
+                                                        </Button>
+                                                      ) : null}
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </details>
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>

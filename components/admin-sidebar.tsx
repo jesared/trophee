@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Dashboard", href: "/admin" },
-  { label: "Seasons", href: "/admin/seasons" },
+  { label: "Saison", href: "/admin/seasons" },
   { label: "Clubs", href: "/admin/clubs" },
   { label: "Tours", href: "/admin/tours" },
   { label: "Tableaux", href: "/admin/tableaux" },
