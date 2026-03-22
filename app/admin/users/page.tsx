@@ -1,9 +1,105 @@
-﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+﻿import { revalidatePath } from "next/cache";
+
+import { authOptions } from "@/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
-export default async function AdminUsersPage() {
+const roles = ["USER", "ORGANIZER", "ADMIN"] as const;
+
+type ActionState = {
+  ok: boolean;
+  message: string;
+};
+
+type PageProps = {
+  searchParams: Promise<{ q?: string; role?: string }>;
+};
+
+async function updateUserRole(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
   await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const role = String(formData.get("role") ?? "").trim();
+
+  if (!id || !roles.includes(role as (typeof roles)[number])) {
+    return { ok: false, message: "Role invalide." };
+  }
+
+  if (role !== "ADMIN") {
+    const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+
+    if (target?.role === "ADMIN" && adminCount <= 1) {
+      return { ok: false, message: "Impossible de retirer le dernier ADMIN." };
+    }
+  }
+
+  await prisma.user.update({
+    where: { id },
+    data: { role },
+  });
+
+  revalidatePath("/admin/users");
+  return { ok: true, message: "Rôle mis à jour." };
+}
+
+async function deleteUser(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    return { ok: false, message: "Utilisateur introuvable." };
+  }
+
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.id;
+
+  if (currentUserId && currentUserId === id) {
+    return { ok: false, message: "Impossible de supprimer votre compte." };
+  }
+
+  const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { role: true },
+  });
+
+  if (target?.role === "ADMIN" && adminCount <= 1) {
+    return { ok: false, message: "Impossible de supprimer le dernier ADMIN." };
+  }
+
+  await prisma.user.delete({
+    where: { id },
+  });
+
+  revalidatePath("/admin/users");
+  return { ok: true, message: "Utilisateur supprimé." };
+}
+
+export default async function AdminUsersPage({ searchParams }: PageProps) {
+  await requireAdmin();
+
+  const { q, role } = await searchParams;
+  const query = q?.trim();
+  const roleFilter = role?.trim();
 
   type UserItem = {
     id: string;
@@ -13,7 +109,24 @@ export default async function AdminUsersPage() {
     createdAt: Date;
   };
 
+  const where = {
+    AND: [
+      query
+        ? {
+            OR: [
+              { name: { contains: query, mode: "insensitive" } },
+              { email: { contains: query, mode: "insensitive" } },
+            ],
+          }
+        : {},
+      roleFilter && roles.includes(roleFilter as (typeof roles)[number])
+        ? { role: roleFilter }
+        : {},
+    ],
+  };
+
   const users: UserItem[] = await prisma.user.findMany({
+    where,
     select: {
       id: true,
       name: true,
@@ -30,11 +143,37 @@ export default async function AdminUsersPage() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Utilisateurs</h1>
-        <p className="text-sm text-muted-foreground">
-          Gestion des utilisateurs de la plateforme.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Utilisateurs</h1>
+          <p className="text-sm text-muted-foreground">
+            Gestion des utilisateurs de la plateforme.
+          </p>
+        </div>
+
+        <form className="flex flex-wrap items-center gap-2" method="get">
+          <Input
+            name="q"
+            placeholder="Rechercher par nom ou email"
+            defaultValue={query ?? ""}
+            className="h-9 w-64"
+          />
+          <select
+            name="role"
+            defaultValue={roleFilter ?? ""}
+            className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+          >
+            <option value="">Tous les rôles</option>
+            {roles.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" variant="secondary" type="submit">
+            Filtrer
+          </Button>
+        </form>
       </div>
 
       <div className="rounded-lg border border-border bg-background">
@@ -45,12 +184,13 @@ export default async function AdminUsersPage() {
               <TableHead>Email</TableHead>
               <TableHead>Rôle</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-10 text-center">
+                <TableCell colSpan={5} className="py-10 text-center">
                   Aucun utilisateur pour le moment.
                 </TableCell>
               </TableRow>
@@ -62,11 +202,33 @@ export default async function AdminUsersPage() {
                   </TableCell>
                   <TableCell>{user.email ?? "-"}</TableCell>
                   <TableCell>
-                    <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-inset ring-border">
-                      {user.role ?? "USER"}
-                    </span>
+                    <form action={updateUserRole} className="flex items-center gap-2">
+                      <input type="hidden" name="id" value={user.id} />
+                      <select
+                        name="role"
+                        defaultValue={user.role ?? "USER"}
+                        className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+                      >
+                        {roles.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
+                      </select>
+                      <Button size="sm" variant="secondary">
+                        Sauver
+                      </Button>
+                    </form>
                   </TableCell>
                   <TableCell>{formatter.format(user.createdAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <form action={deleteUser}>
+                      <input type="hidden" name="id" value={user.id} />
+                      <Button size="sm" variant="destructive">
+                        Supprimer
+                      </Button>
+                    </form>
+                  </TableCell>
                 </TableRow>
               ))
             )}
