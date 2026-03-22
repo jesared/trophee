@@ -1,4 +1,5 @@
 ﻿import { revalidatePath } from "next/cache";
+import type { Role } from "@prisma/client";
 
 import { authOptions } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 
-const roles = ["USER", "ORGANIZER", "ADMIN"] as const;
+const roles = ["USER", "ORGANIZER", "ADMIN"] as const satisfies ReadonlyArray<Role>;
 
 type ActionState = {
   ok: boolean;
@@ -28,9 +29,10 @@ async function updateUserRole(
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
-  const role = String(formData.get("role") ?? "").trim();
+  const roleValue = String(formData.get("role") ?? "").trim();
+  const role = roles.find((item) => item === roleValue);
 
-  if (!id || !roles.includes(role as (typeof roles)[number])) {
+  if (!id || !role) {
     return { ok: false, message: "Role invalide." };
   }
 
@@ -105,7 +107,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     id: string;
     name: string | null;
     email: string | null;
-    role: string | null;
+    role: Role | null;
     createdAt: Date;
   };
 
@@ -119,8 +121,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             ],
           }
         : {},
-      roleFilter && roles.includes(roleFilter as (typeof roles)[number])
-        ? { role: roleFilter }
+      roleFilter && roles.includes(roleFilter as Role)
+        ? { role: roleFilter as Role }
         : {},
     ],
   };
