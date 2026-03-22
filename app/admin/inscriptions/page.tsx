@@ -148,7 +148,7 @@ export default async function AdminRegistrationsPage({
 
   const [tours, players, tableaux, registrations] = await Promise.all([
     prisma.tour.findMany({
-      include: { season: true },
+      select: { id: true, name: true, season: { select: { year: true } } },
       orderBy: { date: "asc" },
     }),
     prisma.player.findMany({
@@ -189,7 +189,7 @@ export default async function AdminRegistrationsPage({
     label: `${player.firstName} ${player.lastName}`,
   }));
 
-  const tourOptions = tours.map((tour) => ({
+  const tourOptions = tours.map((tour: { id: string; name: string; season: { year: number } }) => ({
     id: tour.id,
     name: tour.name,
     label: `${tour.name} - ${tour.season.year}`,
