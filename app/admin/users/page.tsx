@@ -11,19 +11,11 @@ import { getServerSession } from "next-auth";
 
 const roles = ["USER", "ORGANIZER", "ADMIN"] as const satisfies ReadonlyArray<Role>;
 
-type ActionState = {
-  ok: boolean;
-  message: string;
-};
-
 type PageProps = {
   searchParams: Promise<{ q?: string; role?: string }>;
 };
 
-async function updateUserRole(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+async function updateUserRole(formData: FormData): Promise<void> {
   "use server";
 
   await requireAdmin();
@@ -33,7 +25,7 @@ async function updateUserRole(
   const role = roles.find((item) => item === roleValue);
 
   if (!id || !role) {
-    return { ok: false, message: "Role invalide." };
+    return;
   }
 
   if (role !== "ADMIN") {
@@ -44,7 +36,7 @@ async function updateUserRole(
     });
 
     if (target?.role === "ADMIN" && adminCount <= 1) {
-      return { ok: false, message: "Impossible de retirer le dernier ADMIN." };
+      return;
     }
   }
 
@@ -54,13 +46,9 @@ async function updateUserRole(
   });
 
   revalidatePath("/admin/users");
-  return { ok: true, message: "Rôle mis à jour." };
 }
 
-async function deleteUser(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+async function deleteUser(formData: FormData): Promise<void> {
   "use server";
 
   await requireAdmin();
@@ -68,14 +56,14 @@ async function deleteUser(
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
-    return { ok: false, message: "Utilisateur introuvable." };
+    return;
   }
 
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id;
 
   if (currentUserId && currentUserId === id) {
-    return { ok: false, message: "Impossible de supprimer votre compte." };
+    return;
   }
 
   const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
@@ -85,7 +73,7 @@ async function deleteUser(
   });
 
   if (target?.role === "ADMIN" && adminCount <= 1) {
-    return { ok: false, message: "Impossible de supprimer le dernier ADMIN." };
+    return;
   }
 
   await prisma.user.delete({
@@ -93,7 +81,6 @@ async function deleteUser(
   });
 
   revalidatePath("/admin/users");
-  return { ok: true, message: "Utilisateur supprimé." };
 }
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
