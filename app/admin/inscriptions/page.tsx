@@ -395,7 +395,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
-                          {row.tableaux.map((tableau) => (
+                          {row.tableaux.map((tableau: TableauItem) => (
                             <span
                               key={tableau.id}
                               className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium"
