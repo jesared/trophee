@@ -3,7 +3,12 @@ import { revalidatePath } from "next/cache";
 import { AdminRegistrationFilters } from "@/components/admin-registration-filters";
 import { AdminRegistrationForm } from "@/components/admin-registration-form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { prisma } from "@/lib/prisma";
 
 type ActionState = {
   ok: boolean;
@@ -47,7 +52,6 @@ async function createRegistration(
 
   const playerId = String(formData.get("playerId") ?? "").trim();
   const tableauId = String(formData.get("tableauId") ?? "").trim();
-
   const tourId = String(formData.get("tourId") ?? "").trim();
 
   if (!playerId || !tableauId || !tourId) {
@@ -110,9 +114,7 @@ async function deleteRegistration(formData: FormData) {
   revalidatePath("/admin/inscriptions");
 }
 
-export default async function AdminRegistrationsPage({
-  searchParams,
-}: PageProps) {
+export default async function AdminRegistrationsPage({ searchParams }: PageProps) {
   await requireAdmin();
 
   const { tourId, tableauId, q } = await searchParams;
@@ -144,9 +146,35 @@ export default async function AdminRegistrationsPage({
   }
 
   const registrationWhere =
-    registrationFilters.length > 0 ? { AND: registrationFilters } : undefined;
+    registrationFilters.length > 0
+      ? { AND: registrationFilters }
+      : undefined;
 
-  const [tours, players, tableaux, registrations] = await Promise.all([
+  type TourItem = { id: string; name: string; season: { year: number } };
+  type PlayerItem = { id: string; firstName: string; lastName: string };
+  type TableauItem = {
+    id: string;
+    tourId: string;
+    startTime: Date | null;
+    template: { name: string };
+    tour: { name: string; season: { year: number } };
+  };
+  type RegistrationItem = {
+    id: string;
+    playerId: string;
+    tourId: string;
+    createdAt: Date;
+    player: PlayerItem;
+    tableau: TableauItem;
+    tour: { name: string; season: { year: number } };
+  };
+
+  const [tours, players, tableaux, registrations]: [
+    TourItem[],
+    PlayerItem[],
+    TableauItem[],
+    RegistrationItem[],
+  ] = await Promise.all([
     prisma.tour.findMany({
       select: { id: true, name: true, season: { select: { year: true } } },
       orderBy: { date: "asc" },
@@ -157,17 +185,22 @@ export default async function AdminRegistrationsPage({
     }),
     prisma.tableau.findMany({
       include: {
-        template: true,
-        tour: { include: { season: true } },
+        template: { select: { name: true } },
+        tour: { select: { name: true, season: { select: { year: true } } } },
       },
       orderBy: { startTime: "asc" },
     }),
     prisma.registration.findMany({
       where: registrationWhere,
       include: {
-        player: true,
-        tableau: { include: { template: true } },
-        tour: { include: { season: true } },
+        player: { select: { id: true, firstName: true, lastName: true } },
+        tableau: {
+          include: {
+            template: { select: { name: true } },
+            tour: { select: { name: true, season: { select: { year: true } } } },
+          },
+        },
+        tour: { select: { name: true, season: { select: { year: true } } } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -180,34 +213,38 @@ export default async function AdminRegistrationsPage({
     { label: "Tours", value: tours.length },
   ];
 
-  const playerOptions = players.map((player: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  }) => ({
+  const playerOptions = players.map((player: PlayerItem) => ({
     id: player.id,
     label: `${player.firstName} ${player.lastName}`,
   }));
 
-  const tourOptions = tours.map((tour: { id: string; name: string; season: { year: number } }) => ({
+  const tourOptions = tours.map((tour: TourItem) => ({
     id: tour.id,
     name: tour.name,
     label: `${tour.name} - ${tour.season.year}`,
   }));
 
-  const tableauOptions = tableaux.map((tableau: {
-    id: string;
-    tourId: string;
-    template: { name: string };
-    tour: { name: string; season: { year: number } };
-  }) => ({
+  const tableauOptions = tableaux.map((tableau: TableauItem) => ({
     id: tableau.id,
     tourId: tableau.tourId,
     label: `${tableau.template.name} - ${tableau.tour.name} (${tableau.tour.season.year})`,
   }));
 
   const grouped = registrations.reduce(
-    (acc, registration) => {
+    (
+      acc: Map<
+        string,
+        {
+          id: string;
+          player: typeof registrations[number]["player"];
+          tour: typeof registrations[number]["tour"];
+          createdAt: Date;
+          tableaux: typeof registrations[number]["tableau"][];
+          ids: string[];
+        }
+      >,
+      registration: (typeof registrations)[number],
+    ) => {
       const key = `${registration.playerId}-${registration.tourId}`;
       const existing = acc.get(key);
 
@@ -230,17 +267,7 @@ export default async function AdminRegistrationsPage({
       }
       return acc;
     },
-    new Map<
-      string,
-      {
-        id: string;
-        player: (typeof registrations)[number]["player"];
-        tour: (typeof registrations)[number]["tour"];
-        createdAt: Date;
-        tableaux: (typeof registrations)[number]["tableau"][];
-        ids: string[];
-      }
-    >(),
+    new Map(),
   );
 
   const groupedRows = Array.from(grouped.values()).sort(
@@ -248,6 +275,7 @@ export default async function AdminRegistrationsPage({
   );
 
   const formatter = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
     timeStyle: "short",
   });
 
@@ -255,9 +283,7 @@ export default async function AdminRegistrationsPage({
     <section className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Inscriptions
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Inscriptions</h1>
           <p className="text-sm text-muted-foreground">
             Creez et suivez les inscriptions des joueurs.
           </p>
