@@ -115,7 +115,30 @@ async function deleteTableau(
 export default async function AdminTableauxPage() {
   await requireAdmin();
 
-  const [tours, templates, tableaux] = await Promise.all([
+  type TourItem = {
+    id: string;
+    name: string;
+    date: Date;
+    season: { year: number };
+  };
+  type TemplateItem = {
+    id: string;
+    name: string;
+    minPoints: number | null;
+    maxPoints: number | null;
+  };
+  type TableauItem = {
+    id: string;
+    startTime: Date;
+    template: TemplateItem;
+    tour: { name: string };
+  };
+
+  const [tours, templates, tableaux]: [
+    TourItem[],
+    TemplateItem[],
+    TableauItem[],
+  ] = await Promise.all([
     prisma.tour.findMany({
       include: { season: true },
       orderBy: { date: "asc" },
@@ -136,12 +159,12 @@ export default async function AdminTableauxPage() {
     timeStyle: "short",
   });
 
-  const tourOptions = tours.map((tour) => ({
+  const tourOptions = tours.map((tour: TourItem) => ({
     id: tour.id,
     label: `${tour.name} - ${tour.season.year}`,
   }));
 
-  const templateOptions = templates.map((template) => ({
+  const templateOptions = templates.map((template: TemplateItem) => ({
     id: template.id,
     name: template.name,
     minPoints: template.minPoints,
@@ -189,7 +212,7 @@ export default async function AdminTableauxPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              tableaux.map((tableau) => (
+              tableaux.map((tableau: TableauItem) => (
                 <TableRow key={tableau.id}>
                   <TableCell className="font-medium">
                     {tableau.template.name}
