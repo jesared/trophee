@@ -108,7 +108,20 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
   const { q } = await searchParams;
   const query = q?.trim();
 
-  const [seasons, clubs, tours] = await Promise.all([
+  type SeasonItem = { id: string; name: string; year: number; isActive: boolean };
+  type ClubItem = { id: string; name: string };
+  type TourItem = {
+    id: string;
+    name: string;
+    date: Date;
+    venue: string | null;
+    city: string | null;
+    season: { name: string };
+    club: { name: string } | null;
+  };
+
+  const [seasons, clubs, tours]: [SeasonItem[], ClubItem[], TourItem[]] =
+    await Promise.all([
     prisma.season.findMany({ orderBy: { year: "desc" } }),
     prisma.club.findMany({ orderBy: { name: "asc" } }),
     prisma.tour.findMany({
@@ -180,7 +193,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              tours.map((tour) => (
+              tours.map((tour: TourItem) => (
                 <TableRow key={tour.id}>
                   <TableCell className="font-medium">{tour.name}</TableCell>
                   <TableCell>{tour.season.name}</TableCell>
