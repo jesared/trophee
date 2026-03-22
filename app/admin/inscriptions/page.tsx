@@ -180,7 +180,11 @@ export default async function AdminRegistrationsPage({
     { label: "Tours", value: tours.length },
   ];
 
-  const playerOptions = players.map((player) => ({
+  const playerOptions = players.map((player: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  }) => ({
     id: player.id,
     label: `${player.firstName} ${player.lastName}`,
   }));
