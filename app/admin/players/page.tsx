@@ -294,7 +294,17 @@ async function deletePlayer(
 export default async function AdminPlayersPage() {
   await requireAdmin();
 
-  const players = await prisma.player.findMany({
+  type PlayerItem = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    club: string | null;
+    points: number | null;
+    email: string | null;
+    licence: string | null;
+  };
+
+  const players: PlayerItem[] = await prisma.player.findMany({
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
 
@@ -333,7 +343,7 @@ export default async function AdminPlayersPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              players.map((player) => (
+              players.map((player: PlayerItem) => (
                 <TableRow key={player.id}>
                   <TableCell className="font-medium">
                     {player.firstName} {player.lastName}
