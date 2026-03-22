@@ -195,7 +195,12 @@ export default async function AdminRegistrationsPage({
     label: `${tour.name} - ${tour.season.year}`,
   }));
 
-  const tableauOptions = tableaux.map((tableau) => ({
+  const tableauOptions = tableaux.map((tableau: {
+    id: string;
+    tourId: string;
+    template: { name: string };
+    tour: { name: string; season: { year: number } };
+  }) => ({
     id: tableau.id,
     tourId: tableau.tourId,
     label: `${tableau.template.name} - ${tableau.tour.name} (${tableau.tour.season.year})`,
