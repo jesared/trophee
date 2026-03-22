@@ -23,7 +23,7 @@ type PlaceAutocompleteProps = {
   onChange: (value: PlaceValue) => void;
 };
 
-const libraries = ["places"] as const;
+const libraries: ("places")[] = ["places"];
 
 type Prediction = {
   description: string;

@@ -421,7 +421,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-2">
-                          {row.ids.map((id) => (
+                          {row.ids.map((id: string) => (
                             <form key={id} action={deleteRegistration}>
                               <input type="hidden" name="id" value={id} />
                               <Button variant="destructive" size="sm">
