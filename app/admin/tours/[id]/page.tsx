@@ -49,13 +49,15 @@ async function toggleTourStatus(formData: FormData) {
 async function deleteTableau(
   _prevState: { ok: boolean; message: string },
   formData: FormData,
-) {
+): Promise<{ ok: boolean; message: string }> {
   "use server";
 
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
-  if (!id) return;
+  if (!id) {
+    return { ok: false, message: "Tableau introuvable." };
+  }
 
   const tableau = await prisma.tableau.findUnique({
     where: { id },
@@ -67,6 +69,7 @@ async function deleteTableau(
   if (tableau?.tourId) {
     revalidatePath(`/admin/tours/${tableau.tourId}`);
   }
+  return { ok: true, message: "Tableau supprime." };
 }
 
 export default async function AdminTourDashboard({ params }: PageProps) {
@@ -243,7 +246,6 @@ export default async function AdminTourDashboard({ params }: PageProps) {
                           id={tableau.id}
                           action={deleteTableau}
                         />
-                        <input type="hidden" name="tourId" value={tour.id} />
                       </TableCell>
                     </TableRow>
                   ))
