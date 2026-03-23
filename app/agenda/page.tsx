@@ -55,21 +55,21 @@ export default async function AgendaPage() {
   });
 
   return (
-    <section className="space-y-10">
+    <section className="page">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <div className="badge-pill gap-2">
             Agenda &amp; salles
             {season ? (
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
                 Saison {season.year}
               </span>
             ) : null}
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="page-title sm:text-4xl">
             Agenda des tours et salles
           </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+          <p className="page-subtitle">
             Retrouvez les prochains tours du troph&eacute;e, les clubs organisateurs
             et les salles d&rsquo;accueil.
           </p>
@@ -108,7 +108,7 @@ export default async function AgendaPage() {
                   return (
                   <div
                     key={tour.id}
-                    className={`flex flex-col gap-4 rounded-xl border border-border/60 bg-background px-4 py-4 transition hover:border-primary/40 ${
+                    className={`surface flex flex-col gap-4 px-4 py-4 transition hover:border-primary/40 ${
                       isPast ? "opacity-70 grayscale" : ""
                     }`}
                   >
@@ -119,20 +119,20 @@ export default async function AgendaPage() {
                             {tour.name}
                           </p>
                           {isToday ? (
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                            <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
                               Aujourd&apos;hui
                             </span>
                           ) : isPast ? (
-                            <span className="rounded-full border border-border/60 bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                            <span className="badge-pill text-[11px] font-semibold">
                               Passe
                             </span>
                           ) : (
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+                            <span className="badge-pill bg-emerald-500/10 text-[11px] font-semibold text-emerald-600">
                               A venir
                             </span>
                           )}
                           {isNext ? (
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                            <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
                               Prochain
                             </span>
                           ) : null}
@@ -153,17 +153,17 @@ export default async function AgendaPage() {
 
                     <div className="flex flex-wrap gap-2">
                       {tour.club ? (
-                        <span className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium">
+                        <span className="badge-pill">
                           Club : {tour.club.name}
                         </span>
                       ) : null}
                       {tour.venue ? (
-                        <span className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium">
+                        <span className="badge-pill">
                           {tour.venue}
                         </span>
                       ) : null}
                       {tour.city ? (
-                        <span className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium">
+                        <span className="badge-pill">
                           {tour.city}
                         </span>
                       ) : null}
@@ -195,10 +195,7 @@ export default async function AgendaPage() {
                 </div>
               ) : (
                 salles.map((salle) => (
-                  <div
-                    key={salle.name}
-                    className="rounded-xl border border-border/60 bg-background px-4 py-3"
-                  >
+                  <div key={salle.name} className="surface px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">{salle.name}</p>
@@ -211,7 +208,7 @@ export default async function AgendaPage() {
                           </p>
                         ) : null}
                       </div>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                      <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
                         {salle.tours} tour(s)
                       </span>
                     </div>

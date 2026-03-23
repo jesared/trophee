@@ -11,7 +11,7 @@ export default function UserDashboardLoading() {
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={`card-${index}`}
-            className="rounded-lg border border-border bg-background p-5"
+            className="surface p-5"
           >
             <div className="space-y-4">
               <div className="h-4 w-32 animate-pulse rounded-md bg-muted" />

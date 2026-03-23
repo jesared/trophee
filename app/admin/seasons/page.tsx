@@ -81,16 +81,16 @@ export default async function AdminSeasonsPage() {
   });
 
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Seasons</h1>
-        <p className="text-sm text-muted-foreground">
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Saison</h1>
+        <p className="page-subtitle">
           Creez vos saisons et definissez la saison active.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <div className="rounded-lg border border-border bg-background p-4">
+        <div className="surface p-4">
           <form action={createSeason} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nom</Label>
@@ -106,7 +106,7 @@ export default async function AdminSeasonsPage() {
           </form>
         </div>
 
-        <div className="rounded-lg border border-border bg-background">
+        <div className="surface">
           <Table>
             <TableHeader>
               <TableRow>
@@ -132,13 +132,11 @@ export default async function AdminSeasonsPage() {
                     <TableCell>{season.year}</TableCell>
                     <TableCell>
                       {season.isActive ? (
-                        <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                        <span className="badge-pill bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200">
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-inset ring-border">
-                          Inactive
-                        </span>
+                        <span className="badge-pill">Inactive</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

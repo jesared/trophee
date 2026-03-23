@@ -7,7 +7,7 @@ export default function AdminLoading() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <div className="rounded-lg border border-border bg-background p-4">
+        <div className="surface p-4">
           <div className="space-y-3">
             <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
             <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
@@ -17,7 +17,7 @@ export default function AdminLoading() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-background">
+        <div className="surface">
           <div className="space-y-3 p-4">
             <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
             <div className="h-4 w-full animate-pulse rounded-md bg-muted" />

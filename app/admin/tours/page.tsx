@@ -148,13 +148,11 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tours</h1>
-          <p className="text-sm text-muted-foreground">
-            Gerez les tours par saison.
-          </p>
+        <div className="page-header">
+          <h1 className="page-title">Tours</h1>
+          <p className="page-subtitle">Gerez les tours par saison.</p>
         </div>
 
         <AdminTourCreateDialog
@@ -165,14 +163,14 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
       </div>
 
       {seasons.length === 0 || clubs.length === 0 ? (
-        <div className="rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
+        <div className="surface p-4 text-sm text-muted-foreground">
           {seasons.length === 0
             ? "Aucune saison disponible. Creez une saison pour ajouter un tour."
             : "Aucun club disponible. Creez un club pour ajouter un tour."}
         </div>
       ) : null}
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>

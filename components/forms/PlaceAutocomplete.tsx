@@ -207,7 +207,7 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
         placeholder="Rechercher un lieu"
       />
       {open && (predictions.length > 0 || loading) ? (
-        <div className="absolute z-20 mt-2 w-full rounded-lg border border-border bg-background shadow-lg">
+        <div className="absolute z-20 mt-2 w-full surface shadow-lg">
           {loading ? (
             <div className="px-3 py-2 text-xs text-muted-foreground">
               Chargement...

@@ -7,18 +7,18 @@ import {
 
 export default function TropheePage() {
   return (
-    <section className="space-y-10">
-      <header className="space-y-4">
-        <p className="text-sm font-medium text-muted-foreground">Le Troph&eacute;e</p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+    <section className="page">
+      <header className="page-header">
+        <p className="badge-pill w-fit">Le Troph&eacute;e</p>
+        <h1 className="page-title sm:text-4xl">
           Troph&eacute;e Fran&ccedil;ois Grieder
         </h1>
-        <p className="max-w-3xl text-base text-foreground/80">
+        <p className="page-subtitle max-w-3xl text-base text-foreground/80">
           Le Troph&eacute;e Fran&ccedil;ois Grieder est un challenge r&eacute;gional de tennis
           de table organis&eacute; autour des tournois homologu&eacute;s du d&eacute;partement de la Marne
           et des Ardennes.
         </p>
-        <p className="max-w-3xl text-base text-foreground/80">
+        <p className="page-subtitle max-w-3xl text-base text-foreground/80">
           Cr&eacute;&eacute; en hommage &agrave; Fran&ccedil;ois Grieder, fid&egrave;le participant du circuit,
           ce troph&eacute;e r&eacute;compense la r&eacute;gularit&eacute; et la performance des joueurs tout
           au long de la saison.

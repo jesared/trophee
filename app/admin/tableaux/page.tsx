@@ -172,11 +172,11 @@ export default async function AdminTableauxPage() {
   }));
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tableaux</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Tableaux</h1>
+          <p className="page-subtitle">
             Gere les tableaux associes aux tours.
           </p>
         </div>
@@ -188,12 +188,12 @@ export default async function AdminTableauxPage() {
       </div>
 
       {tours.length === 0 || templates.length === 0 ? (
-        <div className="rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
+        <div className="surface p-4 text-sm text-muted-foreground">
           Creez d&apos;abord un tour et un template pour ajouter un tableau.
         </div>
       ) : null}
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>

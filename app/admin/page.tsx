@@ -1,15 +1,15 @@
-﻿export default function AdminPage() {
+export default function AdminPage() {
   return (
-    <section className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Vue d'ensemble de l'administration du trophée.
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-subtitle">
+          Vue d&apos;ensemble de l&apos;administration du trophée.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-lg border border-border bg-background p-6">
+        <div className="surface p-6">
           <h2 className="text-base font-semibold">Hiérarchie des actions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Suivez cet ordre pour initialiser une saison proprement.
@@ -106,7 +106,7 @@
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-background p-6">
+        <div className="surface p-6">
           <h2 className="text-base font-semibold">Conseils rapides</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Pour un démarrage fluide.

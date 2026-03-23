@@ -104,18 +104,18 @@ export default async function AdminClubsPage() {
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clubs</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Clubs</h1>
+          <p className="page-subtitle">
             Gere les clubs organisateurs des tours.
           </p>
         </div>
         <AdminClubDialog action={createClub} />
       </div>
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>

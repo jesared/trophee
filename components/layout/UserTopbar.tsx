@@ -37,7 +37,7 @@ export function UserTopbar() {
     <div className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3">
         <form
-          className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5"
+          className="flex flex-1 items-center gap-2 surface px-2.5 py-1.5"
           onSubmit={(event) => {
             event.preventDefault();
             submitSearch(query);
@@ -65,7 +65,7 @@ export function UserTopbar() {
         <Button asChild size="sm" className="gap-2">
           <Link href="/inscription">
             <Plus className="h-4 w-4" />
-            S’inscrire
+            S'inscrire
           </Link>
         </Button>
         <Button variant="ghost" size="icon" aria-label="Notifications">

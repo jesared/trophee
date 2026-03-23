@@ -8,12 +8,10 @@ import { Switch } from "@/components/ui/switch";
 
 export default function AdminSettingsPage() {
   return (
-    <section className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Configuration du dashboard admin.
-        </p>
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Settings</h1>
+        <p className="page-subtitle">Configuration du dashboard admin.</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -46,7 +44,7 @@ export default function AdminSettingsPage() {
             <CardTitle>Saison active</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+            <div className="surface bg-muted/40 px-3 py-2 text-sm">
               Saison active : <strong>2026</strong>
             </div>
             <Button asChild size="sm" variant="secondary">
@@ -81,7 +79,7 @@ export default function AdminSettingsPage() {
             <CardTitle>Email & Notifications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+            <div className="surface flex items-center justify-between px-3 py-2">
               <div>
                 <p className="text-sm font-medium">Emails automatiques</p>
                 <p className="text-xs text-muted-foreground">
@@ -103,7 +101,7 @@ export default function AdminSettingsPage() {
             <CardTitle>Google Maps</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+            <div className="surface bg-muted/40 px-3 py-2 text-sm">
               Clé API : <strong>Configurée</strong>
             </div>
             <Button size="sm" variant="secondary">

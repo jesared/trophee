@@ -143,7 +143,7 @@ export default async function ClassementPage({
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <ClassementExplorer seasons={seasonsView} />
     </section>
   );

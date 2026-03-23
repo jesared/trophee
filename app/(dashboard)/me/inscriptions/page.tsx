@@ -12,17 +12,15 @@ import {
 
 export default function UserRegistrationsPage() {
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Mes inscriptions
-        </h1>
-        <p className="text-sm text-muted-foreground">
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Mes inscriptions</h1>
+        <p className="page-subtitle">
           Suivez vos inscriptions aux tours et tableaux.
         </p>
       </div>
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>
@@ -39,7 +37,7 @@ export default function UserRegistrationsPage() {
                   <p>Aucune inscription pour le moment.</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <Button asChild size="sm">
-                      <Link href="/inscription">S’inscrire</Link>
+                      <Link href="/inscription">S'inscrire</Link>
                     </Button>
                     <Button asChild size="sm" variant="secondary">
                       <Link href="/agenda">Voir les tours</Link>

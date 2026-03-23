@@ -152,18 +152,16 @@ export default async function AdminTableauTemplatesPage() {
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
-          <p className="text-sm text-muted-foreground">
-            Gere les templates de tableaux.
-          </p>
+        <div className="page-header">
+          <h1 className="page-title">Templates</h1>
+          <p className="page-subtitle">Gere les templates de tableaux.</p>
         </div>
         <AdminTableauTemplateDialog action={createTableauTemplate} />
       </div>
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>

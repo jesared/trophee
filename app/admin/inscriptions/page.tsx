@@ -280,11 +280,11 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Inscriptions</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Inscriptions</h1>
+          <p className="page-subtitle">
             Creez et suivez les inscriptions des joueurs.
           </p>
         </div>
@@ -396,10 +396,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
                           {row.tableaux.map((tableau: TableauItem) => (
-                            <span
-                              key={tableau.id}
-                              className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium"
-                            >
+                            <span key={tableau.id} className="badge-pill">
                               {tableau.template.name}
                             </span>
                           ))}

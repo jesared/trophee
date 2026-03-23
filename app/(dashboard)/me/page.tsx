@@ -12,17 +12,17 @@ import {
 
 export default function UserDashboardPage() {
   return (
-    <section className="space-y-8">
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Mon espace</h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
+    <section className="page">
+      <div className="page-header">
+        <p className="badge-pill w-fit">Dashboard</p>
+        <h1 className="page-title">Mon espace</h1>
+        <p className="page-subtitle">
           Suivez vos inscriptions, prochains tours et performances.
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle>Résumé utilisateur</CardTitle>
             <CardDescription>Vue rapide de votre saison.</CardDescription>
@@ -46,7 +46,7 @@ export default function UserDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle>Prochains tours</CardTitle>
             <CardDescription>Ne manquez aucun rendez-vous.</CardDescription>
@@ -59,7 +59,7 @@ export default function UserDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle>Derniers résultats</CardTitle>
             <CardDescription>Vos derniers parcours.</CardDescription>
@@ -72,7 +72,7 @@ export default function UserDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle>Actions rapides</CardTitle>
             <CardDescription>

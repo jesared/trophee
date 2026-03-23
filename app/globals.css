@@ -200,3 +200,27 @@ body {
     @apply font-sans;
   }
 }
+
+@layer components {
+  .page {
+    @apply space-y-10;
+  }
+  .page-header {
+    @apply space-y-2;
+  }
+  .page-title {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground max-w-2xl;
+  }
+  .card-hover {
+    @apply transition-all hover:-translate-y-0.5 hover:shadow-lg;
+  }
+  .badge-pill {
+    @apply inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground;
+  }
+  .surface {
+    @apply rounded-xl border border-border/60 bg-background shadow-sm;
+  }
+}

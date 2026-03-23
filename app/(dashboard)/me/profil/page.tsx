@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
 import { authOptions } from "@/auth";
@@ -38,14 +38,14 @@ export default async function UserProfilePage() {
 
   if (!userId) {
     return (
-      <section className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mon profil</h1>
-          <p className="text-sm text-muted-foreground">
-            Connectez-vous pour modifier votre profil.
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background p-6 text-sm text-muted-foreground">
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Mon profil</h1>
+        <p className="page-subtitle">
+          Connectez-vous pour modifier votre profil.
+        </p>
+      </div>
+        <div className="surface p-6 text-sm text-muted-foreground">
           <p>Vous devez être connecté pour accéder à votre profil.</p>
           <Button asChild size="sm" className="mt-4">
             <Link href="/api/auth/signin">Se connecter</Link>
@@ -68,15 +68,15 @@ export default async function UserProfilePage() {
     : null;
 
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Mon profil</h1>
-        <p className="text-sm text-muted-foreground">
+    <section className="page">
+      <div className="page-header">
+        <h1 className="page-title">Mon profil</h1>
+        <p className="page-subtitle">
           Mettez à jour vos informations personnelles.
         </p>
       </div>
 
-      <div className="rounded-lg border border-border bg-background p-6">
+      <div className="surface p-6">
         <form action={updateProfile} className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

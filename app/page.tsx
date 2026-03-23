@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ const highlights = [
     title: "Saison en cours",
     description: "Suivez les dates clés et les classements mis à jour.",
     href: "/agenda",
-    cta: "Voir l’agenda",
+    cta: "Voir l'agenda",
   },
   {
     title: "Classements officiels",
@@ -20,19 +20,19 @@ const highlights = [
     title: "Inscription rapide",
     description: "Choisissez votre tour et votre tableau en quelques clics.",
     href: "/inscription",
-    cta: "S’inscrire",
+    cta: "S'inscrire",
   },
 ];
 
 const steps = [
-  "Choisissez un tour depuis l’agenda.",
+  "Choisissez un tour depuis l'agenda.",
   "Sélectionnez le tableau adapté à votre niveau.",
   "Confirmez votre inscription et suivez vos résultats.",
 ];
 
 export default function Home() {
   return (
-    <div className="space-y-16">
+    <div className="page">
       <section className="grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -41,7 +41,7 @@ export default function Home() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Le challenge régional de tennis de table
           </h1>
-          <p className="max-w-2xl text-base text-muted-foreground">
+          <p className="page-subtitle text-base">
             Le Trophée François Grieder réunit les clubs de la région autour d’un
             challenge convivial, rythmé par des rencontres sportives et une
             ambiance associative.
@@ -68,7 +68,7 @@ export default function Home() {
             <CardTitle>En un coup d’œil</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="rounded-xl border border-border bg-background p-4">
+            <div className="surface p-4">
               <p className="text-xs font-medium text-muted-foreground">
                 Prochain tour
               </p>
@@ -76,7 +76,7 @@ export default function Home() {
                 Consultez l’agenda pour la prochaine date
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-background p-4">
+            <div className="surface p-4">
               <p className="text-xs font-medium text-muted-foreground">
                 Classement en direct
               </p>

@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import type { Prisma, Role } from "@prisma/client";
 
 import { authOptions } from "@/auth";
@@ -131,11 +131,11 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   });
 
   return (
-    <section className="space-y-6">
+    <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Utilisateurs</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Utilisateurs</h1>
+          <p className="page-subtitle">
             Gestion des utilisateurs de la plateforme.
           </p>
         </div>
@@ -165,7 +165,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         </form>
       </div>
 
-      <div className="rounded-lg border border-border bg-background">
+      <div className="surface">
         <Table>
           <TableHeader>
             <TableRow>

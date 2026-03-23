@@ -115,9 +115,9 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Classement</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Classement</h1>
+          <p className="page-subtitle">
             Cliquez sur une saison puis un tour pour déplier les PDFs.
           </p>
         </div>

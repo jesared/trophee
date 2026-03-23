@@ -5,16 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function InscriptionPage() {
   return (
-    <section className="space-y-10">
+    <section className="page">
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
-          <div className="inline-flex items-center rounded-full border border-border/60 bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <div className="badge-pill">
             Inscription joueurs
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="page-title sm:text-4xl">
             Inscrivez-vous au trophée
           </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+          <p className="page-subtitle">
             Choisissez votre tour, votre tableau et validez votre participation
             en quelques clics. Les inscriptions sont centralisées et mises à jour
             en temps réel.
