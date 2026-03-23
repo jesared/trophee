@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
 import { AdminRegistrationPresence } from "@/components/admin-registration-presence";
