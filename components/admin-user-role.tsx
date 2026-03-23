@@ -5,23 +5,25 @@ import { useRouter } from "next/navigation";
 
 import { notifyError, notifySuccess } from "@/lib/toast";
 
+type RoleValue = "USER" | "ORGANIZER" | "ADMIN";
+
 type AdminUserRoleProps = {
   id: string;
-  role: "USER" | "ORGANIZER" | "ADMIN" | null;
+  role: RoleValue | null;
 };
 
 const roles = ["USER", "ORGANIZER", "ADMIN"] as const;
 
 export function AdminUserRole({ id, role }: AdminUserRoleProps) {
   const router = useRouter();
-  const [value, setValue] = React.useState(role ?? "USER");
+  const [value, setValue] = React.useState<RoleValue>(role ?? "USER");
   const [pending, setPending] = React.useState(false);
 
   React.useEffect(() => {
     setValue(role ?? "USER");
   }, [role]);
 
-  const handleChange = async (next: string) => {
+  const handleChange = async (next: RoleValue) => {
     setValue(next);
     setPending(true);
     try {
@@ -52,7 +54,7 @@ export function AdminUserRole({ id, role }: AdminUserRoleProps) {
         name="role"
         value={value}
         disabled={pending}
-        onChange={(event) => handleChange(event.target.value)}
+        onChange={(event) => handleChange(event.target.value as RoleValue)}
         className="h-9 rounded-md border border-border bg-background px-2 text-sm"
       >
         {roles.map((item) => (
