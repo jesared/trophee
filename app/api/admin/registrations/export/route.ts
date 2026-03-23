@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { PresenceStatus, Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 
@@ -17,12 +19,12 @@ export async function GET(request: Request) {
   const tourId = searchParams.get("tourId") ?? undefined;
   const tableauId = searchParams.get("tableauId") ?? undefined;
   const rawPresence = searchParams.get("presence") ?? undefined;
-  const presence =
+  const presence: PresenceStatus | undefined =
     rawPresence === "UNKNOWN" || rawPresence === "PRESENT" || rawPresence === "ABSENT"
-      ? rawPresence
+      ? (rawPresence as PresenceStatus)
       : undefined;
 
-  const where = {
+  const where: Prisma.RegistrationWhereInput = {
     ...(tourId ? { tourId } : {}),
     ...(tableauId ? { tableauId } : {}),
     ...(presence ? { presence } : {}),
