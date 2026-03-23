@@ -144,7 +144,7 @@ export default async function ClassementPage({
 
   return (
     <section className="space-y-6">
-      <ClassementExplorer seasons={seasonsView} initialQuery={q ?? null} />
+      <ClassementExplorer seasons={seasonsView} />
     </section>
   );
 }
