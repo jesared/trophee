@@ -202,3 +202,12 @@ model Registration {
 
   @@unique([tourId, tableauId, playerId])
 }
+
+model SchedulePage {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  content   String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
