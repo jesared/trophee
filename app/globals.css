@@ -224,3 +224,12 @@ body {
     @apply rounded-xl border border-border/60 bg-background shadow-sm;
   }
 }
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
 
 const highlights = [
   {
@@ -36,7 +37,59 @@ const stats = [
   { label: "Clubs partenaires", value: "20+" },
 ];
 
-export default function Home() {
+const clubs = [
+  "Reims TT",
+  "Sedan TT",
+  "Châlons TT",
+  "Charleville TT",
+  "Rethel TT",
+  "Tinqueux TT",
+  "Épernay TT",
+  "Vitry TT",
+];
+
+const testimonials = [
+  {
+    quote:
+      "Un circuit bien organisé qui permet de jouer régulièrement et de suivre sa progression.",
+    name: "J. Martin",
+    role: "Joueur licencié",
+  },
+  {
+    quote:
+      "Des tableaux cohérents et une super ambiance sur chaque tour. On y revient chaque saison.",
+    name: "C. Morel",
+    role: "Responsable club",
+  },
+  {
+    quote:
+      "Tout est centralisé : agenda, inscriptions et classements. C'est clair et efficace.",
+    name: "L. Petit",
+    role: "Capitaine d'équipe",
+  },
+];
+
+export default async function Home() {
+  type SeasonItem = {
+    year: number;
+    tours: { name: string; date: Date; venue: string | null }[];
+  };
+
+  const season: SeasonItem | null = await prisma.season.findFirst({
+    where: { isActive: true },
+    include: {
+      tours: {
+        select: { name: true, date: true, venue: true },
+        orderBy: { date: "asc" },
+      },
+    },
+    orderBy: { year: "desc" },
+  });
+
+  const now = new Date();
+  const nextTour = season?.tours.find((tour) => tour.date >= now) ?? null;
+  const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
+
   return (
     <div className="page">
       <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-background p-8 sm:p-10">
@@ -75,9 +128,21 @@ export default function Home() {
                 <p className="text-xs font-medium text-muted-foreground">
                   Prochain tour
                 </p>
-                <p className="text-base font-semibold text-foreground">
-                  Consultez l'agenda pour la prochaine date
-                </p>
+                {nextTour ? (
+                  <>
+                    <p className="text-base font-semibold text-foreground">
+                      {nextTour.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatter.format(nextTour.date)}
+                      {nextTour.venue ? ` • ${nextTour.venue}` : ""}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-base font-semibold text-foreground">
+                    Consultez l'agenda pour la prochaine date
+                  </p>
+                )}
               </div>
               <div className="surface p-4">
                 <p className="text-xs font-medium text-muted-foreground">
@@ -106,6 +171,51 @@ export default function Home() {
             </p>
           </div>
         ))}
+      </section>
+
+      <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
+        <div className="page-header">
+          <h2 className="page-title text-2xl">Clubs partenaires</h2>
+          <p className="page-subtitle">
+            Une communauté engagée qui fait vivre le trophée.
+          </p>
+        </div>
+        <div className="mt-6 overflow-hidden">
+          <div className="flex gap-4 animate-[scroll_18s_linear_infinite]">
+            {clubs.concat(clubs).map((club, index) => (
+              <div
+                key={`${club}-${index}`}
+                className="surface min-w-[180px] px-4 py-3 text-sm font-medium"
+              >
+                {club}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">
+        <div className="page-header">
+          <h2 className="page-title text-2xl">Ils en parlent</h2>
+          <p className="page-subtitle">
+            Quelques retours de clubs et joueurs impliqués.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {testimonials.map((item) => (
+            <Card key={item.name} className="surface border-border/60">
+              <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
+                <p className="text-foreground">"{item.quote}"</p>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {item.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{item.role}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
