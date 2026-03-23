@@ -43,7 +43,7 @@ async function loadMediaByFolder(): Promise<
           .map((item) => ({
             name: item.name,
             path: `${folder.value}/${item.name}`,
-            size: item.metadata?.size ?? item.size ?? null,
+            size: item.metadata?.size ?? null,
             updatedAt: item.updated_at ?? item.created_at ?? null,
           }));
 
