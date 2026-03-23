@@ -3,6 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, Bell, Plus, X } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,33 @@ export function AdminTopbar() {
     const next = params.toString();
     router.push(next ? `${pathname}?${next}` : pathname);
   };
+
+  const createAction = React.useMemo(() => {
+    const map = [
+      { match: "/admin/tours", label: "Créer un tour", href: "/admin/tours" },
+      {
+        match: "/admin/tableaux",
+        label: "Créer un tableau",
+        href: "/admin/tableaux",
+      },
+      {
+        match: "/admin/tableau-templates",
+        label: "Créer un template",
+        href: "/admin/tableau-templates",
+      },
+      { match: "/admin/players", label: "Ajouter un joueur", href: "/admin/players" },
+      {
+        match: "/admin/inscriptions",
+        label: "Nouvelle inscription",
+        href: "/admin/inscriptions",
+      },
+      { match: "/admin/seasons", label: "Créer une saison", href: "/admin/seasons" },
+      { match: "/admin/clubs", label: "Créer un club", href: "/admin/clubs" },
+      { match: "/admin/users", label: "Ajouter un utilisateur", href: "/admin/users" },
+    ];
+
+    return map.find((item) => pathname.startsWith(item.match));
+  }, [pathname]);
 
   return (
     <div className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -64,10 +92,19 @@ export function AdminTopbar() {
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell className="h-4 w-4" />
         </Button>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nouveau
-        </Button>
+        {createAction ? (
+          <Button asChild className="gap-2">
+            <Link href={createAction.href}>
+              <Plus className="h-4 w-4" />
+              {createAction.label}
+            </Link>
+          </Button>
+        ) : (
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nouveau
+          </Button>
+        )}
       </div>
     </div>
   );

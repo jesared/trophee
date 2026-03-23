@@ -1,26 +1,27 @@
 "use client";
 
-import * as React from "react";
+import {
+  ArrowUpRight,
+  Building2,
+  CalendarDays,
+  ClipboardList,
+  Layers,
+  LayoutDashboard,
+  LayoutGrid,
+  LogOut,
+  PanelLeft,
+  Settings,
+  Trophy,
+  UserCircle,
+  Users,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
-import {
-  PanelLeft,
-  LayoutDashboard,
-  Trophy,
-  Layers,
-  LayoutGrid,
-  Users,
-  ClipboardList,
-  Building2,
-  UserCircle,
-  Settings,
-  LogOut,
-  ArrowUpRight,
-  CalendarDays,
-} from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { SidebarItem } from "@/components/layout/SidebarItem";
+import { SidebarSection } from "@/components/layout/SidebarSection";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -31,8 +32,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarItem } from "@/components/layout/SidebarItem";
-import { SidebarSection } from "@/components/layout/SidebarSection";
+import { cn } from "@/lib/utils";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
 
@@ -41,7 +41,7 @@ const sections = [
     title: "MAIN",
     items: [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-      { label: "Seasons", href: "/admin/seasons", icon: CalendarDays },
+      { label: "Saison", href: "/admin/seasons", icon: CalendarDays },
       { label: "Tours", href: "/admin/tours", icon: Trophy, badge: 8 },
       { label: "Tableaux", href: "/admin/tableaux", icon: Layers, badge: 12 },
       {
@@ -56,7 +56,12 @@ const sections = [
     items: [
       { label: "Clubs", href: "/admin/clubs", icon: Building2, badge: 12 },
       { label: "Joueurs", href: "/admin/players", icon: Users, badge: 124 },
-      { label: "Inscriptions", href: "/admin/inscriptions", icon: ClipboardList, badge: 36 },
+      {
+        label: "Inscriptions",
+        href: "/admin/inscriptions",
+        icon: ClipboardList,
+        badge: 36,
+      },
     ],
   },
   {
@@ -94,9 +99,7 @@ function AdminIdentity({ collapsed }: { collapsed: boolean }) {
         {initials}
       </div>
       <div className={cn("min-w-0", collapsed && "sr-only")}>
-        <p className="truncate text-sm font-medium">
-          {user?.name ?? "Admin"}
-        </p>
+        <p className="truncate text-sm font-medium">{user?.name ?? "Admin"}</p>
         <p className="truncate text-xs text-muted-foreground">
           {user?.email ?? "-"}
         </p>

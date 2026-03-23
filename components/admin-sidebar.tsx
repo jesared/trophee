@@ -17,7 +17,6 @@ const navItems = [
   { label: "Inscriptions", href: "/admin/inscriptions" },
   { label: "Users", href: "/admin/users" },
 ];
-
 export function AdminSidebar() {
   const pathname = usePathname();
 
