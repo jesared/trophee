@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
-import { revalidatePath } from "next/cache";
-
 import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminRegistrationPresence } from "@/components/admin-registration-presence";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,26 +43,6 @@ async function toggleTourStatus(formData: FormData) {
 
   revalidatePath(`/admin/tours/${id}`);
   revalidatePath("/admin/tours");
-}
-
-async function updatePresence(formData: FormData) {
-  "use server";
-
-  await requireAdmin();
-
-  const id = String(formData.get("id") ?? "").trim();
-  const presence = String(formData.get("presence") ?? "").trim();
-
-  if (!id || !["UNKNOWN", "PRESENT", "ABSENT"].includes(presence)) {
-    return;
-  }
-
-  await prisma.registration.update({
-    where: { id },
-    data: { presence: presence as "UNKNOWN" | "PRESENT" | "ABSENT" },
-  });
-
-  revalidatePath(`/admin/tours/${id}`);
 }
 
 async function deleteTableau(
@@ -153,7 +132,7 @@ export default async function AdminTourDashboard({ params }: PageProps) {
       existing.createdAt = registration.createdAt;
     }
     return acc;
-  }, new Map<string, { player: typeof registrations[number]["player"]; tableaux: typeof registrations[number]["tableau"][]; createdAt: Date; ids: string[] }>());
+  }, new Map<string, { player: typeof registrations[number]["player"]; tableaux: typeof registrations[number]["tableau"][]; createdAt: Date; ids: string[]; presence: "UNKNOWN" | "PRESENT" | "ABSENT" }>());
 
   const groupedRows = Array.from(grouped.values()).sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
@@ -332,21 +311,10 @@ export default async function AdminTourDashboard({ params }: PageProps) {
                         {dateFormatter.format(row.createdAt)}
                       </TableCell>
                       <TableCell>
-                        <form action={updatePresence} className="flex items-center gap-2">
-                          <input type="hidden" name="id" value={row.ids[0]} />
-                          <select
-                            name="presence"
-                            defaultValue={row.presence ?? "UNKNOWN"}
-                            className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-                          >
-                            <option value="UNKNOWN">En attente</option>
-                            <option value="PRESENT">Present</option>
-                            <option value="ABSENT">Absent</option>
-                          </select>
-                          <Button size="sm" variant="secondary">
-                            Maj
-                          </Button>
-                        </form>
+                        <AdminRegistrationPresence
+                          ids={row.ids}
+                          value={row.presence ?? "UNKNOWN"}
+                        />
                       </TableCell>
                     </TableRow>
                   ))
