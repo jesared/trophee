@@ -15,9 +15,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const tourId = searchParams.get("tourId") ?? undefined;
+  const tableauId = searchParams.get("tableauId") ?? undefined;
+  const presence = searchParams.get("presence") ?? undefined;
+
+  const where = {
+    ...(tourId ? { tourId } : {}),
+    ...(tableauId ? { tableauId } : {}),
+    ...(presence ? { presence } : {}),
+  };
 
   const registrations = await prisma.registration.findMany({
-    where: tourId ? { tourId } : undefined,
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       player: { select: { firstName: true, lastName: true, email: true } },
@@ -33,6 +41,7 @@ export async function GET(request: Request) {
     "tour",
     "date_tour",
     "tableau",
+    "presence",
   ];
 
   const rows = registrations.map((registration) => [
@@ -42,6 +51,7 @@ export async function GET(request: Request) {
     registration.tour.name,
     registration.tour.date.toISOString(),
     registration.tableau.template.name,
+    registration.presence ?? "UNKNOWN",
   ]);
 
   const csv = [header, ...rows]

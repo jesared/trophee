@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
-import { AdminRegistrationPresence } from "@/components/admin-registration-presence";
+import { AdminTourRegistrations } from "@/components/admin-tour-registrations";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -139,6 +139,23 @@ export default async function AdminTourDashboard({ params }: PageProps) {
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
 
+  const registrationRows = groupedRows.map((row) => ({
+    playerId: row.player.id,
+    playerName: `${row.player.firstName} ${row.player.lastName}`.trim(),
+    createdAt: row.createdAt.toISOString(),
+    presence: row.presence ?? "UNKNOWN",
+    ids: row.ids,
+    tableaux: row.tableaux.map((tableau) => ({
+      id: tableau.id,
+      name: tableau.template.name,
+    })),
+  }));
+
+  const tableauOptions = tableaux.map((tableau) => ({
+    id: tableau.id,
+    name: tableau.template.name,
+  }));
+
   const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "long",
@@ -274,54 +291,13 @@ export default async function AdminTourDashboard({ params }: PageProps) {
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Joueur</TableHead>
-                  <TableHead>Tableaux</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Presence</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedRows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="py-6">
-                      <EmptyState
-                        title="Aucune inscription"
-                        description="Ouvrez les inscriptions pour commencer."
-                      />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  groupedRows.map((row) => (
-                    <TableRow key={row.player.id}>
-                      <TableCell className="font-medium">
-                        {row.player.firstName} {row.player.lastName}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          {row.tableaux.map((tableau) => (
-                            <span key={tableau.id} className="badge-pill">
-                              {tableau.template.name}
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {dateFormatter.format(row.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <AdminRegistrationPresence
-                          ids={row.ids}
-                          value={row.presence ?? "UNKNOWN"}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <div className="p-4">
+              <AdminTourRegistrations
+                tourId={tour.id}
+                rows={registrationRows}
+                tableaux={tableauOptions}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
