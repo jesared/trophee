@@ -98,12 +98,26 @@ model Club {
   logoUrl   String?
   contactEmail String?
   contactPhone String?
+  contactName String?
+  contactFirstName String?
+  ffttId String?
+  ffttNumber String?
+  hallName String?
+  hallAddress1 String?
+  hallAddress2 String?
+  hallAddress3 String?
+  hallZip String?
+  hallCity String?
+  website String?
+  latitude Float?
+  longitude Float?
   createdAt DateTime @default(now())
 
   tours Tour[]
 
   @@index([name])
   @@index([city])
+  @@index([ffttNumber])
 }
 
 model Tour {

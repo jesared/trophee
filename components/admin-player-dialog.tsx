@@ -41,6 +41,7 @@ export function AdminPlayerDialog({ action }: AdminPlayerDialogProps) {
     ok: false,
     message: "",
   });
+  const [ffttLoading, setFfttLoading] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement | null>(null);
 
   React.useEffect(() => {
@@ -57,6 +58,72 @@ export function AdminPlayerDialog({ action }: AdminPlayerDialogProps) {
 
     notifyError(state.message);
   }, [state.message, state.ok]);
+
+  const handleFfttLookup = async () => {
+    const form = formRef.current;
+    if (!form) return;
+    const licenceInput = form.querySelector<HTMLInputElement>("#licence");
+    const licence = licenceInput?.value?.trim();
+    if (!licence) {
+      notifyError("Renseignez un numero de licence.");
+      return;
+    }
+    setFfttLoading(true);
+    try {
+      const res = await fetch("/api/admin/players/fftt-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ licence }),
+      });
+      const data = (await res.json()) as {
+        ok: boolean;
+        message: string;
+        payload?: {
+          firstName?: string;
+          lastName?: string;
+          club?: string;
+          clubId?: string;
+          points?: number;
+          clubDetails?: {
+            name?: string;
+            city?: string;
+            address?: string;
+            email?: string;
+            phone?: string;
+          } | null;
+        };
+      };
+      if (!res.ok || !data.ok) {
+        notifyError(data.message || "FFTT indisponible.");
+        return;
+      }
+      const payload = data.payload ?? {};
+      if (payload.firstName) {
+        const input = form.querySelector<HTMLInputElement>("#firstName");
+        if (input) input.value = payload.firstName;
+      }
+      if (payload.lastName) {
+        const input = form.querySelector<HTMLInputElement>("#lastName");
+        if (input) input.value = payload.lastName;
+      }
+      if (payload.clubDetails?.name) {
+        const input = form.querySelector<HTMLInputElement>("#club");
+        if (input) input.value = payload.clubDetails.name;
+      } else if (payload.club) {
+        const input = form.querySelector<HTMLInputElement>("#club");
+        if (input) input.value = payload.club;
+      }
+      if (payload.points != null) {
+        const input = form.querySelector<HTMLInputElement>("#points");
+        if (input) input.value = String(payload.points);
+      }
+      notifySuccess("Informations FFTT chargees.");
+    } catch {
+      notifyError("Erreur FFTT.");
+    } finally {
+      setFfttLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -99,7 +166,15 @@ export function AdminPlayerDialog({ action }: AdminPlayerDialogProps) {
             <Label htmlFor="licence">Licence</Label>
             <Input id="licence" name="licence" />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleFfttLookup}
+              disabled={ffttLoading}
+            >
+              {ffttLoading ? "Recherche..." : "Auto-remplir via FFTT"}
+            </Button>
             <SubmitButton disabled={false} />
           </div>
         </form>

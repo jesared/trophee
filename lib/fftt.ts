@@ -12,8 +12,13 @@ type FfttRequestParams = Record<string, string | number | undefined>;
 const FFTT_BASE_URL = process.env.FFTT_BASE_URL ?? "";
 const FFTT_APP_ID = process.env.FFTT_APP_ID ?? "";
 const FFTT_APP_PASSWORD = process.env.FFTT_APP_PASSWORD ?? "";
-const FFTT_LICENCE_ENDPOINT = process.env.FFTT_LICENCE_ENDPOINT ?? "xml_licence.php";
+const FFTT_LICENCE_ENDPOINT =
+  process.env.FFTT_LICENCE_ENDPOINT ?? "xml_licence_b.php";
 const FFTT_LICENCE_PARAM = process.env.FFTT_LICENCE_PARAM ?? "licence";
+const FFTT_CLUB_DETAIL_ENDPOINT =
+  process.env.FFTT_CLUB_DETAIL_ENDPOINT ?? "xml_club_detail.php";
+const FFTT_CLUB_DETAIL_PARAM =
+  process.env.FFTT_CLUB_DETAIL_PARAM ?? "club";
 
 export function isFfttEnabled() {
   return Boolean(FFTT_BASE_URL && FFTT_APP_ID && FFTT_APP_PASSWORD);
@@ -21,7 +26,9 @@ export function isFfttEnabled() {
 
 function ensureConfig() {
   if (!FFTT_BASE_URL || !FFTT_APP_ID || !FFTT_APP_PASSWORD) {
-    throw new Error("FFTT config manquante (FFTT_BASE_URL/FFTT_APP_ID/FFTT_APP_PASSWORD).");
+    throw new Error(
+      "FFTT config manquante (FFTT_BASE_URL/FFTT_APP_ID/FFTT_APP_PASSWORD).",
+    );
   }
 }
 
@@ -58,7 +65,9 @@ export function buildFfttAuth(serie?: string): FfttAuth {
 }
 
 function buildUrl(script: string, params: FfttRequestParams, auth: FfttAuth) {
-  const base = FFTT_BASE_URL.endsWith("/") ? FFTT_BASE_URL : `${FFTT_BASE_URL}/`;
+  const base = FFTT_BASE_URL.endsWith("/")
+    ? FFTT_BASE_URL
+    : `${FFTT_BASE_URL}/`;
   const url = new URL(script, base);
   const search = new URLSearchParams();
 
@@ -100,7 +109,7 @@ function decodeXmlEntities(value: string) {
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
+    .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'");
 }
 
@@ -121,6 +130,7 @@ export type FfttLicenceInfo = {
   firstName?: string;
   lastName?: string;
   club?: string;
+  clubId?: string;
   points?: number;
   licence?: string;
 };
@@ -141,9 +151,64 @@ export async function fetchFfttLicence(licence: string, serie?: string) {
 
   return {
     licence: extractTag(xml, "licence") ?? licence,
-    firstName: extractTag(xml, "prenom") ?? extractTag(xml, "firstname") ?? undefined,
-    lastName: extractTag(xml, "nom") ?? extractTag(xml, "lastname") ?? undefined,
-    club: extractTag(xml, "club") ?? undefined,
+    firstName:
+      extractTag(xml, "prenom") ?? extractTag(xml, "firstname") ?? undefined,
+    lastName:
+      extractTag(xml, "nom") ?? extractTag(xml, "lastname") ?? undefined,
+    club: extractTag(xml, "nomclub") ?? extractTag(xml, "club") ?? undefined,
+    clubId:
+      extractTag(xml, "numclub") ?? extractTag(xml, "clubid") ?? undefined,
     points: Number.isFinite(points) ? Math.round(points as number) : undefined,
   } satisfies FfttLicenceInfo;
+}
+
+export type FfttClubDetail = {
+  id: string;
+  number?: string;
+  hallName?: string;
+  hallAddress1?: string;
+  hallAddress2?: string;
+  hallAddress3?: string;
+  hallZip?: string;
+  hallCity?: string;
+  website?: string;
+  contactName?: string;
+  contactFirstName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  latitude?: number;
+  longitude?: number;
+};
+
+export async function fetchFfttClubDetail(
+  clubId: string,
+  serie?: string,
+): Promise<FfttClubDetail> {
+  const xml = await callFftt(
+    FFTT_CLUB_DETAIL_ENDPOINT,
+    { [FFTT_CLUB_DETAIL_PARAM]: clubId },
+    serie,
+  );
+
+  return {
+    id: extractTag(xml, "idclub") ?? clubId,
+    number: extractTag(xml, "numero") ?? undefined,
+    hallName: extractTag(xml, "nomsalle") ?? undefined,
+    hallAddress1: extractTag(xml, "adressesalle1") ?? undefined,
+    hallAddress2: extractTag(xml, "adressesalle2") ?? undefined,
+    hallAddress3: extractTag(xml, "adressesalle3") ?? undefined,
+    hallZip: extractTag(xml, "codepsalle") ?? undefined,
+    hallCity: extractTag(xml, "villesalle") ?? undefined,
+    website: extractTag(xml, "web") ?? undefined,
+    contactName: extractTag(xml, "nomcor") ?? undefined,
+    contactFirstName: extractTag(xml, "prenomcor") ?? undefined,
+    contactEmail: extractTag(xml, "mailcor") ?? undefined,
+    contactPhone: extractTag(xml, "telcor") ?? undefined,
+    latitude: extractTag(xml, "latitude")
+      ? Number(extractTag(xml, "latitude"))
+      : undefined,
+    longitude: extractTag(xml, "longitude")
+      ? Number(extractTag(xml, "longitude"))
+      : undefined,
+  };
 }
