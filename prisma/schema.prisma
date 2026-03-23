@@ -15,6 +15,12 @@ enum Role {
   ADMIN
 }
 
+enum PresenceStatus {
+  UNKNOWN
+  PRESENT
+  ABSENT
+}
+
 enum TourStatus {
   DRAFT
   OPEN
@@ -170,6 +176,7 @@ model Player {
 model Registration {
   id        String   @id @default(cuid())
   status    String?
+  presence  PresenceStatus @default(UNKNOWN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

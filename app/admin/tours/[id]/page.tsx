@@ -46,6 +46,26 @@ async function toggleTourStatus(formData: FormData) {
   revalidatePath("/admin/tours");
 }
 
+async function updatePresence(formData: FormData) {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const presence = String(formData.get("presence") ?? "").trim();
+
+  if (!id || !["UNKNOWN", "PRESENT", "ABSENT"].includes(presence)) {
+    return;
+  }
+
+  await prisma.registration.update({
+    where: { id },
+    data: { presence: presence as "UNKNOWN" | "PRESENT" | "ABSENT" },
+  });
+
+  revalidatePath(`/admin/tours/${id}`);
+}
+
 async function deleteTableau(
   _prevState: { ok: boolean; message: string },
   formData: FormData,
@@ -119,12 +139,16 @@ export default async function AdminTourDashboard({ params }: PageProps) {
         player: registration.player,
         tableaux: [registration.tableau],
         createdAt: registration.createdAt,
+        presence: registration.presence,
         ids: [registration.id],
       });
       return acc;
     }
     existing.tableaux.push(registration.tableau);
     existing.ids.push(registration.id);
+    if (registration.presence !== "UNKNOWN") {
+      existing.presence = registration.presence;
+    }
     if (registration.createdAt > existing.createdAt) {
       existing.createdAt = registration.createdAt;
     }
@@ -276,12 +300,13 @@ export default async function AdminTourDashboard({ params }: PageProps) {
                   <TableHead>Joueur</TableHead>
                   <TableHead>Tableaux</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Presence</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {groupedRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="py-6">
+                    <TableCell colSpan={4} className="py-6">
                       <EmptyState
                         title="Aucune inscription"
                         description="Ouvrez les inscriptions pour commencer."
@@ -305,6 +330,23 @@ export default async function AdminTourDashboard({ params }: PageProps) {
                       </TableCell>
                       <TableCell>
                         {dateFormatter.format(row.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <form action={updatePresence} className="flex items-center gap-2">
+                          <input type="hidden" name="id" value={row.ids[0]} />
+                          <select
+                            name="presence"
+                            defaultValue={row.presence ?? "UNKNOWN"}
+                            className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+                          >
+                            <option value="UNKNOWN">En attente</option>
+                            <option value="PRESENT">Present</option>
+                            <option value="ABSENT">Absent</option>
+                          </select>
+                          <Button size="sm" variant="secondary">
+                            Maj
+                          </Button>
+                        </form>
                       </TableCell>
                     </TableRow>
                   ))
