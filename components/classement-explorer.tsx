@@ -82,6 +82,22 @@ function countAllPdfs(seasons: ClassementSeason[]) {
   }, 0);
 }
 
+function normalizeLabel(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function findClassementGeneral(seasons: ClassementSeason[]) {
+  const candidates = seasons.flatMap((season) => season.rootPdfs);
+  return (
+    candidates.find((file) =>
+      normalizeLabel(file.name).includes("classement general"),
+    ) ?? null
+  );
+}
+
 export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
   const [openSeasonId, setOpenSeasonId] = React.useState<string | null>(
     seasons[0]?.id ?? null,
@@ -92,6 +108,7 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
   );
 
   const totalPdfs = countAllPdfs(seasons);
+  const classementGeneral = findClassementGeneral(seasons);
   const formatter = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -122,6 +139,58 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
           </p>
         </div>
       </div>
+
+      {classementGeneral ? (
+        <Card className="surface border-border/60 bg-muted/30">
+          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Classement général</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Dernière mise à jour :{" "}
+                {classementGeneral.modifiedTime
+                  ? formatter.format(new Date(classementGeneral.modifiedTime))
+                  : "-"}
+              </p>
+            </div>
+            <span className="badge-pill bg-primary/10 text-primary">
+              PDF principal
+            </span>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            <span className="font-medium text-foreground">
+              {classementGeneral.name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {formatBytes(classementGeneral.size)}
+            </span>
+            <div className="ml-auto flex flex-wrap gap-2">
+              {classementGeneral.webViewLink ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link
+                    href={classementGeneral.webViewLink}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ouvrir
+                  </Link>
+                </Button>
+              ) : null}
+              {classementGeneral.webContentLink ? (
+                <Button asChild size="sm">
+                  <Link
+                    href={classementGeneral.webContentLink}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Télécharger
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>

@@ -23,6 +23,47 @@ const tieBreakers = [
   "Âge du joueur en dernier critère",
 ];
 
+const timeline = [
+  {
+    title: "Lancement de la saison",
+    description:
+      "Publication de l'agenda officiel et ouverture des inscriptions.",
+  },
+  {
+    title: "Tours homologués",
+    description:
+      "Accumulation des points à chaque tournoi selon les tableaux.",
+  },
+  {
+    title: "Finale & clôture",
+    description:
+      "Dernier tour de la saison et consolidation du classement général.",
+  },
+  {
+    title: "Cérémonie",
+    description:
+      "Remise officielle des récompenses aux vainqueurs de chaque tableau.",
+  },
+];
+
+const benefits = [
+  {
+    title: "Un circuit structuré",
+    description:
+      "Chaque tour suit le même barème pour garantir la cohérence du classement.",
+  },
+  {
+    title: "Une progression visible",
+    description:
+      "Suivez vos points et votre position tableau par tableau tout au long de la saison.",
+  },
+  {
+    title: "Une communauté active",
+    description:
+      "Rencontrez les clubs de la région dans une ambiance compétitive mais conviviale.",
+  },
+];
+
 export default function TropheePage() {
   return (
     <section className="page">
@@ -103,6 +144,49 @@ export default function TropheePage() {
             </ul>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
+        <div className="page-header">
+          <h2 className="page-title text-2xl">Chronologie de la saison</h2>
+          <p className="page-subtitle">
+            Les grandes étapes du trophée tout au long de l'année.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {timeline.map((item, index) => (
+            <div key={item.title} className="surface px-5 py-4">
+              <div className="badge-pill w-fit">Étape {index + 1}</div>
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {item.title}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">
+        <div className="page-header">
+          <h2 className="page-title text-2xl">Pourquoi participer ?</h2>
+          <p className="page-subtitle">
+            Un format compétitif et convivial qui valorise la régularité.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {benefits.map((item) => (
+            <div key={item.title} className="surface px-5 py-4">
+              <p className="text-sm font-semibold text-foreground">
+                {item.title}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
