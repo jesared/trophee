@@ -167,6 +167,8 @@ model Player {
   club      String?
   points    Int?
   licence   String?
+  ffttSerie String?
+  ffttLastSync DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

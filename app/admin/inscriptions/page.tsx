@@ -22,6 +22,12 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import {
+  fetchFfttLicence,
+  initFfttSerie,
+  isFfttEnabled,
+  parseFfttSerie,
+} from "@/lib/fftt";
 
 type ActionState = {
   ok: boolean;
@@ -63,7 +69,10 @@ async function createRegistration(
 
   const tableau = await prisma.tableau.findUnique({
     where: { id: tableauId },
-    include: { tour: { select: { status: true } } },
+    include: {
+      tour: { select: { status: true } },
+      template: { select: { minPoints: true, maxPoints: true } },
+    },
   });
 
   if (!tableau) {
@@ -89,6 +98,85 @@ async function createRegistration(
 
   if (existing) {
     return { ok: false, message: "Inscription deja existante." };
+  }
+
+  const player = await prisma.player.findUnique({
+    where: { id: playerId },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      licence: true,
+      club: true,
+      points: true,
+      ffttSerie: true,
+    },
+  });
+
+  if (!player) {
+    return { ok: false, message: "Joueur introuvable." };
+  }
+
+  const ffttEnabled = isFfttEnabled();
+  const enforceFftt = process.env.FFTT_ENFORCE === "true";
+  let currentPoints = player.points ?? null;
+
+  if (ffttEnabled && player.licence) {
+    try {
+      let serie = player.ffttSerie ?? null;
+      if (!serie) {
+        const initXml = await initFfttSerie();
+        const parsedSerie = parseFfttSerie(initXml);
+        if (parsedSerie) {
+          serie = parsedSerie;
+          await prisma.player.update({
+            where: { id: player.id },
+            data: { ffttSerie: parsedSerie },
+          });
+        }
+      }
+
+      const ffttInfo = await fetchFfttLicence(player.licence, serie ?? undefined);
+      const updates: Record<string, unknown> = {};
+
+      if (ffttInfo.club && ffttInfo.club !== player.club) {
+        updates.club = ffttInfo.club;
+      }
+      if (ffttInfo.points != null && ffttInfo.points !== player.points) {
+        updates.points = ffttInfo.points;
+        currentPoints = ffttInfo.points;
+      }
+      if (ffttInfo.firstName && ffttInfo.firstName !== player.firstName) {
+        updates.firstName = ffttInfo.firstName;
+      }
+      if (ffttInfo.lastName && ffttInfo.lastName !== player.lastName) {
+        updates.lastName = ffttInfo.lastName;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await prisma.player.update({
+          where: { id: player.id },
+          data: { ...updates, ffttLastSync: new Date() },
+        });
+      }
+    } catch (error) {
+      if (enforceFftt) {
+        return {
+          ok: false,
+          message: "Verification FFTT impossible. Reessayez plus tard.",
+        };
+      }
+    }
+  }
+
+  const { minPoints, maxPoints } = tableau.template;
+  if (currentPoints != null) {
+    if (minPoints != null && currentPoints < minPoints) {
+      return { ok: false, message: "Points insuffisants pour ce tableau." };
+    }
+    if (maxPoints != null && currentPoints > maxPoints) {
+      return { ok: false, message: "Points trop eleves pour ce tableau." };
+    }
   }
 
   try {
