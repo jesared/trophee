@@ -79,7 +79,7 @@ export default async function Home() {
   });
 
   const partnerClubs = await prisma.club.findMany({
-    select: { name: true },
+    select: { name: true, logoUrl: true, city: true },
     orderBy: { name: "asc" },
   });
   const clubNames = partnerClubs.map((club) => club.name);
@@ -89,7 +89,7 @@ export default async function Home() {
   const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
   const scrollerClubs =
-    clubNames.length > 0 ? clubNames : ["Clubs à venir"];
+    clubNames.length > 0 ? partnerClubs : [{ name: "Clubs à venir", logoUrl: null, city: null }];
 
   return (
     <div className="page">
@@ -181,18 +181,56 @@ export default async function Home() {
             Une communauté engagée qui fait vivre le trophée.
           </p>
         </div>
-        <div className="mt-6 overflow-hidden">
-          <div className="flex gap-4 animate-[scroll_18s_linear_infinite]">
-            {scrollerClubs.concat(scrollerClubs).map((club, index) => (
-              <div
-                key={`${club}-${index}`}
-                className="surface min-w-[180px] px-4 py-3 text-sm font-medium"
-              >
-                {club}
-              </div>
-            ))}
+        <div className="relative mt-6 overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-muted/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-muted/80 to-transparent" />
+          <div className="flex gap-4 animate-[scroll_22s_linear_infinite] hover:[animation-play-state:paused]">
+            {scrollerClubs.concat(scrollerClubs).map((club, index) => {
+              const initials = club.name
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0]?.toUpperCase() ?? "")
+                .join("");
+              return (
+                <div
+                  key={`${club.name}-${index}`}
+                  className="group surface min-w-[220px] px-5 py-4 text-sm font-medium tracking-tight backdrop-blur supports-[backdrop-filter]:bg-background/70 transition-transform duration-200 hover:-translate-y-1"
+                >
+                  <div className="flex items-center gap-3">
+                    {club.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={club.logoUrl}
+                        alt={club.name}
+                        className="h-10 w-10 rounded-full border border-border/60 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted text-xs font-semibold text-foreground">
+                        {initials || "TT"}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="mt-0.5 truncate text-base text-foreground">
+                        {club.name}
+                      </div>
+                      {club.city ? (
+                        <div className="text-xs text-muted-foreground">
+                          {club.city}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          {clubNames.length > 0
+            ? `${clubNames.length} clubs engagés cette saison.`
+            : "Liste des clubs à venir."}
+        </p>
       </section>
 
       <section className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">

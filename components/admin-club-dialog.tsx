@@ -137,7 +137,7 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
       <DialogTrigger asChild>
         <Button>Creer un club</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Nouveau club</DialogTitle>
           <DialogDescription>
@@ -157,7 +157,7 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <div className="space-y-2">
               <Label htmlFor="ffttNumber">Numero FFTT</Label>
               <Input id="ffttNumber" name="ffttNumber" placeholder="XXXX" />
@@ -168,54 +168,69 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
                 variant="secondary"
                 onClick={handleFfttLookup}
                 disabled={ffttLoading}
+                className="w-full sm:w-auto"
               >
                 {ffttLoading ? "Recherche..." : "Auto-remplir FFTT"}
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="hallName">Salle</Label>
-            <Input id="hallName" name="hallName" />
-          </div>
-          <div className="space-y-2">
-              <Label htmlFor="hallCity">Ville salle</Label>
-              <Input id="hallCity" name="hallCity" />
-            </div>
-          </div>
+          <details className="rounded-lg border border-border/60 p-3">
+            <summary className="cursor-pointer text-sm font-medium text-foreground">
+              Infos salle
+            </summary>
+            <div className="mt-3 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="hallName">Salle</Label>
+                  <Input id="hallName" name="hallName" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hallCity">Ville salle</Label>
+                  <Input id="hallCity" name="hallCity" />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="hallAddress">Adresse salle</Label>
-            <Input id="hallAddress" name="hallAddress" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hallZip">Code postal salle</Label>
-              <Input id="hallZip" name="hallZip" />
+              <div className="space-y-2">
+                <Label htmlFor="hallAddress">Adresse salle</Label>
+                <Input id="hallAddress" name="hallAddress" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="hallZip">Code postal salle</Label>
+                  <Input id="hallZip" name="hallZip" />
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Nom correspondant</Label>
-              <Input id="contactName" name="contactName" />
+          <details className="rounded-lg border border-border/60 p-3">
+            <summary className="cursor-pointer text-sm font-medium text-foreground">
+              Contact
+            </summary>
+            <div className="mt-3 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="contactName">Nom correspondant</Label>
+                  <Input id="contactName" name="contactName" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactFirstName">Prenom correspondant</Label>
+                  <Input id="contactFirstName" name="contactFirstName" />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail">Email correspondant</Label>
+                  <Input id="contactEmail" name="contactEmail" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactPhone">Telephone correspondant</Label>
+                  <Input id="contactPhone" name="contactPhone" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactFirstName">Prenom correspondant</Label>
-              <Input id="contactFirstName" name="contactFirstName" />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Email correspondant</Label>
-              <Input id="contactEmail" name="contactEmail" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Telephone correspondant</Label>
-              <Input id="contactPhone" name="contactPhone" />
-            </div>
-          </div>
+          </details>
 
           <div className="flex justify-end">
             <SubmitButton disabled={false} />
