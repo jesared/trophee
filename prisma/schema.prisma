@@ -104,13 +104,8 @@ model Club {
   ffttNumber String?
   hallName String?
   hallAddress1 String?
-  hallAddress2 String?
-  hallAddress3 String?
   hallZip String?
   hallCity String?
-  website String?
-  latitude Float?
-  longitude Float?
   createdAt DateTime @default(now())
 
   tours Tour[]

@@ -82,18 +82,13 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
           id?: string;
           number?: string;
           hallName?: string;
-          hallAddress1?: string;
-          hallAddress2?: string;
-          hallAddress3?: string;
+          hallAddress?: string;
           hallZip?: string;
           hallCity?: string;
-          website?: string;
           contactName?: string;
           contactFirstName?: string;
           contactEmail?: string;
           contactPhone?: string;
-          latitude?: number;
-          longitude?: number;
         };
       };
       if (!res.ok || !data.ok) {
@@ -111,18 +106,13 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
       setValue("ffttNumber", payload.number);
       setValue("ffttId", payload.id);
       setValue("hallName", payload.hallName);
-      setValue("hallAddress1", payload.hallAddress1);
-      setValue("hallAddress2", payload.hallAddress2);
-      setValue("hallAddress3", payload.hallAddress3);
+      setValue("hallAddress", payload.hallAddress);
       setValue("hallZip", payload.hallZip);
       setValue("hallCity", payload.hallCity);
-      setValue("website", payload.website);
       setValue("contactName", payload.contactName);
       setValue("contactFirstName", payload.contactFirstName);
       setValue("contactEmail", payload.contactEmail);
       setValue("contactPhone", payload.contactPhone);
-      setValue("latitude", payload.latitude);
-      setValue("longitude", payload.longitude);
 
       notifySuccess("Informations FFTT chargees.");
     } catch {
@@ -175,38 +165,24 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hallName">Salle</Label>
-              <Input id="hallName" name="hallName" />
-            </div>
-            <div className="space-y-2">
+          <div className="space-y-2">
+            <Label htmlFor="hallName">Salle</Label>
+            <Input id="hallName" name="hallName" />
+          </div>
+          <div className="space-y-2">
               <Label htmlFor="hallCity">Ville salle</Label>
               <Input id="hallCity" name="hallCity" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hallAddress1">Adresse salle</Label>
-            <Input id="hallAddress1" name="hallAddress1" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hallAddress2">Adresse (suite)</Label>
-              <Input id="hallAddress2" name="hallAddress2" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="hallAddress3">Adresse (suite)</Label>
-              <Input id="hallAddress3" name="hallAddress3" />
-            </div>
+            <Label htmlFor="hallAddress">Adresse salle</Label>
+            <Input id="hallAddress" name="hallAddress" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="hallZip">Code postal salle</Label>
               <Input id="hallZip" name="hallZip" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website">Site web</Label>
-              <Input id="website" name="website" />
             </div>
           </div>
 
@@ -228,17 +204,6 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="contactPhone">Telephone correspondant</Label>
               <Input id="contactPhone" name="contactPhone" />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="latitude">Latitude</Label>
-              <Input id="latitude" name="latitude" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="longitude">Longitude</Label>
-              <Input id="longitude" name="longitude" />
             </div>
           </div>
 

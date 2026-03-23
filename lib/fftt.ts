@@ -166,18 +166,13 @@ export type FfttClubDetail = {
   id: string;
   number?: string;
   hallName?: string;
-  hallAddress1?: string;
-  hallAddress2?: string;
-  hallAddress3?: string;
+  hallAddress?: string;
   hallZip?: string;
   hallCity?: string;
-  website?: string;
   contactName?: string;
   contactFirstName?: string;
   contactEmail?: string;
   contactPhone?: string;
-  latitude?: number;
-  longitude?: number;
 };
 
 export async function fetchFfttClubDetail(
@@ -194,21 +189,19 @@ export async function fetchFfttClubDetail(
     id: extractTag(xml, "idclub") ?? clubId,
     number: extractTag(xml, "numero") ?? undefined,
     hallName: extractTag(xml, "nomsalle") ?? undefined,
-    hallAddress1: extractTag(xml, "adressesalle1") ?? undefined,
-    hallAddress2: extractTag(xml, "adressesalle2") ?? undefined,
-    hallAddress3: extractTag(xml, "adressesalle3") ?? undefined,
+    hallAddress: [
+      extractTag(xml, "adressesalle1"),
+      extractTag(xml, "adressesalle2"),
+      extractTag(xml, "adressesalle3"),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || undefined,
     hallZip: extractTag(xml, "codepsalle") ?? undefined,
     hallCity: extractTag(xml, "villesalle") ?? undefined,
-    website: extractTag(xml, "web") ?? undefined,
     contactName: extractTag(xml, "nomcor") ?? undefined,
     contactFirstName: extractTag(xml, "prenomcor") ?? undefined,
     contactEmail: extractTag(xml, "mailcor") ?? undefined,
     contactPhone: extractTag(xml, "telcor") ?? undefined,
-    latitude: extractTag(xml, "latitude")
-      ? Number(extractTag(xml, "latitude"))
-      : undefined,
-    longitude: extractTag(xml, "longitude")
-      ? Number(extractTag(xml, "longitude"))
-      : undefined,
   };
 }
