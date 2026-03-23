@@ -90,12 +90,16 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
           contactEmail?: string;
           contactPhone?: string;
         };
+        clubSearch?: {
+          name?: string;
+        } | null;
       };
       if (!res.ok || !data.ok) {
         notifyError(data.message || "FFTT indisponible.");
         return;
       }
       const payload = data.payload ?? {};
+      const clubSearch = data.clubSearch ?? null;
 
       const setValue = (id: string, value?: string | number) => {
         if (value === undefined || value === null || value === "") return;
@@ -105,6 +109,12 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
 
       setValue("ffttNumber", payload.number);
       setValue("ffttId", payload.id);
+      if (clubSearch?.name) {
+        setValue("name", clubSearch.name);
+      }
+      if (payload.hallCity) {
+        setValue("city", payload.hallCity);
+      }
       setValue("hallName", payload.hallName);
       setValue("hallAddress", payload.hallAddress);
       setValue("hallZip", payload.hallZip);

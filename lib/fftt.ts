@@ -19,6 +19,10 @@ const FFTT_CLUB_DETAIL_ENDPOINT =
   process.env.FFTT_CLUB_DETAIL_ENDPOINT ?? "xml_club_detail.php";
 const FFTT_CLUB_DETAIL_PARAM =
   process.env.FFTT_CLUB_DETAIL_PARAM ?? "club";
+const FFTT_CLUB_SEARCH_ENDPOINT =
+  process.env.FFTT_CLUB_SEARCH_ENDPOINT ?? "xml_club_b.php";
+const FFTT_CLUB_SEARCH_PARAM =
+  process.env.FFTT_CLUB_SEARCH_PARAM ?? "numero";
 
 export function isFfttEnabled() {
   return Boolean(FFTT_BASE_URL && FFTT_APP_ID && FFTT_APP_PASSWORD);
@@ -203,5 +207,35 @@ export async function fetchFfttClubDetail(
     contactFirstName: extractTag(xml, "prenomcor") ?? undefined,
     contactEmail: extractTag(xml, "mailcor") ?? undefined,
     contactPhone: extractTag(xml, "telcor") ?? undefined,
+  };
+}
+
+export type FfttClubSearch = {
+  id?: string;
+  number?: string;
+  name?: string;
+  validation?: string;
+};
+
+export async function fetchFfttClubSearch(
+  clubNumber: string,
+  serie?: string,
+): Promise<FfttClubSearch | null> {
+  const xml = await callFftt(
+    FFTT_CLUB_SEARCH_ENDPOINT,
+    { [FFTT_CLUB_SEARCH_PARAM]: clubNumber },
+    serie,
+  );
+
+  const name = extractTag(xml, "nom");
+  if (!name) {
+    return null;
+  }
+
+  return {
+    id: extractTag(xml, "idclub") ?? undefined,
+    number: extractTag(xml, "numero") ?? undefined,
+    name,
+    validation: extractTag(xml, "validation") ?? undefined,
   };
 }

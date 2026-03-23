@@ -40,17 +40,6 @@ const stats = [
   { label: "Clubs partenaires", value: "20+" },
 ];
 
-const clubs = [
-  "Reims TT",
-  "Sedan TT",
-  "Châlons TT",
-  "Charleville TT",
-  "Rethel TT",
-  "Tinqueux TT",
-  "Épernay TT",
-  "Vitry TT",
-];
-
 const testimonials = [
   {
     quote:
@@ -89,9 +78,18 @@ export default async function Home() {
     orderBy: { year: "desc" },
   });
 
+  const partnerClubs = await prisma.club.findMany({
+    select: { name: true },
+    orderBy: { name: "asc" },
+  });
+  const clubNames = partnerClubs.map((club) => club.name);
+
   const now = new Date();
   const nextTour = season?.tours.find((tour) => tour.date >= now) ?? null;
   const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
+
+  const scrollerClubs =
+    clubNames.length > 0 ? clubNames : ["Clubs à venir"];
 
   return (
     <div className="page">
@@ -185,7 +183,7 @@ export default async function Home() {
         </div>
         <div className="mt-6 overflow-hidden">
           <div className="flex gap-4 animate-[scroll_18s_linear_infinite]">
-            {clubs.concat(clubs).map((club, index) => (
+            {scrollerClubs.concat(scrollerClubs).map((club, index) => (
               <div
                 key={`${club}-${index}`}
                 className="surface min-w-[180px] px-4 py-3 text-sm font-medium"
@@ -258,31 +256,23 @@ export default async function Home() {
               </div>
             ))}
             <Button asChild size="sm" className="mt-2">
-              <Link href="/inscription">Commencer</Link>
+              <Link href="/inscription">S'inscrire</Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="surface border-border/60 bg-muted/30">
+        <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Ressources rapides</CardTitle>
+            <CardTitle>Ressources clés</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Consultez les tableaux, règlements et informations pratiques pour
-              préparer votre prochaine rencontre.
+              Consultez le règlement, les tableaux et les informations pratiques
+              pour préparer votre prochain tour.
             </p>
-            <div className="flex flex-col gap-3">
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/trophee">Tableaux & règlement</Link>
-              </Button>
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/classement">Récompenses & classement</Link>
-              </Button>
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/agenda">Contact & lieux</Link>
-              </Button>
-            </div>
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/classement">Voir les classements</Link>
+            </Button>
           </CardContent>
         </Card>
       </section>

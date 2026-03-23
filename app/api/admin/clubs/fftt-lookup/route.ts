@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { fetchFfttClubDetail, isFfttEnabled } from "@/lib/fftt";
+import {
+  fetchFfttClubDetail,
+  fetchFfttClubSearch,
+  isFfttEnabled,
+} from "@/lib/fftt";
 import { requireAdmin } from "@/lib/require-admin";
 
 export async function POST(request: Request) {
@@ -26,10 +30,13 @@ export async function POST(request: Request) {
 
   try {
     const payload = await fetchFfttClubDetail(clubParam);
+    const clubSearch =
+      clubNumber ? await fetchFfttClubSearch(clubNumber) : null;
     return NextResponse.json({
       ok: true,
       message: "FFTT ok.",
       payload,
+      clubSearch,
     });
   } catch (error) {
     const message =
