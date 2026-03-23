@@ -15,6 +15,13 @@ enum Role {
   ADMIN
 }
 
+enum TourStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  DONE
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -97,6 +104,7 @@ model Tour {
   id          String   @id @default(cuid())
   name        String
   date        DateTime
+  status      TourStatus @default(DRAFT)
   venue       String?
   city        String?
   address     String?

@@ -10,10 +10,14 @@ function escapeCsv(value: string) {
   return value;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   await requireAdmin();
 
+  const { searchParams } = new URL(request.url);
+  const tourId = searchParams.get("tourId") ?? undefined;
+
   const registrations = await prisma.registration.findMany({
+    where: tourId ? { tourId } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
       player: { select: { firstName: true, lastName: true, email: true } },

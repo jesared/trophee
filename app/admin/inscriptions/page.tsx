@@ -63,6 +63,7 @@ async function createRegistration(
 
   const tableau = await prisma.tableau.findUnique({
     where: { id: tableauId },
+    include: { tour: { select: { status: true } } },
   });
 
   if (!tableau) {
@@ -71,6 +72,10 @@ async function createRegistration(
 
   if (tableau.tourId !== tourId) {
     return { ok: false, message: "Tableau non associe a ce tour." };
+  }
+
+  if (tableau.tour.status !== "OPEN") {
+    return { ok: false, message: "Inscriptions fermees pour ce tour." };
   }
 
   const existing = await prisma.registration.findFirst({

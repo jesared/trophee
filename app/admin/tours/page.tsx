@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { AdminTourCreateDialog } from "@/components/admin-tour-create-dialog";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
 import { EmptyState } from "@/components/empty-state";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -103,6 +104,26 @@ async function deleteTour(
   return { ok: true, message: "Tour supprime." };
 }
 
+async function toggleTourStatus(formData: FormData) {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const nextStatus = String(formData.get("nextStatus") ?? "").trim();
+
+  if (!id || (nextStatus !== "OPEN" && nextStatus !== "CLOSED")) {
+    return;
+  }
+
+  await prisma.tour.update({
+    where: { id },
+    data: { status: nextStatus },
+  });
+
+  revalidatePath("/admin/tours");
+}
+
 export default async function AdminToursPage({ searchParams }: PageProps) {
   await requireAdmin();
 
@@ -115,6 +136,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
     id: string;
     name: string;
     date: Date;
+    status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
     venue: string | null;
     city: string | null;
     season: { name: string };
@@ -123,24 +145,24 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
 
   const [seasons, clubs, tours]: [SeasonItem[], ClubItem[], TourItem[]] =
     await Promise.all([
-    prisma.season.findMany({ orderBy: { year: "desc" } }),
-    prisma.club.findMany({ orderBy: { name: "asc" } }),
-    prisma.tour.findMany({
-      where: query
-        ? {
-            OR: [
-              { name: { contains: query, mode: "insensitive" } },
-              { venue: { contains: query, mode: "insensitive" } },
-              { city: { contains: query, mode: "insensitive" } },
-              { address: { contains: query, mode: "insensitive" } },
-              { season: { name: { contains: query, mode: "insensitive" } } },
-            ],
-          }
-        : undefined,
-      include: { season: true, club: true },
-      orderBy: { date: "asc" },
-    }),
-  ]);
+      prisma.season.findMany({ orderBy: { year: "desc" } }),
+      prisma.club.findMany({ orderBy: { name: "asc" } }),
+      prisma.tour.findMany({
+        where: query
+          ? {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { venue: { contains: query, mode: "insensitive" } },
+                { city: { contains: query, mode: "insensitive" } },
+                { address: { contains: query, mode: "insensitive" } },
+                { season: { name: { contains: query, mode: "insensitive" } } },
+              ],
+            }
+          : undefined,
+        include: { season: true, club: true },
+        orderBy: { date: "asc" },
+      }),
+    ]);
 
   const formatter = new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
@@ -178,6 +200,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
               <TableHead>Nom</TableHead>
               <TableHead>Saison</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Inscriptions</TableHead>
               <TableHead>Club</TableHead>
               <TableHead>Salle</TableHead>
               <TableHead>Ville</TableHead>
@@ -187,10 +210,10 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
           <TableBody>
             {tours.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-6">
+                <TableCell colSpan={8} className="py-6">
                   <EmptyState
                     title="Aucun tour pour le moment"
-                    description="Créez un tour pour lier les tableaux."
+                    description="Creez un tour pour lier les tableaux."
                   />
                 </TableCell>
               </TableRow>
@@ -200,11 +223,38 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
                   <TableCell className="font-medium">{tour.name}</TableCell>
                   <TableCell>{tour.season.name}</TableCell>
                   <TableCell>{formatter.format(tour.date)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="badge-pill">
+                        {tour.status === "OPEN"
+                          ? "Ouvert"
+                          : tour.status === "CLOSED"
+                            ? "Fermé"
+                            : "Brouillon"}
+                      </span>
+                      <form action={toggleTourStatus}>
+                        <input type="hidden" name="id" value={tour.id} />
+                        <input
+                          type="hidden"
+                          name="nextStatus"
+                          value={tour.status === "OPEN" ? "CLOSED" : "OPEN"}
+                        />
+                        <Button size="sm" variant="secondary">
+                          {tour.status === "OPEN" ? "Fermer" : "Ouvrir"}
+                        </Button>
+                      </form>
+                    </div>
+                  </TableCell>
                   <TableCell>{tour.club?.name ?? "-"}</TableCell>
                   <TableCell>{tour.venue ?? "-"}</TableCell>
                   <TableCell>{tour.city ?? "-"}</TableCell>
                   <TableCell className="text-right">
-                    <AdminDeleteForm id={tour.id} action={deleteTour} />
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button asChild size="sm" variant="secondary">
+                        <a href={`/admin/tours/${tour.id}`}>Dashboard</a>
+                      </Button>
+                      <AdminDeleteForm id={tour.id} action={deleteTour} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
