@@ -39,8 +39,7 @@ const stats = [
 export default function Home() {
   return (
     <div className="page">
-      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background to-background p-8 sm:p-10">
-        <div className="absolute right-8 top-8 hidden h-36 w-36 rounded-full bg-primary/10 blur-3xl lg:block" />
+      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-background p-8 sm:p-10">
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-6">
             <div className="badge-pill w-fit">Trophée François Grieder</div>

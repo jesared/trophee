@@ -1,89 +1,144 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const stats = [
+  { label: "Saisons actives", value: "1" },
+  { label: "Tours officiels", value: "8" },
+  { label: "Tableaux par niveau", value: "12+" },
+];
+
+const principles = [
+  "Des tableaux répartis par niveaux de points",
+  "Un barème identique sur chaque tournoi",
+  "Un classement général par tableau",
+  "Une remise de récompenses en fin de saison",
+];
+
+const tieBreakers = [
+  "Nombre de tournois disputés",
+  "Nombre de victoires",
+  "Nombre de places de finaliste, puis demi-finaliste, etc.",
+  "Âge du joueur en dernier critère",
+];
 
 export default function TropheePage() {
   return (
     <section className="page">
-      <header className="page-header">
-        <p className="badge-pill w-fit">Le Troph&eacute;e</p>
-        <h1 className="page-title sm:text-4xl">
-          Troph&eacute;e Fran&ccedil;ois Grieder
-        </h1>
-        <p className="page-subtitle max-w-3xl text-base text-foreground/80">
-          Le Troph&eacute;e Fran&ccedil;ois Grieder est un challenge r&eacute;gional de tennis
-          de table organis&eacute; autour des tournois homologu&eacute;s du d&eacute;partement de la Marne
-          et des Ardennes.
-        </p>
-        <p className="page-subtitle max-w-3xl text-base text-foreground/80">
-          Cr&eacute;&eacute; en hommage &agrave; Fran&ccedil;ois Grieder, fid&egrave;le participant du circuit,
-          ce troph&eacute;e r&eacute;compense la r&eacute;gularit&eacute; et la performance des joueurs tout
-          au long de la saison.
-        </p>
+      <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-background p-8 sm:p-10">
+        <div className="space-y-5">
+          <p className="badge-pill w-fit">Le Trophée</p>
+          <h1 className="page-title sm:text-4xl">
+            Trophée François Grieder
+          </h1>
+          <p className="page-subtitle max-w-3xl text-base text-foreground/80">
+            Le Trophée François Grieder est un challenge régional de tennis de
+            table organisé autour des tournois homologués du département de la
+            Marne et des Ardennes.
+          </p>
+          <p className="page-subtitle max-w-3xl text-base text-foreground/80">
+            Créé en hommage à François Grieder, fidèle participant du circuit,
+            ce trophée récompense la régularité et la performance des joueurs
+            tout au long de la saison.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/agenda">Voir l'agenda</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/classement">Classements</Link>
+            </Button>
+          </div>
+        </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="bg-card">
+      <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-3 sm:p-8">
+        {stats.map((stat) => (
+          <div key={stat.label} className="surface px-5 py-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              {stat.label}
+            </p>
+            <p className="text-2xl font-semibold text-foreground">
+              {stat.value}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card className="surface border-border/60">
           <CardHeader>
             <CardTitle>Le principe</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              Chaque tournoi du circuit propose les m&ecirc;mes tableaux par cat&eacute;gories de points.
-              Les joueurs accumulent des points en fonction de leurs r&eacute;sultats afin d&rsquo;&eacute;tablir
-              un classement g&eacute;n&eacute;ral sur l&rsquo;ensemble de la saison.
+              Chaque tournoi du circuit propose les mêmes tableaux par
+              catégories de points. Les joueurs accumulent des points en
+              fonction de leurs résultats afin d'établir un classement général
+              sur l'ensemble de la saison.
             </p>
             <ul className="list-disc space-y-2 pl-5">
-              <li>Des tableaux r&eacute;partis par niveaux de points</li>
-              <li>Un bar&egrave;me identique sur chaque tournoi</li>
-              <li>Un classement g&eacute;n&eacute;ral par tableau</li>
-              <li>Une remise de r&eacute;compenses en fin de saison</li>
+              {principles.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </CardContent>
         </Card>
 
-        <Card className="bg-card">
+        <Card className="surface border-border/60 bg-muted/30">
           <CardHeader>
             <CardTitle>Fonctionnement</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              Les points sont attribu&eacute;s selon la performance r&eacute;alis&eacute;e dans chaque tableau.
-              En cas d&rsquo;&eacute;galit&eacute; au classement g&eacute;n&eacute;ral, le d&eacute;partage s&rsquo;effectue selon
-              plusieurs crit&egrave;res successifs :
+              Les points sont attribués selon la performance réalisée dans
+              chaque tableau. En cas d'égalité au classement général, le
+              départage s'effectue selon plusieurs critères successifs :
             </p>
             <ul className="list-disc space-y-2 pl-5">
-              <li>Nombre de tournois disput&eacute;s</li>
-              <li>Nombre de victoires</li>
-              <li>Nombre de places de finaliste, puis demi-finaliste, etc.</li>
-              <li>&Acirc;ge du joueur en dernier crit&egrave;re</li>
+              {tieBreakers.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      <Card className="bg-card">
-        <CardHeader>
-          <CardTitle>R&eacute;compenses</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm text-muted-foreground">
-          <p>
-            Chaque club participant contribue &agrave; la dotation du challenge afin de r&eacute;compenser
-            les trois premiers de chaque classement g&eacute;n&eacute;ral.
-          </p>
-          <p>
-            La c&eacute;r&eacute;monie officielle de remise des r&eacute;compenses a lieu &agrave; l&rsquo;issue du dernier
-            tournoi de la saison.
-          </p>
-          <p>
-            Pour consulter le d&eacute;tail des tableaux, le bar&egrave;me pr&eacute;cis des points ou la liste compl&egrave;te
-            des r&eacute;compenses, rendez-vous dans les sections d&eacute;di&eacute;es du site.
-          </p>
-        </CardContent>
-      </Card>
+      <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">
+              Récompenses
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Chaque club participant contribue à la dotation du challenge afin
+              de récompenser les trois premiers de chaque classement général.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              La cérémonie officielle de remise des récompenses a lieu à
+              l'issue du dernier tournoi de la saison.
+            </p>
+          </div>
+          <div className="surface p-5 text-sm text-muted-foreground">
+            <p className="text-xs font-medium text-muted-foreground">
+              Pour aller plus loin
+            </p>
+            <p className="mt-2 text-foreground">
+              Consultez le détail des tableaux, le barème des points et la
+              liste complète des récompenses.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/classement">Classements</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/agenda">Agenda & salles</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
   );
 }
