@@ -30,85 +30,111 @@ const steps = [
   "Confirmez votre inscription et suivez vos résultats.",
 ];
 
+const stats = [
+  { label: "Tours officiels", value: "8" },
+  { label: "Tableaux par niveau", value: "12+" },
+  { label: "Clubs partenaires", value: "20+" },
+];
+
 export default function Home() {
   return (
     <div className="page">
-      <section className="grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Trophée François Grieder
-          </p>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Le challenge régional de tennis de table
-          </h1>
-          <p className="page-subtitle text-base">
-            Le Trophée François Grieder réunit les clubs de la région autour d’un
-            challenge convivial, rythmé par des rencontres sportives et une
-            ambiance associative.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/agenda">Voir les tours</Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/classement">Classements</Link>
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <span>8 tours officiels</span>
-            <span>•</span>
-            <span>Tableaux par niveau</span>
-            <span>•</span>
-            <span>Classement général</span>
-          </div>
-        </div>
-
-        <Card className="border-border/70 bg-muted/30">
-          <CardHeader>
-            <CardTitle>En un coup d’œil</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="surface p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                Prochain tour
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                Consultez l’agenda pour la prochaine date
-              </p>
+      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background to-background p-8 sm:p-10">
+        <div className="absolute right-8 top-8 hidden h-36 w-36 rounded-full bg-primary/10 blur-3xl lg:block" />
+        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-6">
+            <div className="badge-pill w-fit">Trophée François Grieder</div>
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+              Le challenge régional de tennis de table
+            </h1>
+            <p className="page-subtitle text-base">
+              Le Trophée François Grieder réunit les clubs de la région autour
+              d'un challenge convivial, rythmé par des rencontres sportives et
+              une ambiance associative.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link href="/agenda">Voir les tours</Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/classement">Classements</Link>
+              </Button>
             </div>
-            <div className="surface p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                Classement en direct
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                Classements disponibles par saison
-              </p>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              <span className="badge-pill">Calendrier clair</span>
+              <span className="badge-pill">Tableaux homogènes</span>
+              <span className="badge-pill">Classement par saison</span>
             </div>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/trophee">Comprendre le trophée</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
 
-      <section className="grid gap-6 lg:grid-cols-3">
-        {highlights.map((item) => (
-          <Card key={item.title} className="border-border/70">
+          <Card className="surface border-border/60 bg-background/90">
             <CardHeader>
-              <CardTitle>{item.title}</CardTitle>
+              <CardTitle>En un coup d'œil</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>{item.description}</p>
+              <div className="surface p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Prochain tour
+                </p>
+                <p className="text-base font-semibold text-foreground">
+                  Consultez l'agenda pour la prochaine date
+                </p>
+              </div>
+              <div className="surface p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Classement en direct
+                </p>
+                <p className="text-base font-semibold text-foreground">
+                  Classements disponibles par saison
+                </p>
+              </div>
               <Button asChild size="sm" variant="secondary">
-                <Link href={item.href}>{item.cta}</Link>
+                <Link href="/trophee">Comprendre le trophée</Link>
               </Button>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-3 sm:p-8">
+        {stats.map((stat) => (
+          <div key={stat.label} className="surface px-5 py-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              {stat.label}
+            </p>
+            <p className="text-2xl font-semibold text-foreground">
+              {stat.value}
+            </p>
+          </div>
         ))}
       </section>
 
+      <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
+        <div className="page-header">
+          <h2 className="page-title text-2xl">Suivre la saison</h2>
+          <p className="page-subtitle">
+            Accédez rapidement aux informations essentielles du trophée.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          {highlights.map((item) => (
+            <Card key={item.title} className="surface border-border/60">
+              <CardHeader>
+                <CardTitle>{item.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <p>{item.description}</p>
+                <Button asChild size="sm" variant="secondary">
+                  <Link href={item.href}>{item.cta}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-border/70 bg-background">
+        <Card className="surface border-border/60">
           <CardHeader>
             <CardTitle>Inscription en 3 étapes</CardTitle>
           </CardHeader>
@@ -125,7 +151,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-muted/30">
+        <Card className="surface border-border/60 bg-muted/30">
           <CardHeader>
             <CardTitle>Ressources rapides</CardTitle>
           </CardHeader>
