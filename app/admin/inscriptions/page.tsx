@@ -459,7 +459,9 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                               label: `${tableau.template.name} · ${tableau.tour.season.year}`,
                             }),
                           )}
-                          selectedTableauIds={row.tableaux.map((tableau) => tableau.id)}
+                          selectedTableauIds={row.tableaux.map(
+                            (tableau: TableauItem) => tableau.id,
+                          )}
                           registrationIds={row.ids}
                         />
                       </TableCell>

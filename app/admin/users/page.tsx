@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import type { Prisma, Role } from "@prisma/client";
 
 import { authOptions } from "@/auth";
+import { AdminUserRole } from "@/components/admin-user-role";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,39 +16,6 @@ const roles = ["USER", "ORGANIZER", "ADMIN"] as const satisfies ReadonlyArray<Ro
 type PageProps = {
   searchParams: Promise<{ q?: string; role?: string }>;
 };
-
-async function updateUserRole(formData: FormData): Promise<void> {
-  "use server";
-
-  await requireAdmin();
-
-  const id = String(formData.get("id") ?? "").trim();
-  const roleValue = String(formData.get("role") ?? "").trim();
-  const role = roles.find((item) => item === roleValue);
-
-  if (!id || !role) {
-    return;
-  }
-
-  if (role !== "ADMIN") {
-    const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
-    const target = await prisma.user.findUnique({
-      where: { id },
-      select: { role: true },
-    });
-
-    if (target?.role === "ADMIN" && adminCount <= 1) {
-      return;
-    }
-  }
-
-  await prisma.user.update({
-    where: { id },
-    data: { role },
-  });
-
-  revalidatePath("/admin/users");
-}
 
 async function deleteUser(formData: FormData): Promise<void> {
   "use server";
@@ -194,25 +162,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                     {user.name ?? "-"}
                   </TableCell>
                   <TableCell>{user.email ?? "-"}</TableCell>
-                  <TableCell>
-                    <form action={updateUserRole} className="flex items-center gap-2">
-                      <input type="hidden" name="id" value={user.id} />
-                      <select
-                        name="role"
-                        defaultValue={user.role ?? "USER"}
-                        className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-                      >
-                        {roles.map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                      <Button size="sm" variant="secondary">
-                        Sauver
-                      </Button>
-                    </form>
-                  </TableCell>
+                <TableCell>
+                  <AdminUserRole id={user.id} role={user.role} />
+                </TableCell>
                   <TableCell>{formatter.format(user.createdAt)}</TableCell>
                   <TableCell className="text-right">
                     <form action={deleteUser}>
