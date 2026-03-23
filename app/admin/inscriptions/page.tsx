@@ -1,5 +1,7 @@
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
+import { AdminRegistrationActions } from "@/components/admin-registration-actions";
 import { AdminRegistrationFilters } from "@/components/admin-registration-filters";
 import { AdminRegistrationForm } from "@/components/admin-registration-form";
 import { EmptyState } from "@/components/empty-state";
@@ -18,9 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { requireAdmin } from "@/lib/require-admin";
 
 type ActionState = {
   ok: boolean;
@@ -69,7 +70,7 @@ async function createRegistration(
   }
 
   if (tableau.tourId !== tourId) {
-    return { ok: false, message: "Tableau non associé à ce tour." };
+    return { ok: false, message: "Tableau non associe a ce tour." };
   }
 
   const existing = await prisma.registration.findFirst({
@@ -82,7 +83,7 @@ async function createRegistration(
   });
 
   if (existing) {
-    return { ok: false, message: "Inscription déjà existante." };
+    return { ok: false, message: "Inscription deja existante." };
   }
 
   try {
@@ -96,33 +97,15 @@ async function createRegistration(
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
-        return { ok: false, message: "Inscription déjà existante." };
+        return { ok: false, message: "Inscription deja existante." };
       }
     }
-    return { ok: false, message: "Erreur lors de la création." };
+    return { ok: false, message: "Erreur lors de la creation." };
   }
 
   revalidatePath("/admin/inscriptions");
 
-  return { ok: true, message: "Inscription créée." };
-}
-
-async function deleteRegistration(formData: FormData) {
-  "use server";
-
-  await requireAdmin();
-
-  const id = String(formData.get("id") ?? "").trim();
-
-  if (!id) {
-    return;
-  }
-
-  await prisma.registration.delete({
-    where: { id },
-  });
-
-  revalidatePath("/admin/inscriptions");
+  return { ok: true, message: "Inscription creee." };
 }
 
 export default async function AdminRegistrationsPage({ searchParams }: PageProps) {
@@ -161,7 +144,12 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
       ? { AND: registrationFilters }
       : undefined;
 
-  type TourItem = { id: string; name: string; season: { year: number } };
+  type TourItem = {
+    id: string;
+    name: string;
+    date: Date;
+    season: { year: number };
+  };
   type PlayerItem = { id: string; firstName: string; lastName: string };
   type TableauItem = {
     id: string;
@@ -187,7 +175,12 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     RegistrationItem[],
   ] = await Promise.all([
     prisma.tour.findMany({
-      select: { id: true, name: true, season: { select: { year: true } } },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        season: { select: { year: true } },
+      },
       orderBy: { date: "asc" },
     }),
     prisma.player.findMany({
@@ -224,6 +217,9 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     { label: "Tours", value: tours.length },
   ];
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const playerOptions = players.map((player: PlayerItem) => ({
     id: player.id,
     label: `${player.firstName} ${player.lastName}`,
@@ -235,11 +231,23 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     label: `${tour.name} - ${tour.season.year}`,
   }));
 
+  const upcomingTourIds = new Set(
+    tours.filter((tour) => tour.date >= today).map((tour) => tour.id),
+  );
+
+  const tourOptionsUpcoming = tourOptions.filter((tour) =>
+    upcomingTourIds.has(tour.id),
+  );
+
   const tableauOptions = tableaux.map((tableau: TableauItem) => ({
     id: tableau.id,
     tourId: tableau.tourId,
     label: `${tableau.template.name} - ${tableau.tour.name} (${tableau.tour.season.year})`,
   }));
+
+  const tableauOptionsUpcoming = tableauOptions.filter((tableau) =>
+    upcomingTourIds.has(tableau.tourId),
+  );
 
   const grouped = registrations.reduce(
     (
@@ -247,6 +255,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         string,
         {
           id: string;
+          tourId: string;
           player: typeof registrations[number]["player"];
           tour: typeof registrations[number]["tour"];
           createdAt: Date;
@@ -262,6 +271,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
       if (!existing) {
         acc.set(key, {
           id: key,
+          tourId: registration.tourId,
           player: registration.player,
           tour: registration.tour,
           createdAt: registration.createdAt,
@@ -285,6 +295,13 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
 
+  const tableauxByTour = tableaux.reduce((acc, tableau) => {
+    const list = acc.get(tableau.tourId) ?? [];
+    list.push(tableau);
+    acc.set(tableau.tourId, list);
+    return acc;
+  }, new Map<string, TableauItem[]>());
+
   const formatter = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -296,7 +313,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         <div className="page-header">
           <h1 className="page-title">Inscriptions</h1>
           <p className="page-subtitle">
-            Créez et suivez les inscriptions des joueurs.
+            Creez et suivez les inscriptions des joueurs.
           </p>
         </div>
         <AdminRegistrationFilters
@@ -326,7 +343,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         <Card className="border-border/70">
           <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle className="text-base">Créer une inscription</CardTitle>
+              <CardTitle className="text-base">Creer une inscription</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Choisissez un tour, un joueur et un tableau.
               </p>
@@ -342,30 +359,30 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
           </CardHeader>
           <CardContent>
             {playerOptions.length === 0 ||
-            tableauOptions.length === 0 ||
-            tours.length === 0 ? (
+            tableauOptionsUpcoming.length === 0 ||
+            tourOptionsUpcoming.length === 0 ? (
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Ajoutez au moins un joueur, un tableau et un tour.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild size="sm">
-                    <a href="/admin/players">Créer un joueur</a>
+                    <a href="/admin/players">Creer un joueur</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableau-templates">Créer un template</a>
+                    <a href="/admin/tableau-templates">Creer un template</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableaux">Créer un tableau</a>
+                    <a href="/admin/tableaux">Creer un tableau</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tours">Créer un tour</a>
+                    <a href="/admin/tours">Creer un tour</a>
                   </Button>
                 </div>
               </div>
             ) : (
               <AdminRegistrationForm
                 players={playerOptions}
-                tableaux={tableauOptions}
-                tours={tourOptions}
+                tableaux={tableauOptionsUpcoming}
+                tours={tourOptionsUpcoming}
                 action={createRegistration}
               />
             )}
@@ -376,7 +393,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
           <CardHeader>
             <CardTitle className="text-base">Inscriptions recentes</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Suivez les inscriptions et gerer les doublons rapidement.
+              Suivez les inscriptions et gerez les doublons rapidement.
             </p>
           </CardHeader>
           <CardContent className="p-0">
@@ -397,7 +414,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                     <TableCell colSpan={6} className="py-6">
                       <EmptyState
                         title="Aucune inscription pour le moment"
-                        description="Créez une inscription pour apparaître ici."
+                        description="Creez une inscription pour apparaitre ici."
                       />
                     </TableCell>
                   </TableRow>
@@ -431,16 +448,20 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                         {row.createdAt.toLocaleDateString("fr-FR")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col items-end gap-2">
-                          {row.ids.map((id: string) => (
-                            <form key={id} action={deleteRegistration}>
-                              <input type="hidden" name="id" value={id} />
-                              <Button variant="destructive" size="sm">
-                                Supprimer
-                              </Button>
-                            </form>
-                          ))}
-                        </div>
+                        <AdminRegistrationActions
+                          playerId={row.player.id}
+                          playerName={`${row.player.firstName} ${row.player.lastName}`}
+                          tourId={row.tourId}
+                          tourName={row.tour.name}
+                          tableauOptions={(tableauxByTour.get(row.tourId) ?? []).map(
+                            (tableau) => ({
+                              id: tableau.id,
+                              label: `${tableau.template.name} · ${tableau.tour.season.year}`,
+                            }),
+                          )}
+                          selectedTableauIds={row.tableaux.map((tableau) => tableau.id)}
+                          registrationIds={row.ids}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

@@ -160,10 +160,15 @@ export default async function AdminTableauxPage() {
     timeStyle: "short",
   });
 
-  const tourOptions = tours.map((tour: TourItem) => ({
-    id: tour.id,
-    label: `${tour.name} - ${tour.season.year}`,
-  }));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tourOptions = tours
+    .filter((tour: TourItem) => tour.date >= today)
+    .map((tour: TourItem) => ({
+      id: tour.id,
+      label: `${tour.name} - ${tour.season.year}`,
+    }));
 
   const templateOptions = templates.map((template: TemplateItem) => ({
     id: template.id,
