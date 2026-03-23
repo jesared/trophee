@@ -126,8 +126,8 @@ function SidebarContent({
     >
       <div className="flex items-center justify-between px-2">
         <Link href="/admin" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
-            T
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Trophy className="h-4 w-4" />
           </span>
           <span className={cn("text-sm font-semibold", collapsed && "sr-only")}>
             Trophee Admin
