@@ -16,7 +16,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tourId = searchParams.get("tourId") ?? undefined;
   const tableauId = searchParams.get("tableauId") ?? undefined;
-  const presence = searchParams.get("presence") ?? undefined;
+  const rawPresence = searchParams.get("presence") ?? undefined;
+  const presence =
+    rawPresence === "UNKNOWN" || rawPresence === "PRESENT" || rawPresence === "ABSENT"
+      ? rawPresence
+      : undefined;
 
   const where = {
     ...(tourId ? { tourId } : {}),

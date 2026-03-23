@@ -1,11 +1,12 @@
 # Trophée FG
 
-Plateforme SaaS moderne pour la gestion d’un tournoi annuel de tennis de table (Trophée François Grieder).
+Plateforme SaaS moderne pour la gestion d’un tournoi annuel de tennis de table
+(Trophée François Grieder).
 
 ## Aperçu
 
 - Site public : accueil, trophée, agenda & salles, classement, inscription
-- Espace admin : saisons, tours, tableaux, templates, joueurs, inscriptions, clubs
+- Espace admin : saisons, tours, tableaux, templates, joueurs, inscriptions, clubs, médias
 - Espace joueur : dashboard, inscriptions, profil
 - Auth Google via NextAuth
 - Base PostgreSQL via Prisma
@@ -17,6 +18,16 @@ Plateforme SaaS moderne pour la gestion d’un tournoi annuel de tennis de table
 - Tailwind CSS + shadcn/ui
 - Prisma + PostgreSQL
 - NextAuth (Google)
+
+## Documentation (Admin)
+
+Documentation admin détaillée dans `/docs` :
+
+- `docs/overview.md`
+- `docs/admin.md`
+- `docs/data-model.md`
+- `docs/media.md`
+- `docs/operations.md`
 
 ## Démarrage rapide
 
@@ -61,6 +72,7 @@ pnpm start
 - `components/` : UI & layout
 - `lib/` : helpers (auth, prisma, requireAdmin, etc.)
 - `prisma/` : schema & migrations
+- `docs/` : documentation admin
 
 ## Notes
 
