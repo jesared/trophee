@@ -5,6 +5,7 @@ import { authOptions } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { EmptyState } from "@/components/empty-state";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -179,8 +180,11 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center">
-                  Aucun utilisateur pour le moment.
+                <TableCell colSpan={5} className="py-6">
+                  <EmptyState
+                    title="Aucun utilisateur pour le moment"
+                    description="Invitez un utilisateur pour démarrer."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

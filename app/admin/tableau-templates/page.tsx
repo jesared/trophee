@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState } from "@/components/empty-state";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -173,8 +174,11 @@ export default async function AdminTableauTemplatesPage() {
           <TableBody>
             {templates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-10 text-center">
-                  Aucun template pour le moment.
+                <TableCell colSpan={3} className="py-6">
+                  <EmptyState
+                    title="Aucun template pour le moment"
+                    description="Définissez une plage de points pour créer un tableau."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

@@ -120,7 +120,7 @@ function SidebarContent({
   return (
     <div
       className={cn(
-        "flex h-full flex-col gap-6 bg-background px-3 py-4",
+        "flex h-full flex-col gap-6 bg-background px-3 py-4 transition-all duration-200",
         collapsed ? "px-2" : "px-3",
       )}
     >
@@ -146,25 +146,31 @@ function SidebarContent({
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto pb-6">
-        {sections.map((section) => (
-          <SidebarSection
-            key={section.title}
-            title={section.title}
-            collapsed={collapsed}
-          >
-            {section.items.map((item) => (
-              <SidebarItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                active={isActivePath(pathname, item.href)}
-                collapsed={collapsed}
-                badge={item.badge}
-              />
-            ))}
-          </SidebarSection>
-        ))}
+        {sections.map((section) => {
+          const activeSection = section.items.some((item) =>
+            isActivePath(pathname, item.href),
+          );
+          return (
+            <SidebarSection
+              key={section.title}
+              title={section.title}
+              collapsed={collapsed}
+              active={activeSection}
+            >
+              {section.items.map((item) => (
+                <SidebarItem
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  active={isActivePath(pathname, item.href)}
+                  collapsed={collapsed}
+                  badge={item.badge}
+                />
+              ))}
+            </SidebarSection>
+          );
+        })}
       </div>
 
       <div className="space-y-3">

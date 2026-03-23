@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useFormStatus } from "react-dom";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 import { Button } from "@/components/ui/button";
 
@@ -43,11 +43,11 @@ export function AdminDeleteForm({
     }
 
     if (state.ok) {
-      toast.success(state.message);
+      notifySuccess(state.message);
       return;
     }
 
-    toast.error(state.message);
+    notifyError(state.message);
   }, [state.message, state.ok]);
 
   return (

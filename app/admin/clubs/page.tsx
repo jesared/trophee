@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { AdminClubDialog } from "@/components/admin-club-dialog";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { EmptyState } from "@/components/empty-state";
 import {
   Table,
   TableBody,
@@ -127,8 +128,11 @@ export default async function AdminClubsPage() {
           <TableBody>
             {clubs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-10 text-center">
-                  Aucun club pour le moment.
+                <TableCell colSpan={3} className="py-6">
+                  <EmptyState
+                    title="Aucun club pour le moment"
+                    description="Ajoutez un club organisateur pour débloquer les tours."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

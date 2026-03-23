@@ -21,7 +21,7 @@ type SidebarItemProps = {
 
 function Badge({ value }: { value: string | number }) {
   return (
-    <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
+    <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold text-muted-foreground transition-colors">
       {value}
     </span>
   );
@@ -43,8 +43,10 @@ export function SidebarItem({
           variant: active ? "default" : "ghost",
           size: "default",
         }),
-        "h-10 w-full justify-start gap-3 px-3",
-        active && "bg-primary text-primary-foreground hover:bg-primary/90",
+        "h-10 w-full justify-start gap-3 px-3 transition-all duration-200",
+        active &&
+          "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/40 hover:bg-primary/90",
+        !active && "hover:bg-muted/70",
       )}
     >
       <Icon className="h-4 w-4" />

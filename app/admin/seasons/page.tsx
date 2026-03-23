@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState } from "@/components/empty-state";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -119,8 +120,11 @@ export default async function AdminSeasonsPage() {
             <TableBody>
               {seasons.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-10 text-center">
-                    Aucune saison pour le moment.
+                  <TableCell colSpan={4} className="py-6">
+                    <EmptyState
+                      title="Aucune saison pour le moment"
+                      description="Créez votre première saison pour démarrer."
+                    />
                   </TableCell>
                 </TableRow>
               ) : (

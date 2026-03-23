@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useFormStatus } from "react-dom";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,13 +49,13 @@ export function AdminPlayerDialog({ action }: AdminPlayerDialogProps) {
     }
 
     if (state.ok) {
-      toast.success(state.message);
+      notifySuccess(state.message);
       formRef.current?.reset();
       setOpen(false);
       return;
     }
 
-    toast.error(state.message);
+    notifyError(state.message);
   }, [state.message, state.ok]);
 
   return (

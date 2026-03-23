@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,18 +33,21 @@ export default function UserRegistrationsPage() {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={4} className="py-10 text-center">
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>Aucune inscription pour le moment.</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button asChild size="sm">
-                      <Link href="/inscription">S'inscrire</Link>
-                    </Button>
-                    <Button asChild size="sm" variant="secondary">
-                      <Link href="/agenda">Voir les tours</Link>
-                    </Button>
-                  </div>
-                </div>
+              <TableCell colSpan={4} className="py-6">
+                <EmptyState
+                  title="Aucune inscription pour le moment"
+                  description="Inscrivez-vous à un tour pour apparaître ici."
+                  action={
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button asChild size="sm">
+                        <Link href="/inscription">S'inscrire</Link>
+                      </Button>
+                      <Button asChild size="sm" variant="secondary">
+                        <Link href="/agenda">Voir les tours</Link>
+                      </Button>
+                    </div>
+                  }
+                />
               </TableCell>
             </TableRow>
           </TableBody>

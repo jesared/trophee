@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 
 import { AdminRegistrationFilters } from "@/components/admin-registration-filters";
 import { AdminRegistrationForm } from "@/components/admin-registration-form";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -383,8 +384,11 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
               <TableBody>
                 {groupedRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center">
-                      Aucune inscription pour le moment.
+                    <TableCell colSpan={6} className="py-6">
+                      <EmptyState
+                        title="Aucune inscription pour le moment"
+                        description="Créez une inscription pour apparaître ici."
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (

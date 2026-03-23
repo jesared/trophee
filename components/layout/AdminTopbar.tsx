@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, Bell, Plus, X } from "lucide-react";
 import Link from "next/link";
 
+import { AdminBreadcrumbs } from "@/components/layout/AdminBreadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -62,9 +63,12 @@ export function AdminTopbar() {
 
   return (
     <div className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
+        <div className="flex flex-1 items-center gap-3">
+          <AdminBreadcrumbs />
+        </div>
         <form
-          className="flex flex-1 items-center gap-2 surface px-2.5 py-1.5"
+          className="flex w-full items-center gap-2 surface px-2.5 py-1.5 sm:max-w-md"
           onSubmit={(event) => {
             event.preventDefault();
             submitSearch(query);
@@ -89,22 +93,24 @@ export function AdminTopbar() {
             </Button>
           ) : null}
         </form>
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-        </Button>
-        {createAction ? (
-          <Button asChild className="gap-2">
-            <Link href={createAction.href}>
+        <div className="flex items-center gap-2 sm:pl-2">
+          <Button variant="ghost" size="icon" aria-label="Notifications">
+            <Bell className="h-4 w-4" />
+          </Button>
+          {createAction ? (
+            <Button asChild className="gap-2">
+              <Link href={createAction.href}>
+                <Plus className="h-4 w-4" />
+                {createAction.label}
+              </Link>
+            </Button>
+          ) : (
+            <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              {createAction.label}
-            </Link>
-          </Button>
-        ) : (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nouveau
-          </Button>
-        )}
+              Nouveau
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

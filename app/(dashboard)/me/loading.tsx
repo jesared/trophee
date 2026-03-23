@@ -1,10 +1,12 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function UserDashboardLoading() {
   return (
     <section className="space-y-8">
       <div className="space-y-2">
-        <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
-        <div className="h-8 w-48 animate-pulse rounded-md bg-muted" />
-        <div className="h-4 w-72 animate-pulse rounded-md bg-muted" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -14,10 +16,10 @@ export default function UserDashboardLoading() {
             className="surface p-5"
           >
             <div className="space-y-4">
-              <div className="h-4 w-32 animate-pulse rounded-md bg-muted" />
-              <div className="h-3 w-48 animate-pulse rounded-md bg-muted" />
-              <div className="h-16 animate-pulse rounded-md bg-muted" />
-              <div className="h-8 animate-pulse rounded-md bg-muted" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-8" />
             </div>
           </div>
         ))}

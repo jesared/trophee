@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
 import { AdminPlayerDialog } from "@/components/admin-player-dialog";
 import { AdminPlayerImport } from "@/components/admin-player-import";
+import { EmptyState } from "@/components/empty-state";
 import {
   Table,
   TableBody,
@@ -338,8 +339,11 @@ export default async function AdminPlayersPage() {
           <TableBody>
             {players.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center">
-                  Aucun joueur pour le moment.
+                <TableCell colSpan={6} className="py-6">
+                  <EmptyState
+                    title="Aucun joueur pour le moment"
+                    description="Créez un joueur ou importez votre CSV."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

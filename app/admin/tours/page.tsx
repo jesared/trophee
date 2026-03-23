@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 
 import { AdminTourCreateDialog } from "@/components/admin-tour-create-dialog";
 import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { EmptyState } from "@/components/empty-state";
 import {
   Table,
   TableBody,
@@ -186,8 +187,11 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
           <TableBody>
             {tours.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center">
-                  Aucun tour pour le moment.
+                <TableCell colSpan={7} className="py-6">
+                  <EmptyState
+                    title="Aucun tour pour le moment"
+                    description="Créez un tour pour lier les tableaux."
+                  />
                 </TableCell>
               </TableRow>
             ) : (
