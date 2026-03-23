@@ -1,3 +1,35 @@
+﻿import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const highlights = [
+  {
+    title: "Saison en cours",
+    description: "Suivez les dates clés et les classements mis à jour.",
+    href: "/agenda",
+    cta: "Voir l’agenda",
+  },
+  {
+    title: "Classements officiels",
+    description: "Accédez aux PDF par saison, tour et tableau.",
+    href: "/classement",
+    cta: "Consulter les classements",
+  },
+  {
+    title: "Inscription rapide",
+    description: "Choisissez votre tour et votre tableau en quelques clics.",
+    href: "/inscription",
+    cta: "S’inscrire",
+  },
+];
+
+const steps = [
+  "Choisissez un tour depuis l’agenda.",
+  "Sélectionnez le tableau adapté à votre niveau.",
+  "Confirmez votre inscription et suivez vos résultats.",
+];
+
 export default function Home() {
   return (
     <div className="space-y-16">
@@ -7,84 +39,114 @@ export default function Home() {
             Trophée François Grieder
           </p>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Challenge régional de tennis de table
+            Le challenge régional de tennis de table
           </h1>
           <p className="max-w-2xl text-base text-muted-foreground">
-            Le Trophée François Grieder réunit les clubs de la région autour
-            d&apos;un challenge convivial, rythmé par des rencontres sportives
-            et une ambiance associative.
+            Le Trophée François Grieder réunit les clubs de la région autour d’un
+            challenge convivial, rythmé par des rencontres sportives et une
+            ambiance associative.
           </p>
           <div className="flex flex-wrap gap-3">
-            <button className="h-11 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90">
-              Voir tournois
-            </button>
-            <button className="h-11 rounded-full border border-border bg-background px-6 text-sm font-medium text-foreground transition hover:bg-muted">
-              Classements
-            </button>
+            <Button asChild size="lg">
+              <Link href="/agenda">Voir les tours</Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/classement">Classements</Link>
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <span>8 tours officiels</span>
+            <span>•</span>
+            <span>Tableaux par niveau</span>
+            <span>•</span>
+            <span>Classement général</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-muted/30 p-6">
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Mise en avant saison en cours
-              </p>
-              <h2 className="text-lg font-semibold">Suivez la progression</h2>
-              <p className="text-sm text-muted-foreground">
-                Découvrez les prochaines dates et les résultats les plus
-                récents.
-              </p>
-            </div>
-
+        <Card className="border-border/70 bg-muted/30">
+          <CardHeader>
+            <CardTitle>En un coup d’œil</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
             <div className="rounded-xl border border-border bg-background p-4">
               <p className="text-xs font-medium text-muted-foreground">
-                Journée clé
+                Prochain tour
               </p>
-              <p className="text-base font-semibold">
-                12 avril 2023 - 7 Tour régional
+              <p className="text-base font-semibold text-foreground">
+                Consultez l’agenda pour la prochaine date
               </p>
             </div>
-
             <div className="rounded-xl border border-border bg-background p-4">
               <p className="text-xs font-medium text-muted-foreground">
-                Score à suivre
+                Classement en direct
               </p>
-              <p className="text-base font-semibold">
-                Classement provisoire mis à jour
+              <p className="text-base font-semibold text-foreground">
+                Classements disponibles par saison
               </p>
             </div>
-          </div>
-        </div>
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/trophee">Comprendre le trophée</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        {highlights.map((item) => (
+          <Card key={item.title} className="border-border/70">
+            <CardHeader>
+              <CardTitle>{item.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <p>{item.description}</p>
+              <Button asChild size="sm" variant="secondary">
+                <Link href={item.href}>{item.cta}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-2xl border border-border bg-background p-6">
-          <h3 className="text-lg font-semibold">En résumé</h3>
-          <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-            <li>Tournois qualificatifs ouverts jusqu&apos;à fin mars.</li>
-            <li>Classements mis à jour après chaque rencontre.</li>
-            <li>Focus sur la finale régionale de mai.</li>
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-border bg-muted/30 p-6">
-          <h3 className="text-lg font-semibold">Ressources rapides</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Consultez les tableaux, r\u00e8glements et informations pratiques
-            pour pr\u00e9parer votre prochaine rencontre.
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <button className="h-10 rounded-full border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-muted">
-              Tableaux & réglement
-            </button>
-            <button className="h-10 rounded-full border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-muted">
-              Récompenses
-            </button>
-            <button className="h-10 rounded-full border border-border bg-background px-5 text-sm font-medium text-foreground transition hover:bg-muted">
-              Contact
-            </button>
-          </div>
-        </div>
+        <Card className="border-border/70 bg-background">
+          <CardHeader>
+            <CardTitle>Inscription en 3 étapes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {steps.map((step) => (
+              <div key={step} className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                <span>{step}</span>
+              </div>
+            ))}
+            <Button asChild size="sm" className="mt-2">
+              <Link href="/inscription">Commencer</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/70 bg-muted/30">
+          <CardHeader>
+            <CardTitle>Ressources rapides</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Consultez les tableaux, règlements et informations pratiques pour
+              préparer votre prochaine rencontre.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/trophee">Tableaux & règlement</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/classement">Récompenses & classement</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/agenda">Contact & lieux</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
