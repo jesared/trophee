@@ -131,14 +131,16 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">
         <div className="page-header">
+          <div className="badge-pill w-fit">Classements officiels</div>
           <h1 className="page-title">Classement</h1>
           <p className="page-subtitle">
-            Cliquez sur une saison puis un tour pour déplier les PDFs.
+            Accédez aux PDFs par saison, tour et tableau. Tout est mis à jour
+            directement depuis Drive.
           </p>
         </div>
-      </div>
+      </header>
 
       {classementGeneral ? (
         <Card className="surface border-border/60 bg-muted/30">
@@ -193,19 +195,19 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="surface border-border/60">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Saisons</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{seasons.length}</CardContent>
         </Card>
-        <Card>
+        <Card className="surface border-border/60">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">PDFs</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{totalPdfs}</CardContent>
         </Card>
-        <Card>
+        <Card className="surface border-border/60">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Dernière mise à jour</CardTitle>
           </CardHeader>
@@ -224,7 +226,7 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
           const tours = season.tours;
 
           return (
-            <Card key={season.id}>
+            <Card key={season.id} className="surface border-border/60">
               <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
@@ -251,6 +253,11 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                     />
                   </div>
                 </button>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="secondary">
+                    Télécharger la saison
+                  </Button>
+                </div>
               </CardHeader>
               {isOpen ? (
                 <CardContent className="space-y-4">
@@ -263,7 +270,7 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                         {rootPdfs.map((file) => (
                           <div
                             key={file.id}
-                            className="rounded-md border border-border/60 bg-muted/30 px-3 py-2"
+                            className="surface px-3 py-2"
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex items-start gap-2">
@@ -280,12 +287,12 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                               <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                                 <span>{formatBytes(file.size)}</span>
                                 {isNewFile(file.modifiedTime) ? (
-                                  <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                                    Nouveau
-                                  </span>
-                                ) : null}
+                                    <span className="badge-pill bg-emerald-500/15 text-[10px] font-semibold text-emerald-400">
+                                      Nouveau
+                                    </span>
+                                  ) : null}
+                                </div>
                               </div>
-                            </div>
                             <div className="mt-2 flex flex-wrap gap-2">
                               {file.webViewLink ? (
                                 <Button asChild size="sm" variant="secondary">
@@ -356,7 +363,7 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                                     {tourPdfs.map((file) => (
                                       <div
                                         key={file.id}
-                                        className="rounded-md border border-border/60 bg-muted/30 px-3 py-2"
+                                        className="surface px-3 py-2"
                                       >
                                         <div className="flex items-start justify-between gap-2">
                                           <div className="flex items-start gap-2">
@@ -373,7 +380,7 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                                           <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                                             <span>{formatBytes(file.size)}</span>
                                             {isNewFile(file.modifiedTime) ? (
-                                              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                                              <span className="badge-pill bg-emerald-500/15 text-[10px] font-semibold text-emerald-400">
                                                 Nouveau
                                               </span>
                                             ) : null}
@@ -450,13 +457,13 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                                               ) : (
                                                 <div className="grid gap-2 sm:grid-cols-2">
                                                   {nestedPdfs.map((file) => (
-                                                    <div
-                                                      key={file.id}
-                                                      className="rounded-md border border-border/60 bg-muted/30 px-3 py-2"
-                                                    >
-                                                      <div className="flex items-start justify-between gap-2">
-                                                        <div className="flex items-start gap-2">
-                                                          <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                                                <div
+                                                  key={file.id}
+                                                  className="surface px-3 py-2"
+                                                >
+                                                  <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex items-start gap-2">
+                                                      <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                                                           <div>
                                                             <p className="text-sm font-medium">{file.name}</p>
                                                             <p className="text-xs text-muted-foreground">
@@ -468,13 +475,13 @@ export function ClassementExplorer({ seasons }: ClassementExplorerProps) {
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                                                           <span>{formatBytes(file.size)}</span>
-                                                          {isNewFile(file.modifiedTime) ? (
-                                                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                                                              Nouveau
-                                                            </span>
-                                                          ) : null}
-                                                        </div>
+                                                        {isNewFile(file.modifiedTime) ? (
+                                                          <span className="badge-pill bg-emerald-500/15 text-[10px] font-semibold text-emerald-400">
+                                                            Nouveau
+                                                          </span>
+                                                        ) : null}
                                                       </div>
+                                                    </div>
                                                       <div className="mt-2 flex flex-wrap gap-2">
                                                         {file.webViewLink ? (
                                                           <Button asChild size="sm" variant="secondary">

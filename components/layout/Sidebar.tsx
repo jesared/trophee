@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  Image,
   Layers,
   LayoutDashboard,
   LayoutGrid,
@@ -36,38 +37,79 @@ import { cn } from "@/lib/utils";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
 
-const sections = [
+type SidebarCounts = {
+  tours?: number;
+  tableaux?: number;
+  templates?: number;
+  clubs?: number;
+  players?: number;
+  registrations?: number;
+  users?: number;
+};
+
+const buildSections = (counts: SidebarCounts) => [
   {
     title: "MAIN",
     items: [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { label: "Saison", href: "/admin/seasons", icon: CalendarDays },
-      { label: "Tours", href: "/admin/tours", icon: Trophy, badge: 8 },
-      { label: "Tableaux", href: "/admin/tableaux", icon: Layers, badge: 12 },
+      {
+        label: "Tours",
+        href: "/admin/tours",
+        icon: Trophy,
+        badge: counts.tours,
+      },
+      {
+        label: "Tableaux",
+        href: "/admin/tableaux",
+        icon: Layers,
+        badge: counts.tableaux,
+      },
       {
         label: "Templates",
         href: "/admin/tableau-templates",
         icon: LayoutGrid,
+        badge: counts.templates,
       },
     ],
   },
   {
     title: "DATA",
     items: [
-      { label: "Clubs", href: "/admin/clubs", icon: Building2, badge: 12 },
-      { label: "Joueurs", href: "/admin/players", icon: Users, badge: 124 },
+      {
+        label: "Clubs",
+        href: "/admin/clubs",
+        icon: Building2,
+        badge: counts.clubs,
+      },
+      {
+        label: "Joueurs",
+        href: "/admin/players",
+        icon: Users,
+        badge: counts.players,
+      },
       {
         label: "Inscriptions",
         href: "/admin/inscriptions",
         icon: ClipboardList,
-        badge: 36,
+        badge: counts.registrations,
+      },
+      {
+        label: "Médias",
+        href: "/admin/medias",
+        icon: Image,
       },
     ],
   },
   {
     title: "SYSTEM",
     items: [
-      { label: "Users", href: "/admin/users", icon: UserCircle, badge: 4 },
+      {
+        label: "Users",
+        href: "/admin/users",
+        icon: UserCircle,
+        badge: counts.users,
+      },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
@@ -116,6 +158,27 @@ function SidebarContent({
   onToggle?: () => void;
 }) {
   const pathname = usePathname();
+  const [counts, setCounts] = React.useState<SidebarCounts>({});
+
+  React.useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/admin/stats");
+        if (!res.ok) return;
+        const data = (await res.json()) as SidebarCounts;
+        if (active) setCounts(data);
+      } catch {
+        // ignore
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const sections = buildSections(counts);
 
   return (
     <div

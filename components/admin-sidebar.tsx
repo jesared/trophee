@@ -15,6 +15,7 @@ const navItems = [
   { label: "Templates", href: "/admin/tableau-templates" },
   { label: "Joueurs", href: "/admin/players" },
   { label: "Inscriptions", href: "/admin/inscriptions" },
+  { label: "Médias", href: "/admin/medias" },
   { label: "Users", href: "/admin/users" },
 ];
 export function AdminSidebar() {

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 type ActionState = {
   ok: boolean;
@@ -68,7 +69,7 @@ async function createRegistration(
   }
 
   if (tableau.tourId !== tourId) {
-    return { ok: false, message: "Tableau non associe a ce tour." };
+    return { ok: false, message: "Tableau non associé à ce tour." };
   }
 
   const existing = await prisma.registration.findFirst({
@@ -81,20 +82,29 @@ async function createRegistration(
   });
 
   if (existing) {
-    return { ok: false, message: "Inscription deja existante." };
+    return { ok: false, message: "Inscription déjà existante." };
   }
 
-  await prisma.registration.create({
-    data: {
-      playerId,
-      tableauId,
-      tourId,
-    },
-  });
+  try {
+    await prisma.registration.create({
+      data: {
+        playerId,
+        tableauId,
+        tourId,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return { ok: false, message: "Inscription déjà existante." };
+      }
+    }
+    return { ok: false, message: "Erreur lors de la création." };
+  }
 
   revalidatePath("/admin/inscriptions");
 
-  return { ok: true, message: "Inscription creee." };
+  return { ok: true, message: "Inscription créée." };
 }
 
 async function deleteRegistration(formData: FormData) {
@@ -286,7 +296,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         <div className="page-header">
           <h1 className="page-title">Inscriptions</h1>
           <p className="page-subtitle">
-            Creez et suivez les inscriptions des joueurs.
+            Créez et suivez les inscriptions des joueurs.
           </p>
         </div>
         <AdminRegistrationFilters
@@ -316,7 +326,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         <Card className="border-border/70">
           <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle className="text-base">Creer une inscription</CardTitle>
+              <CardTitle className="text-base">Créer une inscription</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Choisissez un tour, un joueur et un tableau.
               </p>
@@ -338,16 +348,16 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                 <p>Ajoutez au moins un joueur, un tableau et un tour.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild size="sm">
-                    <a href="/admin/players">Creer un joueur</a>
+                    <a href="/admin/players">Créer un joueur</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableau-templates">Creer un template</a>
+                    <a href="/admin/tableau-templates">Créer un template</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableaux">Creer un tableau</a>
+                    <a href="/admin/tableaux">Créer un tableau</a>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tours">Creer un tour</a>
+                    <a href="/admin/tours">Créer un tour</a>
                   </Button>
                 </div>
               </div>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useFormStatus } from "react-dom";
 
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,8 +73,13 @@ export function AdminRegistrationForm({
       setPlayerId("");
       setTableauId("");
       setTourId("");
+      if (state.message) {
+        notifySuccess(state.message);
+      }
+    } else if (state.message) {
+      notifyError(state.message);
     }
-  }, [state.ok]);
+  }, [state.ok, state.message]);
 
   const filteredTableaux = tourId
     ? tableaux.filter((tableau) => tableau.tourId === tourId)

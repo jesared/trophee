@@ -22,7 +22,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <Container className="py-10">{children}</Container>
+        <Container className="py-10 fade-up">{children}</Container>
       </main>
       <SiteFooter />
     </div>
