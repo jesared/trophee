@@ -71,7 +71,7 @@ async function createTour(
 
   revalidatePath("/admin/tours");
 
-  return { ok: true, message: "Tour cree." };
+  return { ok: true, message: "Tour créé." };
 }
 
 async function deleteTour(
@@ -95,7 +95,7 @@ async function deleteTour(
   if (linkedTableaux > 0) {
     return {
       ok: false,
-      message: "Supprimez d'abord les tableaux lies a ce tour.",
+      message: "Supprimez d'abord les tableaux liés à ce tour.",
     };
   }
 
@@ -105,7 +105,7 @@ async function deleteTour(
 
   revalidatePath("/admin/tours");
 
-  return { ok: true, message: "Tour supprime." };
+  return { ok: true, message: "Tour supprimé." };
 }
 
 async function toggleTourStatus(formData: FormData) {
@@ -179,7 +179,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="page-header">
           <h1 className="page-title">Tours</h1>
-          <p className="page-subtitle">Gerez les tours par saison.</p>
+          <p className="page-subtitle">Gérez les tours par saison.</p>
         </div>
 
         <AdminTourCreateDialog
@@ -192,8 +192,8 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
       {seasons.length === 0 || clubs.length === 0 ? (
         <div className="surface p-4 text-sm text-muted-foreground">
           {seasons.length === 0
-            ? "Aucune saison disponible. Creez une saison pour ajouter un tour."
-            : "Aucun club disponible. Creez un club pour ajouter un tour."}
+            ? "Aucune saison disponible. Créez une saison pour ajouter un tour."
+            : "Aucun club disponible. Créez un club pour ajouter un tour."}
         </div>
       ) : null}
 
@@ -217,7 +217,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
                 <TableCell colSpan={8} className="py-6">
                   <EmptyState
                     title="Aucun tour pour le moment"
-                    description="Creez un tour pour lier les tableaux."
+                    description="Créez un tour pour lier les tableaux."
                   />
                 </TableCell>
               </TableRow>

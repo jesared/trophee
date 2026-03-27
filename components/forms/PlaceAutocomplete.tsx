@@ -187,11 +187,15 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
   }
 
   if (loadError) {
+    const message =
+      loadError instanceof Error
+        ? loadError.message
+        : "Erreur Google Maps.";
     return (
       <div className="space-y-2">
         <Input value={inputValue} onChange={handleInputChange} />
         <p className="text-xs text-destructive">
-          Impossible de charger Google Maps. Essayez plus tard.
+          Impossible de charger Google Maps. {message}
         </p>
       </div>
     );

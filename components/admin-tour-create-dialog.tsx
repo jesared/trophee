@@ -95,11 +95,11 @@ export function AdminTourCreateDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button disabled={!hasSeason || !hasClubs}>Creer un tour</Button>
+        <Button disabled={!hasSeason || !hasClubs}>Créer un tour</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Creer un tour</DialogTitle>
+          <DialogTitle>Créer un tour</DialogTitle>
           <DialogDescription>
             Renseignez les informations du nouveau tour.
           </DialogDescription>
@@ -140,13 +140,13 @@ export function AdminTourCreateDialog({
             <input type="hidden" name="clubId" value={clubId} />
             {!hasClubs ? (
               <p className="text-xs text-muted-foreground">
-                Creez un club pour activer la creation de tour.
+                Créez un club pour activer la création de tour.
               </p>
             ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Nom</Label>
-            <Input id="name" name="name" placeholder="Tour decouverte" />
+            <Input id="name" name="name" placeholder="Tour découverte" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="date">Date</Label>
@@ -167,6 +167,9 @@ export function AdminTourCreateDialog({
               placeholder="https://..."
               type="url"
             />
+            <p className="text-xs text-muted-foreground">
+              Ajoutez une image de couverture pour la page du tour.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="rulesUrl">Règlement (URL)</Label>
@@ -176,6 +179,9 @@ export function AdminTourCreateDialog({
               placeholder="https://..."
               type="url"
             />
+            <p className="text-xs text-muted-foreground">
+              Lien vers le règlement PDF du tour.
+            </p>
           </div>
           {state.message ? (
             <p
