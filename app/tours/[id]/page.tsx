@@ -41,8 +41,12 @@ export default async function TourDetailPage({ params }: PageProps) {
 
   return (
     <section className="space-y-10">
-      <header className="space-y-3">
+      <header className="space-y-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/agenda" className="hover:text-foreground">
+            Agenda & salles
+          </Link>
+          <span>•</span>
           <span>{tour.season.name}</span>
           <span>•</span>
           <span>{formatter.format(tour.date)}</span>
@@ -59,52 +63,98 @@ export default async function TourDetailPage({ params }: PageProps) {
           </div>
         ) : null}
 
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {tour.name}
-        </h1>
+        <div className="space-y-3">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {tour.name}
+          </h1>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="badge-pill">
-            {tour.status === "OPEN"
-              ? "Ouvert"
-              : tour.status === "CLOSED"
-                ? "Fermé"
-                : tour.status === "DONE"
-                  ? "Terminé"
-                  : "Brouillon"}
-          </span>
-          {tour.club?.name ? (
-            <span className="badge-pill">Club : {tour.club.name}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="badge-pill">
+              {tour.status === "OPEN"
+                ? "Ouvert"
+                : tour.status === "CLOSED"
+                  ? "Fermé"
+                  : tour.status === "DONE"
+                    ? "Terminé"
+                    : "Brouillon"}
+            </span>
+            {tour.club?.name ? (
+              <span className="badge-pill">Club : {tour.club.name}</span>
+            ) : null}
+            {tour.venue ? (
+              <span className="badge-pill">{tour.venue}</span>
+            ) : null}
+            {tour.city ? <span className="badge-pill">{tour.city}</span> : null}
+          </div>
+
+          {tour.address ? (
+            <p className="text-sm text-muted-foreground">{tour.address}</p>
           ) : null}
-          {tour.venue ? <span className="badge-pill">{tour.venue}</span> : null}
-          {tour.city ? <span className="badge-pill">{tour.city}</span> : null}
+          {tour.description ? (
+            <p className="max-w-2xl text-base text-foreground/80">
+              {tour.description}
+            </p>
+          ) : null}
         </div>
 
-        {tour.address ? (
-          <p className="text-sm text-muted-foreground">{tour.address}</p>
-        ) : null}
-        {tour.description ? (
-          <p className="max-w-2xl text-base text-foreground/80">
-            {tour.description}
-          </p>
-        ) : null}
-        {tour.rulesUrl ? (
-          <Button asChild variant="secondary" size="sm">
-            <Link href={tour.rulesUrl} target="_blank" rel="noreferrer">
-              Règlement du tour
-            </Link>
-          </Button>
-        ) : null}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Date</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {formatter.format(tour.date)}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Club</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {tour.club?.name ?? "-"}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Salle</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {tour.venue ?? "-"}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Ville</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {tour.city ?? "-"}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {tour.rulesUrl ? (
+            <Button asChild variant="secondary" size="sm">
+              <Link href={tour.rulesUrl} target="_blank" rel="noreferrer">
+                Règlement du tour
+              </Link>
+            </Button>
+          ) : null}
+          {tour.status === "OPEN" ? (
+            <Button asChild size="sm">
+              <Link href="/inscription">S'inscrire</Link>
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" disabled>
+              Inscriptions fermées
+            </Button>
+          )}
+        </div>
       </header>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Tableaux</h2>
-          {tour.status === "OPEN" ? (
-            <Button asChild size="sm">
-              <Link href="/inscription">S'inscrire</Link>
-            </Button>
-          ) : null}
         </div>
         {tour.tableaux.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -113,11 +163,27 @@ export default async function TourDetailPage({ params }: PageProps) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tour.tableaux.map((tableau) => (
-              <Card key={tableau.id} className="bg-card">
+              <Card
+                key={tableau.id}
+                className="bg-card transition hover:-translate-y-0.5"
+              >
                 <CardHeader>
-                  <CardTitle className="text-base">
-                    {tableau.template.name}
-                  </CardTitle>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-muted text-base font-semibold text-foreground">
+                      {tableau.template.name
+                        .trim()
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">
+                        Tableau {tableau.template.name}
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        Catégorie par points
+                      </p>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   <p>Horaire : {timeFormatter.format(tableau.startTime)}</p>
