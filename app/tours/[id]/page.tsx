@@ -53,7 +53,7 @@ export default async function TourDetailPage({ params }: PageProps) {
             <img
               src={tour.coverUrl}
               alt={`Couverture ${tour.name}`}
-              className="h-56 w-full object-cover"
+              className="h-auto w-full object-cover"
             />
           </div>
         ) : null}
