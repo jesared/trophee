@@ -15,6 +15,7 @@ import {
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,8 +70,8 @@ function UserMenu() {
 
   if (!user) {
     return (
-      <Button size="sm" onClick={() => signIn("google")}>
-        Login
+      <Button size="sm" asChild>
+        <Link href="/login">Login</Link>
       </Button>
     );
   }
@@ -235,9 +236,11 @@ export function SiteHeader() {
                 <div className="flex items-center justify-between">
                   <ThemeToggle />
                   {!user ? (
-                    <Button size="sm" onClick={() => signIn("google")}>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Login
+                    <Button size="sm" asChild>
+                      <Link href="/login">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Login
+                      </Link>
                     </Button>
                   ) : (
                     <Button
