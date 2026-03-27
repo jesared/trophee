@@ -81,11 +81,11 @@ export default async function AgendaPage() {
           <h1 className="page-title sm:text-4xl">Agenda des tours et salles</h1>
           <p className="page-subtitle max-w-2xl">
             Retrouvez les prochains tours du trophée, les clubs organisateurs et
-            les salles d'accueil.
+            les salles d&apos;accueil.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/inscription">S'inscrire</Link>
+              <Link href="/inscription">S&apos;inscrire</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link href="/classement">Classements</Link>
@@ -122,10 +122,18 @@ export default async function AgendaPage() {
           <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
             <Card className="surface border-border/60">
               <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>Prochains tours</CardTitle>
-                <span className="text-xs text-muted-foreground">
-                  {tours.length} tour(s)
-                </span>
+                <div className="space-y-1">
+                  <CardTitle>Prochains tours</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {tours.length} tour(s) — triés par date
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="badge-pill bg-emerald-500/10 text-emerald-600">
+                    À venir
+                  </span>
+                  <span className="badge-pill">Passé</span>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {tours.length === 0 ? (
@@ -154,7 +162,7 @@ export default async function AgendaPage() {
                               </p>
                               {isToday ? (
                                 <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
-                                  Aujourd'hui
+                                  Aujourd&apos;hui
                                 </span>
                               ) : isPast ? (
                                 <span className="badge-pill text-[11px] font-semibold">
@@ -176,11 +184,13 @@ export default async function AgendaPage() {
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <Button variant="outline" size="sm">
-                              Voir
+                            <Button asChild variant="outline" size="sm">
+                              <Link href={`/tours/${tour.id}`}>Voir</Link>
                             </Button>
                             {!isPast ? (
-                              <Button size="sm">S'inscrire</Button>
+                              <Button asChild size="sm">
+                                <Link href="/inscription">S&apos;inscrire</Link>
+                              </Button>
                             ) : null}
                           </div>
                         </div>
@@ -213,10 +223,12 @@ export default async function AgendaPage() {
 
             <Card className="surface border-border/60 bg-muted/30">
               <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>Salles hôtes</CardTitle>
-                <span className="text-xs text-muted-foreground">
-                  {salles.length} salle(s)
-                </span>
+                <div className="space-y-1">
+                  <CardTitle>Salles hôtes</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {salles.length} salle(s) — lieux de la saison
+                  </p>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {salles.length === 0 ? (
@@ -239,9 +251,6 @@ export default async function AgendaPage() {
                             </p>
                           ) : null}
                         </div>
-                        <span className="badge-pill bg-primary/10 text-[11px] font-semibold text-primary">
-                          {salle.tours} tour(s)
-                        </span>
                       </div>
                     </div>
                   ))

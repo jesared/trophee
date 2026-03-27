@@ -39,6 +39,8 @@ async function createTour(
   const venue = String(formData.get("venue") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
+  const coverUrl = String(formData.get("coverUrl") ?? "").trim();
+  const rulesUrl = String(formData.get("rulesUrl") ?? "").trim();
 
   if (!seasonId || !name || !dateValue || !venue || !clubId) {
     return {
@@ -60,6 +62,8 @@ async function createTour(
       venue: venue || null,
       city: city || null,
       address: address || null,
+      coverUrl: coverUrl || null,
+      rulesUrl: rulesUrl || null,
       seasonId,
       clubId,
     },

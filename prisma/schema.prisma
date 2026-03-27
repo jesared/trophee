@@ -124,6 +124,8 @@ model Tour {
   city        String?
   address     String?
   description String?
+  coverUrl    String?
+  rulesUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

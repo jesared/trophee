@@ -159,6 +159,24 @@ export function AdminTourCreateDialog({
             <input type="hidden" name="city" value={cityValue} />
             <input type="hidden" name="address" value={addressValue} />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="coverUrl">Couverture (URL)</Label>
+            <Input
+              id="coverUrl"
+              name="coverUrl"
+              placeholder="https://..."
+              type="url"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rulesUrl">Règlement (URL)</Label>
+            <Input
+              id="rulesUrl"
+              name="rulesUrl"
+              placeholder="https://..."
+              type="url"
+            />
+          </div>
           {state.message ? (
             <p
               className={
