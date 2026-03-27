@@ -2,6 +2,7 @@
 
 import {
   ArrowUpRight,
+  BookOpen,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -109,6 +110,11 @@ const buildSections = (counts: SidebarCounts) => [
         href: "/admin/users",
         icon: UserCircle,
         badge: counts.users,
+      },
+      {
+        label: "Documentation",
+        href: "/admin/documentation",
+        icon: BookOpen,
       },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
