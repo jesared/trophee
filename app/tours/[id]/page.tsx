@@ -36,6 +36,7 @@ export default async function TourDetailPage({ params }: PageProps) {
   });
   const timeFormatter = new Intl.DateTimeFormat("fr-FR", {
     timeStyle: "short",
+    timeZone: "Europe/Paris",
   });
 
   return (
