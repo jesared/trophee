@@ -3,6 +3,7 @@
 import * as React from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [status, setStatus] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
@@ -30,6 +32,7 @@ export default function LoginPage() {
       });
       if (res?.ok) {
         setStatus("Lien de connexion envoyé.");
+        router.push(`/login/check-email?email=${encodeURIComponent(trimmed)}`);
       } else {
         setStatus("Impossible d'envoyer le lien.");
       }
