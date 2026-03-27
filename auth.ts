@@ -10,6 +10,12 @@ const googleClientId =
   process.env.GOOGLE_CLIENT_ID ?? process.env.AUTH_GOOGLE_ID ?? "";
 const googleClientSecret =
   process.env.GOOGLE_CLIENT_SECRET ?? process.env.AUTH_GOOGLE_SECRET ?? "";
+const emailServer = process.env.EMAIL_SERVER
+  ? process.env.EMAIL_SERVER.replace(/^"|"$/g, "")
+  : undefined;
+const emailFrom = process.env.EMAIL_FROM
+  ? process.env.EMAIL_FROM.replace(/^"|"$/g, "")
+  : undefined;
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -19,8 +25,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: googleClientSecret,
     }),
     EmailProvider({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
+      server: emailServer,
+      from: emailFrom,
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,

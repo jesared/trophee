@@ -5,7 +5,14 @@ export async function POST(request: Request) {
   const body = (await request.json()) as { to?: string };
   const to = String(body.to ?? "").trim();
 
-  if (!process.env.EMAIL_SERVER || !process.env.EMAIL_FROM) {
+  const emailServer = process.env.EMAIL_SERVER
+    ? process.env.EMAIL_SERVER.replace(/^"|"$/g, "")
+    : "";
+  const emailFrom = process.env.EMAIL_FROM
+    ? process.env.EMAIL_FROM.replace(/^"|"$/g, "")
+    : "";
+
+  if (!emailServer || !emailFrom) {
     return NextResponse.json(
       { ok: false, message: "EMAIL_SERVER / EMAIL_FROM manquants." },
       { status: 400 },
@@ -19,11 +26,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const transporter = nodemailer.createTransport(process.env.EMAIL_SERVER);
+  const transporter = nodemailer.createTransport({ url: emailServer });
 
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+      from: emailFrom,
       to,
       subject: "Test SMTP - Trophée FG",
       text: "Ceci est un email de test SMTP.",
