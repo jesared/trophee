@@ -1,12 +1,78 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+import { revalidatePath } from "next/cache";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { requireAdmin } from "@/lib/require-admin";
+import { prisma } from "@/lib/prisma";
 
-export default function AdminSettingsPage() {
+type FooterSettingsValues = {
+  contactEmail: string;
+  contactPhone: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
+};
+
+const FALLBACK_FOOTER: FooterSettingsValues = {
+  contactEmail: "contact@tropheefg.fr",
+  contactPhone: "03 00 00 00 00",
+  facebookUrl: "https://facebook.com",
+  instagramUrl: "https://instagram.com",
+  youtubeUrl: "",
+};
+
+async function updateFooterSettings(formData: FormData) {
+  "use server";
+
+  await requireAdmin();
+
+  const contactEmail = String(formData.get("contactEmail") ?? "").trim();
+  const contactPhone = String(formData.get("contactPhone") ?? "").trim();
+  const facebookUrl = String(formData.get("facebookUrl") ?? "").trim();
+  const instagramUrl = String(formData.get("instagramUrl") ?? "").trim();
+  const youtubeUrl = String(formData.get("youtubeUrl") ?? "").trim();
+
+  await prisma.footerSettings.upsert({
+    where: { id: "footer" },
+    update: {
+      contactEmail: contactEmail || null,
+      contactPhone: contactPhone || null,
+      facebookUrl: facebookUrl || null,
+      instagramUrl: instagramUrl || null,
+      youtubeUrl: youtubeUrl || null,
+    },
+    create: {
+      id: "footer",
+      contactEmail: contactEmail || null,
+      contactPhone: contactPhone || null,
+      facebookUrl: facebookUrl || null,
+      instagramUrl: instagramUrl || null,
+      youtubeUrl: youtubeUrl || null,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/settings");
+}
+
+export default async function AdminSettingsPage() {
+  await requireAdmin();
+
+  const footerSettings = await prisma.footerSettings
+    .findUnique({ where: { id: "footer" } })
+    .then((data) => ({
+      contactEmail: data?.contactEmail ?? FALLBACK_FOOTER.contactEmail,
+      contactPhone: data?.contactPhone ?? FALLBACK_FOOTER.contactPhone,
+      facebookUrl: data?.facebookUrl ?? FALLBACK_FOOTER.facebookUrl,
+      instagramUrl: data?.instagramUrl ?? FALLBACK_FOOTER.instagramUrl,
+      youtubeUrl: data?.youtubeUrl ?? FALLBACK_FOOTER.youtubeUrl,
+    }))
+    .catch(() => FALLBACK_FOOTER);
+
   return (
     <section className="page">
       <div className="page-header">
@@ -55,22 +121,52 @@ export default function AdminSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Contact & Réseaux</CardTitle>
+            <CardTitle>Contact & Réseaux (Footer)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="contact-email">Email</Label>
-              <Input id="contact-email" defaultValue="contact@tropheefg.fr" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact-phone">Téléphone</Label>
-              <Input id="contact-phone" defaultValue="03 00 00 00 00" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contact-facebook">Facebook</Label>
-              <Input id="contact-facebook" defaultValue="facebook.com/tropheefg" />
-            </div>
-            <Button size="sm">Enregistrer</Button>
+            <form action={updateFooterSettings} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="contact-email">Email</Label>
+                <Input
+                  id="contact-email"
+                  name="contactEmail"
+                  defaultValue={footerSettings.contactEmail}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-phone">Téléphone</Label>
+                <Input
+                  id="contact-phone"
+                  name="contactPhone"
+                  defaultValue={footerSettings.contactPhone}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-facebook">Facebook</Label>
+                <Input
+                  id="contact-facebook"
+                  name="facebookUrl"
+                  defaultValue={footerSettings.facebookUrl}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-instagram">Instagram</Label>
+                <Input
+                  id="contact-instagram"
+                  name="instagramUrl"
+                  defaultValue={footerSettings.instagramUrl}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-youtube">YouTube</Label>
+                <Input
+                  id="contact-youtube"
+                  name="youtubeUrl"
+                  defaultValue={footerSettings.youtubeUrl}
+                />
+              </div>
+              <Button size="sm">Enregistrer</Button>
+            </form>
           </CardContent>
         </Card>
 

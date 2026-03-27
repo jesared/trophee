@@ -204,3 +204,14 @@ model Registration {
 
   @@unique([tourId, tableauId, playerId])
 }
+
+model FooterSettings {
+  id            String   @id
+  contactEmail  String?
+  contactPhone  String?
+  facebookUrl   String?
+  instagramUrl  String?
+  youtubeUrl    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

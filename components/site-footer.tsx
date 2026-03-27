@@ -1,8 +1,67 @@
+"use client";
+
 import Link from "next/link";
+import * as React from "react";
 
 import { Container } from "@/components/container";
 
+type FooterSettings = {
+  contactEmail: string;
+  contactPhone: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
+};
+
+const FALLBACK_SETTINGS: FooterSettings = {
+  contactEmail: "contact@tropheefg.fr",
+  contactPhone: "03 00 00 00 00",
+  facebookUrl: "https://facebook.com",
+  instagramUrl: "https://instagram.com",
+  youtubeUrl: "",
+};
+
 export function SiteFooter() {
+  const [settings, setSettings] = React.useState<FooterSettings>(
+    FALLBACK_SETTINGS,
+  );
+
+  React.useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/footer-settings");
+        if (!res.ok) return;
+        const data = (await res.json()) as FooterSettings;
+        if (active) {
+          setSettings({
+            contactEmail: data.contactEmail || FALLBACK_SETTINGS.contactEmail,
+            contactPhone: data.contactPhone || FALLBACK_SETTINGS.contactPhone,
+            facebookUrl: data.facebookUrl || FALLBACK_SETTINGS.facebookUrl,
+            instagramUrl: data.instagramUrl || FALLBACK_SETTINGS.instagramUrl,
+            youtubeUrl: data.youtubeUrl || FALLBACK_SETTINGS.youtubeUrl,
+          });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const socialLinks = [
+    settings.facebookUrl
+      ? { label: "Facebook", href: settings.facebookUrl }
+      : null,
+    settings.instagramUrl
+      ? { label: "Instagram", href: settings.instagramUrl }
+      : null,
+    settings.youtubeUrl ? { label: "YouTube", href: settings.youtubeUrl } : null,
+  ].filter(Boolean) as { label: string; href: string }[];
+
   return (
     <footer className="border-t border-border/60 bg-background">
       <Container className="grid gap-8 py-10 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
@@ -19,8 +78,8 @@ export function SiteFooter() {
             Contact
           </p>
           <div className="space-y-2">
-            <p>contact@tropheefg.fr</p>
-            <p>03 00 00 00 00</p>
+            <p>{settings.contactEmail}</p>
+            <p>{settings.contactPhone}</p>
           </div>
         </div>
 
@@ -48,24 +107,23 @@ export function SiteFooter() {
           <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
             Réseaux
           </p>
-          <div className="flex flex-col gap-2">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors hover:text-foreground"
-            >
-              Facebook
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors hover:text-foreground"
-            >
-              Instagram
-            </a>
-          </div>
+          {socialLinks.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {socialLinks.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors hover:text-foreground"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p>Aucun réseau renseigné.</p>
+          )}
         </div>
       </Container>
 

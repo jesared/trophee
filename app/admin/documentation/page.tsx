@@ -146,11 +146,11 @@ export default function AdminDocumentationPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Qualité des données</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
+      <Card>
+        <CardHeader>
+          <CardTitle>Qualité des données</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
               Garder les noms de club, ville et salle cohérents pour un
               affichage clair sur l’agenda et les pages publiques.
@@ -159,12 +159,17 @@ export default function AdminDocumentationPage() {
               Vérifier les horaires de tableaux avant ouverture des
               inscriptions.
             </p>
-            <p>
-              Marquer les présences le jour J pour fiabiliser les exports et le
-              suivi sportif.
-            </p>
-          </CardContent>
-        </Card>
+          <p>
+            Marquer les présences le jour J pour fiabiliser les exports et le
+            suivi sportif.
+          </p>
+          <p>
+            <b>Google Maps (prod)</b> : autoriser le domaine
+            <span className="font-medium"> v2.tropheefg.fr</span> dans la
+            console Google Cloud pour éviter l’autocomplete bloqué.
+          </p>
+        </CardContent>
+      </Card>
       </div>
 
       <Card>
