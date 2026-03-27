@@ -20,6 +20,17 @@ type ActionState = {
   message: string;
 };
 
+function normalizeSupabasePublicUrl(value: string) {
+  if (!value) return value;
+  const signedMarker = "/storage/v1/object/sign/";
+  const publicMarker = "/storage/v1/object/public/";
+  if (value.includes(signedMarker)) {
+    const [base] = value.split("?");
+    return base.replace(signedMarker, publicMarker);
+  }
+  return value;
+}
+
 type PageProps = {
   searchParams: Promise<{ q?: string }>;
 };
@@ -39,8 +50,12 @@ async function createTour(
   const venue = String(formData.get("venue") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
-  const coverUrl = String(formData.get("coverUrl") ?? "").trim();
-  const rulesUrl = String(formData.get("rulesUrl") ?? "").trim();
+  const coverUrl = normalizeSupabasePublicUrl(
+    String(formData.get("coverUrl") ?? "").trim(),
+  );
+  const rulesUrl = normalizeSupabasePublicUrl(
+    String(formData.get("rulesUrl") ?? "").trim(),
+  );
 
   if (!seasonId || !name || !dateValue || !venue || !clubId) {
     return {
