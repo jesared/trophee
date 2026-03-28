@@ -4,9 +4,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CharacterCountTextarea } from "@/components/forms/CharacterCountTextarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { prisma } from "@/lib/prisma";
+
+const MAX_TESTIMONIAL_LENGTH = 280;
 
 type PageProps = {
   searchParams: Promise<{ sent?: string }>;
@@ -95,16 +98,12 @@ export default async function UserReviewPage({ searchParams }: PageProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="content">Ton avis</Label>
-              <textarea
+              <CharacterCountTextarea
                 id="content"
                 name="content"
-                maxLength={400}
+                maxLength={MAX_TESTIMONIAL_LENGTH}
                 placeholder="Quelques phrases sur ton expérience du trophée..."
-                className="min-h-[140px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
-              <p className="text-xs text-muted-foreground">
-                400 caractères maximum.
-              </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button type="submit">Publier mon avis</Button>

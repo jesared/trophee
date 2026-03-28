@@ -19,16 +19,13 @@ type ActionState = {
   message: string;
 };
 
-async function approveTestimonial(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+async function approveTestimonial(formData: FormData): Promise<void> {
   "use server";
 
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
-  if (!id) return { ok: false, message: "Avis introuvable." };
+  if (!id) return;
 
   await prisma.testimonial.update({
     where: { id },
@@ -37,19 +34,15 @@ async function approveTestimonial(
 
   revalidatePath("/");
   revalidatePath("/admin/testimonials");
-  return { ok: true, message: "Avis approuvé." };
 }
 
-async function rejectTestimonial(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+async function rejectTestimonial(formData: FormData): Promise<void> {
   "use server";
 
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
-  if (!id) return { ok: false, message: "Avis introuvable." };
+  if (!id) return;
 
   await prisma.testimonial.update({
     where: { id },
@@ -58,7 +51,6 @@ async function rejectTestimonial(
 
   revalidatePath("/");
   revalidatePath("/admin/testimonials");
-  return { ok: true, message: "Avis mis en attente." };
 }
 
 async function deleteTestimonial(
@@ -123,7 +115,7 @@ export default async function AdminTestimonialsPage() {
                   </TableCell>
                   <TableCell>{item.authorRole ?? "-"}</TableCell>
                   <TableCell className="max-w-md">
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                       {item.content}
                     </p>
                   </TableCell>
