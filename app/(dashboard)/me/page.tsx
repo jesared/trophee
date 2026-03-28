@@ -76,15 +76,18 @@ export default function UserDashboardPage() {
           <CardHeader>
             <CardTitle>Actions rapides</CardTitle>
             <CardDescription>
-              Acces direct aux actions courantes.
+              Accès direct aux actions courantes.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="flex flex-col gap-3 sm:flex-row">
+          <CardFooter className="flex flex-col gap-3">
             <Button asChild className="w-full">
               <Link href="/inscription">S’inscrire</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
               <Link href="/me/inscriptions">Voir mes inscriptions</Link>
+            </Button>
+            <Button asChild variant="secondary" className="w-full">
+              <Link href="/me/avis">Laisser un avis</Link>
             </Button>
           </CardFooter>
         </Card>

@@ -40,27 +40,6 @@ const stats = [
   { label: "Clubs partenaires", value: "20+" },
 ];
 
-const testimonials = [
-  {
-    quote:
-      "Un circuit bien organisé qui permet de jouer régulièrement et de suivre sa progression.",
-    name: "J. Martin",
-    role: "Joueur licencié",
-  },
-  {
-    quote:
-      "Des tableaux cohérents et une super ambiance sur chaque tour. On y revient chaque saison.",
-    name: "C. Morel",
-    role: "Responsable club",
-  },
-  {
-    quote:
-      "Tout est centralisé : agenda, inscriptions et classements. C'est clair et efficace.",
-    name: "L. Petit",
-    role: "Capitaine d'équipe",
-  },
-];
-
 export default async function Home() {
   type SeasonItem = {
     year: number;
@@ -82,14 +61,22 @@ export default async function Home() {
     select: { name: true, logoUrl: true, city: true },
     orderBy: { name: "asc" },
   });
-  const clubNames = partnerClubs.map((club) => club.name);
 
+  const testimonials = await prisma.testimonial.findMany({
+    where: { isApproved: true },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  });
+
+  const clubNames = partnerClubs.map((club) => club.name);
   const now = new Date();
   const nextTour = season?.tours.find((tour) => tour.date >= now) ?? null;
   const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
   const scrollerClubs =
-    clubNames.length > 0 ? partnerClubs : [{ name: "Clubs à venir", logoUrl: null, city: null }];
+    clubNames.length > 0
+      ? partnerClubs
+      : [{ name: "Clubs à venir", logoUrl: null, city: null }];
 
   return (
     <div className="page">
@@ -237,23 +224,41 @@ export default async function Home() {
         <div className="page-header">
           <h2 className="page-title text-2xl">Ils en parlent</h2>
           <p className="page-subtitle">
-            Quelques retours de clubs et joueurs impliqués.
+            Les retours récents des clubs et joueurs impliqués.
           </p>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          {testimonials.map((item) => (
-            <Card key={item.name} className="surface border-border/60">
+          {testimonials.length === 0 ? (
+            <Card className="surface border-border/60 lg:col-span-3">
               <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
-                <p className="text-foreground">"{item.quote}"</p>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {item.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{item.role}</p>
-                </div>
+                <p className="text-foreground">
+                  Aucun avis pour le moment. Soyez le premier à laisser un
+                  témoignage.
+                </p>
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/me/avis">Laisser un avis</Link>
+                </Button>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            testimonials.slice(0, 3).map((item) => (
+              <Card key={item.id} className="surface border-border/60">
+                <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
+                  <p className="text-foreground">"{item.content}"</p>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {item.authorName}
+                    </p>
+                    {item.authorRole ? (
+                      <p className="text-xs text-muted-foreground">
+                        {item.authorRole}
+                      </p>
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </section>
 

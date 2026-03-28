@@ -13,6 +13,7 @@ import {
   UserCircle2,
   Shield,
   ArrowUpRight,
+  MessageSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const items = [
   { label: "Mes inscriptions", href: "/me/inscriptions", icon: ClipboardList },
   { label: "Mes resultats", href: "/me/resultats", icon: Medal },
   { label: "Classement", href: "/me/classement", icon: Trophy },
+  { label: "Laisser un avis", href: "/me/avis", icon: MessageSquare },
   { label: "Profil", href: "/me/profil", icon: UserCircle2 },
 ];
 

@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LayoutGrid,
   LogOut,
+  MessageSquare,
   PanelLeft,
   Settings,
   Trophy,
@@ -94,6 +95,11 @@ const buildSections = (counts: SidebarCounts) => [
         href: "/admin/inscriptions",
         icon: ClipboardList,
         badge: counts.registrations,
+      },
+      {
+        label: "Avis",
+        href: "/admin/testimonials",
+        icon: MessageSquare,
       },
       {
         label: "Médias",
