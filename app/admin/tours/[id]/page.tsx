@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+
 import { AdminDeleteForm } from "@/components/admin-delete-form";
 import { AdminTourRegistrations } from "@/components/admin-tour-registrations";
 import { EmptyState } from "@/components/empty-state";
@@ -69,7 +70,7 @@ async function deleteTableau(
   if (tableau?.tourId) {
     revalidatePath(`/admin/tours/${tableau.tourId}`);
   }
-  return { ok: true, message: "Tableau supprime." };
+  return { ok: true, message: "Tableau supprimé." };
 }
 
 export default async function AdminTourDashboard({ params }: PageProps) {
@@ -105,35 +106,77 @@ export default async function AdminTourDashboard({ params }: PageProps) {
     }),
   ]);
 
+  const totalRegistrations = registrations.length;
+  const uniquePlayers = new Set(registrations.map((r) => r.playerId)).size;
+  const presentCount = registrations.filter(
+    (r) => r.presence === "PRESENT",
+  ).length;
+  const absentCount = registrations.filter(
+    (r) => r.presence === "ABSENT",
+  ).length;
+  const presenceRate =
+    totalRegistrations > 0
+      ? Math.round((presentCount / totalRegistrations) * 100)
+      : 0;
+
   const stats = [
+    { label: "Inscriptions", value: totalRegistrations },
+    { label: "Joueurs", value: uniquePlayers },
+    { label: "Présents", value: presentCount },
+    { label: "Absents", value: absentCount },
     { label: "Tableaux", value: tableaux.length },
-    { label: "Inscriptions", value: registrations.length },
-    { label: "Joueurs", value: new Set(registrations.map((r) => r.playerId)).size },
+    { label: "Taux présence", value: `${presenceRate}%` },
   ];
 
-  const grouped = registrations.reduce((acc, registration) => {
-    const key = `${registration.playerId}`;
-    const existing = acc.get(key);
-    if (!existing) {
-      acc.set(key, {
-        player: registration.player,
-        tableaux: [registration.tableau],
-        createdAt: registration.createdAt,
-        presence: registration.presence,
-        ids: [registration.id],
-      });
+  const tableauStats = registrations.reduce(
+    (acc, registration) => {
+      const key = registration.tableauId;
+      const current = acc.get(key) ?? { total: 0, present: 0 };
+      current.total += 1;
+      if (registration.presence === "PRESENT") {
+        current.present += 1;
+      }
+      acc.set(key, current);
       return acc;
-    }
-    existing.tableaux.push(registration.tableau);
-    existing.ids.push(registration.id);
-    if (registration.presence !== "UNKNOWN") {
-      existing.presence = registration.presence;
-    }
-    if (registration.createdAt > existing.createdAt) {
-      existing.createdAt = registration.createdAt;
-    }
-    return acc;
-  }, new Map<string, { player: typeof registrations[number]["player"]; tableaux: typeof registrations[number]["tableau"][]; createdAt: Date; ids: string[]; presence: "UNKNOWN" | "PRESENT" | "ABSENT" }>());
+    },
+    new Map<string, { total: number; present: number }>(),
+  );
+
+  const grouped = registrations.reduce(
+    (acc, registration) => {
+      const key = `${registration.playerId}`;
+      const existing = acc.get(key);
+      if (!existing) {
+        acc.set(key, {
+          player: registration.player,
+          tableaux: [registration.tableau],
+          createdAt: registration.createdAt,
+          presence: registration.presence,
+          ids: [registration.id],
+        });
+        return acc;
+      }
+      existing.tableaux.push(registration.tableau);
+      existing.ids.push(registration.id);
+      if (registration.presence !== "UNKNOWN") {
+        existing.presence = registration.presence;
+      }
+      if (registration.createdAt > existing.createdAt) {
+        existing.createdAt = registration.createdAt;
+      }
+      return acc;
+    },
+    new Map<
+      string,
+      {
+        player: typeof registrations[number]["player"];
+        tableaux: typeof registrations[number]["tableau"][];
+        createdAt: Date;
+        ids: string[];
+        presence: "UNKNOWN" | "PRESENT" | "ABSENT";
+      }
+    >(),
+  );
 
   const groupedRows = Array.from(grouped.values()).sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
@@ -163,6 +206,7 @@ export default async function AdminTourDashboard({ params }: PageProps) {
   });
   const timeFormatter = new Intl.DateTimeFormat("fr-FR", {
     timeStyle: "short",
+    timeZone: "Europe/Paris",
   });
 
   return (
@@ -179,6 +223,9 @@ export default async function AdminTourDashboard({ params }: PageProps) {
             <a href={`/admin/inscriptions?tourId=${tour.id}`}>
               Voir inscriptions
             </a>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href={`/admin/tours/${tour.id}/checkin`}>Check-in mobile</a>
           </Button>
           <Button asChild variant="secondary" size="sm">
             <a href={`/api/admin/registrations/export?tourId=${tour.id}`}>
@@ -199,7 +246,7 @@ export default async function AdminTourDashboard({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">
@@ -212,82 +259,31 @@ export default async function AdminTourDashboard({ params }: PageProps) {
             </CardContent>
           </Card>
         ))}
-        <Card className="sm:col-span-2">
+        <Card className="sm:col-span-2 xl:col-span-3">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Infos
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm text-muted-foreground">
-            <div>Club: {tour.club?.name ?? "-"}</div>
-            <div>Salle: {tour.venue ?? "-"}</div>
-            <div>Ville: {tour.city ?? "-"}</div>
+            <div>Club : {tour.club?.name ?? "-"}</div>
+            <div>Salle : {tour.venue ?? "-"}</div>
+            <div>Ville : {tour.city ?? "-"}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1.6fr]">
-        <Card className="border-border/70">
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle className="text-base">Tableaux</CardTitle>
-            <Button asChild size="sm" variant="secondary">
-              <a href="/admin/tableaux">Ajouter un tableau</a>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Horaire</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tableaux.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="py-6">
-                      <EmptyState
-                        title="Aucun tableau"
-                        description="Ajoutez un tableau pour ouvrir les inscriptions."
-                      />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  tableaux.map((tableau) => (
-                    <TableRow key={tableau.id}>
-                      <TableCell className="font-medium">
-                        {tableau.template.name}
-                      </TableCell>
-                      <TableCell>
-                        {timeFormatter.format(tableau.startTime)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <AdminDeleteForm
-                          id={tableau.id}
-                          action={deleteTableau}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6">
         <Card className="border-border/70">
           <CardHeader className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">Inscriptions</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Dernieres inscriptions sur ce tour.
+                Dernières inscriptions sur ce tour.
               </p>
             </div>
             <Button asChild size="sm" variant="secondary">
-              <a href={`/admin/inscriptions?tourId=${tour.id}`}>
-                Gerer
-              </a>
+              <a href={`/admin/inscriptions?tourId=${tour.id}`}>Gérer</a>
             </Button>
           </CardHeader>
           <CardContent className="p-0">
