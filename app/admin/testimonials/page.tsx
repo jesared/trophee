@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 
 import { AdminDeleteForm } from "@/components/admin-delete-form";
@@ -70,10 +71,23 @@ async function deleteTestimonial(
   return { ok: true, message: "Avis supprimé." };
 }
 
-export default async function AdminTestimonialsPage() {
+type PageProps = {
+  searchParams: Promise<{ status?: string }>;
+};
+
+export default async function AdminTestimonialsPage({ searchParams }: PageProps) {
   await requireAdmin();
 
+  const { status } = await searchParams;
+  const normalized = status === "pending" || status === "approved" ? status : "";
+
   const testimonials = await prisma.testimonial.findMany({
+    where:
+      normalized === "pending"
+        ? { isApproved: false }
+        : normalized === "approved"
+          ? { isApproved: true }
+          : undefined,
     orderBy: { createdAt: "desc" },
   });
 
@@ -84,6 +98,30 @@ export default async function AdminTestimonialsPage() {
         <p className="page-subtitle">
           Validez ou masquez les témoignages affichés sur l’accueil.
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          asChild
+          variant={normalized === "" ? "default" : "outline"}
+          size="sm"
+        >
+          <Link href="/admin/testimonials">Tous</Link>
+        </Button>
+        <Button
+          asChild
+          variant={normalized === "pending" ? "default" : "outline"}
+          size="sm"
+        >
+          <Link href="/admin/testimonials?status=pending">En attente</Link>
+        </Button>
+        <Button
+          asChild
+          variant={normalized === "approved" ? "default" : "outline"}
+          size="sm"
+        >
+          <Link href="/admin/testimonials?status=approved">Publiés</Link>
+        </Button>
       </div>
 
       <div className="surface">
