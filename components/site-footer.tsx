@@ -129,7 +129,16 @@ export function SiteFooter() {
 
       <div className="border-t border-border/60 py-4 text-center text-xs text-muted-foreground">
         (c) {new Date().getFullYear()} Trophée François Grieder. Tous droits
-        réservés.
+        réservés · Créateur{" "}
+        <a
+          href="https://jesared.fr"
+          target="_blank"
+          rel="noreferrer"
+          className="text-foreground/80 hover:text-foreground"
+        >
+          Jerome HENRY
+        </a>
+        .
       </div>
     </footer>
   );
