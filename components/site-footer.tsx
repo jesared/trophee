@@ -6,25 +6,24 @@ import * as React from "react";
 import { Container } from "@/components/container";
 
 type FooterSettings = {
-  contactEmail: string;
-  contactPhone: string;
-  facebookUrl: string;
-  instagramUrl: string;
-  youtubeUrl: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
 };
 
 const FALLBACK_SETTINGS: FooterSettings = {
-  contactEmail: "contact@tropheefg.fr",
-  contactPhone: "03 00 00 00 00",
-  facebookUrl: "https://facebook.com",
-  instagramUrl: "https://instagram.com",
-  youtubeUrl: "",
+  contactEmail: null,
+  contactPhone: null,
+  facebookUrl: null,
+  instagramUrl: null,
+  youtubeUrl: null,
 };
 
 export function SiteFooter() {
-  const [settings, setSettings] = React.useState<FooterSettings>(
-    FALLBACK_SETTINGS,
-  );
+  const [settings, setSettings] =
+    React.useState<FooterSettings>(FALLBACK_SETTINGS);
 
   React.useEffect(() => {
     let active = true;
@@ -34,13 +33,7 @@ export function SiteFooter() {
         if (!res.ok) return;
         const data = (await res.json()) as FooterSettings;
         if (active) {
-          setSettings({
-            contactEmail: data.contactEmail || FALLBACK_SETTINGS.contactEmail,
-            contactPhone: data.contactPhone || FALLBACK_SETTINGS.contactPhone,
-            facebookUrl: data.facebookUrl || FALLBACK_SETTINGS.facebookUrl,
-            instagramUrl: data.instagramUrl || FALLBACK_SETTINGS.instagramUrl,
-            youtubeUrl: data.youtubeUrl || FALLBACK_SETTINGS.youtubeUrl,
-          });
+          setSettings(data);
         }
       } catch {
         // ignore
@@ -59,7 +52,9 @@ export function SiteFooter() {
     settings.instagramUrl
       ? { label: "Instagram", href: settings.instagramUrl }
       : null,
-    settings.youtubeUrl ? { label: "YouTube", href: settings.youtubeUrl } : null,
+    settings.youtubeUrl
+      ? { label: "YouTube", href: settings.youtubeUrl }
+      : null,
   ].filter(Boolean) as { label: string; href: string }[];
 
   return (
@@ -77,9 +72,26 @@ export function SiteFooter() {
           <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
             Contact
           </p>
-          <div className="space-y-2">
-            <p>{settings.contactEmail}</p>
-            <p>{settings.contactPhone}</p>
+          <div className="flex flex-col gap-2">
+            {settings.contactEmail ? (
+              <Link
+                href={`mailto:${settings.contactEmail}`}
+                className="transition-colors hover:text-foreground"
+              >
+                {settings.contactEmail}
+              </Link>
+            ) : null}
+            {settings.contactPhone ? (
+              <Link
+                href={`tel:${settings.contactPhone.replace(/\s+/g, "")}`}
+                className="transition-colors hover:text-foreground"
+              >
+                {settings.contactPhone}
+              </Link>
+            ) : null}
+            {!settings.contactEmail && !settings.contactPhone ? (
+              <p>Coordonnées à renseigner.</p>
+            ) : null}
           </div>
         </div>
 

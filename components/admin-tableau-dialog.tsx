@@ -36,6 +36,8 @@ const formatRange = (minPoints?: number | null, maxPoints?: number | null) => {
   return "Libre";
 };
 
+const ALL_TEMPLATES_VALUE = "__all_templates__";
+
 type ActionState = {
   ok: boolean;
   message: string;
@@ -51,6 +53,7 @@ type TemplateOption = {
   name: string;
   minPoints?: number | null;
   maxPoints?: number | null;
+  startTime?: string | null;
 };
 
 type AdminTableauDialogProps = {
@@ -77,7 +80,6 @@ export function AdminTableauDialog({
   const [open, setOpen] = React.useState(false);
   const [tourId, setTourId] = React.useState("");
   const [templateId, setTemplateId] = React.useState("");
-  const [startTime, setStartTime] = React.useState("");
   const [state, formAction] = React.useActionState(action, {
     ok: false,
     message: "",
@@ -94,7 +96,6 @@ export function AdminTableauDialog({
       formRef.current?.reset();
       setTourId("");
       setTemplateId("");
-      setStartTime("");
       setOpen(false);
       return;
     }
@@ -107,13 +108,13 @@ export function AdminTableauDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button disabled={disabled}>Creer un tableau</Button>
+        <Button disabled={disabled}>Ajouter des tableaux</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouveau tableau</DialogTitle>
+          <DialogTitle>Ajouter des tableaux</DialogTitle>
           <DialogDescription>
-            Associez un template et un tour avec un horaire.
+            Ajoutez un template précis ou tous les templates manquants pour un tour.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
@@ -124,9 +125,13 @@ export function AdminTableauDialog({
                 <SelectValue placeholder="Choisir un template" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={ALL_TEMPLATES_VALUE}>
+                  Tous les templates manquants
+                </SelectItem>
                 {templates.map((template) => (
                   <SelectItem key={template.id} value={template.id}>
                     {template.name} ({formatRange(template.minPoints, template.maxPoints)})
+                    {template.startTime ? ` · ${template.startTime}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -151,19 +156,8 @@ export function AdminTableauDialog({
             <input type="hidden" name="tourId" value={tourId} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="startTime">Horaire</Label>
-            <Input
-              id="startTime"
-              name="startTime"
-              type="time"
-              value={startTime}
-              onChange={(event) => setStartTime(event.target.value)}
-            />
-          </div>
-
           <div className="flex justify-end">
-            <SubmitButton disabled={!templateId || !tourId || !startTime} />
+            <SubmitButton disabled={!templateId || !tourId} />
           </div>
         </form>
       </DialogContent>

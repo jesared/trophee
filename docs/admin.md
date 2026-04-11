@@ -11,10 +11,10 @@
    - Créer les tours (saison + club).
    - Ajouter lieu/ville/club.
 4. **Templates de tableaux**
-   - Définir les catégories (plage de points).
+   - Définir les catégories (plage de points) et l'horaire de référence.
 5. **Tableaux**
    - Associer un template à un tour.
-   - Définir l’horaire (startTime).
+   - Ou ajouter tous les templates d'un coup pour un tour.
 6. **Ouvrir les inscriptions**
    - Mettre le tour en statut `OPEN`.
 7. **Inscriptions**
@@ -54,11 +54,12 @@ Paramètres :
 
 ### Templates (`/admin/tableau-templates`)
 - Définissent les plages de points (min/max).
+- Portent l'horaire de référence du tableau.
 - Réutilisables sur plusieurs tours.
 
 ### Tableaux (`/admin/tableaux`)
 - Liés à un tour + template.
-- Contiennent un horaire (startTime).
+- Reprennent automatiquement l'horaire défini sur le template.
 
 ---
 

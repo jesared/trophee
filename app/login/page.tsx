@@ -45,12 +45,51 @@ export default function LoginPage() {
 
   return (
     <div className="page">
-      <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card className="surface border-border/60 bg-muted/30">
+          <CardHeader>
+            <CardTitle>Accès réservé</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 text-sm text-muted-foreground">
+            <p className="text-base text-foreground">
+              L'espace joueur n'est pas encore ouvert dans cette première mise
+              en ligne.
+            </p>
+            <p>
+              Le site public se concentre pour le moment sur les informations
+              pratiques du trophée: agenda, salles, détails des tours et
+              classements.
+            </p>
+            <div className="surface p-4">
+              <p className="font-medium text-foreground">
+                Inscriptions et espace joueur bientôt disponibles
+              </p>
+              <p className="mt-2">
+                En attendant, utilisez le site comme portail d'information du
+                trophée.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild>
+                <Link href="/agenda">Voir l'agenda</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/classement">Voir les classements</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Se connecter</CardTitle>
+            <CardTitle>Accès organisation</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Cet accès peut rester utilisé par l'organisation pour
+              l'administration du site.
+            </p>
+
             <div className="space-y-3">
               <Button
                 className="w-full"
@@ -73,7 +112,7 @@ export default function LoginPage() {
                   id="magic-email"
                   name="email"
                   type="email"
-                  placeholder="ex: joueur@mail.com"
+                  placeholder="ex: organisation@mail.com"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
@@ -81,36 +120,10 @@ export default function LoginPage() {
               {status ? (
                 <p className="text-xs text-muted-foreground">{status}</p>
               ) : null}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={pending}
-              >
+              <Button type="submit" className="w-full" disabled={pending}>
                 {pending ? "Envoi..." : "Envoyer un lien magique"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
-
-        <Card className="surface border-border/60 bg-muted/30">
-          <CardHeader>
-            <CardTitle>Accès sécurisé</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              Le lien magique vous permet de vous connecter sans mot de passe.
-              Vérifiez votre boîte mail après l'envoi.
-            </p>
-            <p>
-              Besoin d'aide ? Contactez l'organisation depuis la page
-              <Link
-                href="/inscription"
-                className="ml-1 font-medium text-foreground"
-              >
-                Inscription
-              </Link>
-              .
-            </p>
           </CardContent>
         </Card>
       </div>

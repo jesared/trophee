@@ -29,6 +29,15 @@ export default async function ToursPage() {
   const formatter = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "long",
   });
+  const now = new Date();
+
+  const sortedTours = [...(season?.tours ?? [])].sort(
+    (a, b) => a.date.getTime() - b.date.getTime(),
+  );
+  const upcomingTours = sortedTours.filter((tour) => tour.date >= now);
+  const pastTours = sortedTours.filter((tour) => tour.date < now);
+  const tours = [...upcomingTours, ...pastTours];
+  const nextTour = tours.find((tour) => tour.date >= now) ?? null;
 
   return (
     <section className="space-y-6">
@@ -42,17 +51,32 @@ export default async function ToursPage() {
         </p>
       </div>
 
-      {!season || season.tours.length === 0 ? (
+      {!season || tours.length === 0 ? (
         <EmptyState
           title="Aucun tour disponible"
           description="Activez une saison et ajoutez des tours."
         />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {season.tours.map((tour) => (
+        <>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="badge-pill bg-emerald-500/10 text-emerald-600">
+              À venir
+            </span>
+            <span className="badge-pill">Passé</span>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {tours.map((tour) => {
+              const isPast = tour.date < now;
+              const isToday = tour.date.toDateString() === now.toDateString();
+              const isNext = nextTour ? tour.id === nextTour.id : false;
+
+              return (
             <Card
               key={tour.id}
-              className="transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className={`h-full transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                isPast ? "opacity-70 grayscale" : ""
+              }`}
             >
               <CardHeader>
                 <div className="flex flex-wrap items-center gap-2">
@@ -62,13 +86,29 @@ export default async function ToursPage() {
                       : tour.status === "CLOSED"
                         ? "Fermé"
                         : tour.status === "DONE"
-                          ? "Terminé"
-                          : "Brouillon"}
+                        ? "Terminé"
+                        : "Brouillon"}
                   </span>
+                  {isToday ? (
+                    <span className="badge-pill bg-primary/10 text-primary">
+                      Aujourd&apos;hui
+                    </span>
+                  ) : isPast ? (
+                    <span className="badge-pill">Passé</span>
+                  ) : (
+                    <span className="badge-pill bg-emerald-500/10 text-emerald-600">
+                      À venir
+                    </span>
+                  )}
+                  {isNext ? (
+                    <span className="badge-pill bg-primary/10 text-primary">
+                      Prochain
+                    </span>
+                  ) : null}
                 </div>
                 <CardTitle className="mt-2">{tour.name}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1 text-sm text-muted-foreground">
+              <CardContent className="flex-1 space-y-1 text-sm text-muted-foreground">
                 <p>{formatter.format(tour.date)}</p>
                 <p>
                   {tour.venue ?? "Salle à confirmer"}
@@ -76,19 +116,16 @@ export default async function ToursPage() {
                 </p>
                 {tour.club?.name ? <p>Club : {tour.club.name}</p> : null}
               </CardContent>
-              <CardFooter className="flex items-center justify-between">
+              <CardFooter className="mt-auto flex items-center justify-start gap-3">
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/tours/${tour.id}`}>Voir le détail</Link>
+                  <Link href={`/tours/${tour.id}`}>Infos pratiques</Link>
                 </Button>
-                {tour.status === "OPEN" ? (
-                  <Button asChild size="sm">
-                    <Link href="/inscription">S&apos;inscrire</Link>
-                  </Button>
-                ) : null}
               </CardFooter>
             </Card>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </section>
   );

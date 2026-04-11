@@ -12,6 +12,35 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+function buildFallbackDescription(tour: {
+  name: string;
+  season: { name: string };
+  club: { name: string } | null;
+  city: string | null;
+  venue: string | null;
+  status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
+  tableaux: { id: string }[];
+}) {
+  const locationBits = [tour.city, tour.venue].filter(Boolean);
+  const locationLabel =
+    locationBits.length > 0 ? ` à ${locationBits.join(", ")}` : "";
+  const organizerLabel = tour.club?.name
+    ? ` organisé par ${tour.club.name}`
+    : "";
+
+  const intro = `${tour.name} fait partie de ${tour.season.name}${organizerLabel}${locationLabel}.`;
+
+  if (tour.tableaux.length > 0) {
+    return `${intro} Retrouvez ci-dessous les tableaux prévus, leurs horaires et les catégories de points associées.`;
+  }
+
+  if (tour.status === "DONE") {
+    return `${intro} Ce tour est désormais terminé. Les informations principales sont conservées ici pour consultation.`;
+  }
+
+  return `${intro} Les précisions complémentaires seront ajoutées prochainement par l'organisation.`;
+}
+
 export default async function TourDetailPage({ params }: PageProps) {
   const { id } = await params;
 
@@ -38,6 +67,13 @@ export default async function TourDetailPage({ params }: PageProps) {
     timeStyle: "short",
     timeZone: "Europe/Paris",
   });
+  const publicInfoLabel =
+    tour.status === "OPEN"
+      ? "Inscriptions bientôt disponibles"
+      : tour.status === "DONE"
+        ? "Tour terminé"
+        : "Informations uniquement";
+  const description = tour.description?.trim() || buildFallbackDescription(tour);
 
   return (
     <section className="space-y-10">
@@ -90,11 +126,9 @@ export default async function TourDetailPage({ params }: PageProps) {
           {tour.address ? (
             <p className="text-sm text-muted-foreground">{tour.address}</p>
           ) : null}
-          {tour.description ? (
-            <p className="max-w-2xl text-base text-foreground/80">
-              {tour.description}
-            </p>
-          ) : null}
+          <p className="max-w-2xl text-base text-foreground/80">
+            {description}
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -140,15 +174,9 @@ export default async function TourDetailPage({ params }: PageProps) {
               </Link>
             </Button>
           ) : null}
-          {tour.status === "OPEN" ? (
-            <Button asChild size="sm">
-              <Link href="/inscription">S'inscrire</Link>
-            </Button>
-          ) : (
-            <Button size="sm" variant="outline" disabled>
-              Inscriptions fermées
-            </Button>
-          )}
+          <Button size="sm" variant="outline" disabled>
+            {publicInfoLabel}
+          </Button>
         </div>
       </header>
 

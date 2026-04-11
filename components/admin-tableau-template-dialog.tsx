@@ -69,7 +69,7 @@ export function AdminTableauTemplateDialog({
         <DialogHeader>
           <DialogTitle>Nouveau template</DialogTitle>
           <DialogDescription>
-            Definissez la plage de points pour ce tableau.
+            Definissez la plage de points et l'horaire de reference pour ce tableau.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
@@ -86,6 +86,10 @@ export function AdminTableauTemplateDialog({
               <Label htmlFor="maxPoints">Points max</Label>
               <Input id="maxPoints" name="maxPoints" type="number" />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="startTime">Horaire</Label>
+            <Input id="startTime" name="startTime" type="time" required />
           </div>
           <div className="flex justify-end">
             <SubmitButton disabled={false} />

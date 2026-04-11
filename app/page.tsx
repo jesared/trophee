@@ -21,36 +21,40 @@ const highlights = [
     cta: "Consulter les classements",
   },
   {
-    title: "Inscription rapide",
-    description: "Choisissez votre tour et votre tableau en quelques clics.",
-    href: "/inscription",
-    cta: "S'inscrire",
+    title: "Tours & infos pratiques",
+    description: "Consultez les détails des tours, des salles et du format.",
+    href: "/tours",
+    cta: "Voir les tours",
   },
 ];
 
 const steps = [
-  "Choisissez un tour depuis l'agenda.",
-  "Sélectionnez le tableau adapté à votre niveau.",
-  "Confirmez votre inscription et suivez vos résultats.",
-];
-
-const stats = [
-  { label: "Tours officiels", value: "8" },
-  { label: "Tableaux par niveau", value: "12+" },
-  { label: "Clubs partenaires", value: "20+" },
+  "Consultez les dates de la saison dans l'agenda.",
+  "Repérez les salles hôtes, les clubs organisateurs et les horaires.",
+  "Retrouvez le règlement et les classements mis à jour après chaque tour.",
 ];
 
 export default async function Home() {
   type SeasonItem = {
     year: number;
-    tours: { name: string; date: Date; venue: string | null }[];
+    tours: {
+      name: string;
+      date: Date;
+      venue: string | null;
+      _count: { tableaux: number };
+    }[];
   };
 
   const season: SeasonItem | null = await prisma.season.findFirst({
     where: { isActive: true },
     include: {
       tours: {
-        select: { name: true, date: true, venue: true },
+        select: {
+          name: true,
+          date: true,
+          venue: true,
+          _count: { select: { tableaux: true } },
+        },
         orderBy: { date: "asc" },
       },
     },
@@ -72,6 +76,22 @@ export default async function Home() {
   const now = new Date();
   const nextTour = season?.tours.find((tour) => tour.date >= now) ?? null;
   const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
+  const totalTableaux =
+    season?.tours.reduce((sum, tour) => sum + tour._count.tableaux, 0) ?? 0;
+  const publicStats = [
+    {
+      label: "Tours publiés",
+      value: season ? season.tours.length.toString() : "0",
+    },
+    {
+      label: "Tableaux annoncés",
+      value: totalTableaux > 0 ? totalTableaux.toString() : "À venir",
+    },
+    {
+      label: "Clubs partenaires",
+      value: partnerClubs.length.toString(),
+    },
+  ];
 
   const scrollerClubs =
     clubNames.length > 0
@@ -149,7 +169,7 @@ export default async function Home() {
       </section>
 
       <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-3 sm:p-8">
-        {stats.map((stat) => (
+        {publicStats.map((stat) => (
           <div key={stat.label} className="surface px-5 py-4">
             <p className="text-xs font-medium text-muted-foreground">
               {stat.label}
@@ -232,11 +252,11 @@ export default async function Home() {
             <Card className="surface border-border/60 lg:col-span-3">
               <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
                 <p className="text-foreground">
-                  Aucun avis pour le moment. Soyez le premier à laisser un
-                  témoignage.
+                  Aucun avis publié pour le moment. Les retours des clubs et
+                  joueurs apparaîtront ici au fil de la saison.
                 </p>
                 <Button asChild size="sm" variant="secondary">
-                  <Link href="/me/avis">Laisser un avis</Link>
+                  <Link href="/trophee">Découvrir le trophée</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -289,7 +309,7 @@ export default async function Home() {
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Inscription en 3 étapes</CardTitle>
+            <CardTitle>Préparer sa saison</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             {steps.map((step) => (
@@ -299,7 +319,7 @@ export default async function Home() {
               </div>
             ))}
             <Button asChild size="sm" className="mt-2">
-              <Link href="/inscription">S'inscrire</Link>
+              <Link href="/tours">Voir les informations</Link>
             </Button>
           </CardContent>
         </Card>

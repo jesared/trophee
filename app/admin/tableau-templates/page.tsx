@@ -39,6 +39,7 @@ const templateSchema = z
   .object({
     minPoints: pointsSchema,
     maxPoints: pointsSchema,
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, "Horaire requis."),
   })
   .refine(
     (data) => {
@@ -63,6 +64,10 @@ function formatRange(minPoints: number | null, maxPoints: number | null) {
   return "Libre";
 }
 
+function formatStartTime(startTime: string | null) {
+  return startTime?.trim() || "A definir";
+}
+
 async function createTableauTemplate(
   _prevState: ActionState,
   formData: FormData,
@@ -75,6 +80,7 @@ async function createTableauTemplate(
   const parsed = templateSchema.safeParse({
     minPoints: formData.get("minPoints"),
     maxPoints: formData.get("maxPoints"),
+    startTime: String(formData.get("startTime") ?? "").trim(),
   });
 
   if (!parsed.success) {
@@ -84,7 +90,7 @@ async function createTableauTemplate(
     };
   }
 
-  const { minPoints, maxPoints } = parsed.data;
+  const { minPoints, maxPoints, startTime } = parsed.data;
   const name = rawName || formatRange(minPoints ?? null, maxPoints ?? null);
 
   if (!rawName && name === "Libre") {
@@ -96,6 +102,7 @@ async function createTableauTemplate(
       name,
       minPoints: minPoints ?? null,
       maxPoints: maxPoints ?? null,
+      startTime,
     },
   });
 
@@ -146,10 +153,11 @@ export default async function AdminTableauTemplatesPage() {
     name: string;
     minPoints: number | null;
     maxPoints: number | null;
+    startTime: string | null;
   };
 
   const templates: TemplateItem[] = await prisma.tableauTemplate.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ startTime: "asc" }, { name: "asc" }],
   });
 
   return (
@@ -168,16 +176,17 @@ export default async function AdminTableauTemplatesPage() {
             <TableRow>
               <TableHead>Nom</TableHead>
               <TableHead>Plage de points</TableHead>
+              <TableHead>Horaire</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {templates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-6">
+                <TableCell colSpan={4} className="py-6">
                   <EmptyState
                     title="Aucun template pour le moment"
-                    description="Définissez une plage de points pour créer un tableau."
+                    description="Définissez une plage de points et un horaire pour créer un template."
                   />
                 </TableCell>
               </TableRow>
@@ -188,6 +197,7 @@ export default async function AdminTableauTemplatesPage() {
                   <TableCell>
                     {formatRange(template.minPoints, template.maxPoints)}
                   </TableCell>
+                  <TableCell>{formatStartTime(template.startTime)}</TableCell>
                   <TableCell className="text-right">
                     <AdminDeleteForm
                       id={template.id}

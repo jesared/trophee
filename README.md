@@ -40,15 +40,36 @@ Ouvre `http://localhost:3000`.
 
 ## Variables d’environnement
 
-Crée un fichier `.env` :
+Copiez `.env.example` vers `.env`.
+
+### Minimum pour une mise en ligne "vitrine"
 
 ```env
-DATABASE_URL="postgresql://user:pass@host:5432/db"
-NEXTAUTH_URL="http://localhost:3000"
+DATABASE_URL="postgresql://user:pass@host:5432/db?sslmode=require"
+GOOGLE_DRIVE_FOLDER_ID="..."
+GOOGLE_SERVICE_ACCOUNT_KEY='{"type":"service_account", ... }'
+```
+
+Ces variables couvrent :
+
+- les pages publiques basées sur Prisma (`accueil`, `agenda`, `tours`, `footer`)
+- les classements PDF via Google Drive
+
+### Variables optionnelles si vous gardez l’admin / l’auth en ligne
+
+```env
+NEXTAUTH_URL="https://votre-domaine.tld"
 NEXTAUTH_SECRET="change-me"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
-GOOGLE_MAPS_API_KEY="..."
+EMAIL_SERVER="smtp://..."
+EMAIL_FROM="Trophée FG <noreply@example.com>"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="..."
+SUPABASE_URL="https://..."
+SUPABASE_SERVICE_ROLE_KEY="..."
+SUPABASE_STORAGE_BUCKET="tfg-media"
+FFTT_APP_ID="..."
+FFTT_APP_PASSWORD="..."
 ```
 
 ## Prisma

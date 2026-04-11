@@ -3,45 +3,41 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const steps = [
+const participationConditions = [
+  "Être en règle avec sa licence et son classement officiel.",
+  "Respecter les horaires de convocation et le règlement du tour.",
+  "Choisir un tableau cohérent avec son niveau et les catégories annoncées.",
+];
+
+const tableauRules = [
   {
-    title: "Choisir un tour",
+    title: "Répartition par niveau",
     description:
-      "Parcourez l'agenda et repérez le tour qui vous convient. Toutes les infos utiles sont visibles.",
+      "Les tableaux sont organisés par tranches de points pour garder un format lisible et équilibré.",
   },
   {
-    title: "Sélectionner un tableau",
+    title: "Horaires annoncés à l'avance",
     description:
-      "Choisissez le tableau qui correspond à vos points. Les catégories sont homogènes.",
+      "Chaque tableau possède son horaire de démarrage afin de faciliter l'organisation de la journée.",
   },
   {
-    title: "Valider l'inscription",
+    title: "Classement homogène",
     description:
-      "Confirmez votre participation et suivez l'état de vos inscriptions dans votre espace.",
+      "Le même cadre est repris d'un tour à l'autre pour conserver la cohérence du trophée sur la saison.",
   },
 ];
 
-const faq = [
-  {
-    question: "Puis-je annuler une inscription ?",
-    answer:
-      "Oui, l'annulation est possible tant que le tableau n'est pas verrouillé par l'organisation.",
-  },
-  {
-    question: "Comment sont attribués les points ?",
-    answer:
-      "Les points dépendent de votre performance dans chaque tableau. Le barème est identique sur tous les tours.",
-  },
-  {
-    question: "Quels tableaux puis-je choisir ?",
-    answer:
-      "Les tableaux sont définis par niveaux de points. Sélectionnez celui qui correspond à votre classement.",
-  },
-  {
-    question: "Qui contacter en cas de problème ?",
-    answer:
-      "L'organisation est disponible via la page contact pour toute modification ou question.",
-  },
+const usefulInfo = [
+  "Nom, prénom et club",
+  "Numéro de licence ou classement FFTT à jour",
+  "Tour visé et tableau correspondant",
+  "Disponibilités ou informations particulières si besoin",
+];
+
+const practicalNotes = [
+  "Consultez l'agenda pour connaître les dates, les salles et les clubs organisateurs.",
+  "Les détails d'un tour permettent de vérifier les horaires, le lieu et les tableaux proposés.",
+  "Les classements sont publiés séparément afin de suivre l'évolution de la saison.",
 ];
 
 export default function InscriptionPage() {
@@ -49,93 +45,130 @@ export default function InscriptionPage() {
     <section className="page">
       <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-background p-8 sm:p-10">
         <div className="space-y-5">
-          <div className="badge-pill w-fit">Inscription joueurs</div>
-          <h1 className="page-title sm:text-4xl">Inscrivez-vous au trophée</h1>
-          <p className="page-subtitle max-w-2xl text-base">
-            Choisissez votre tour, votre tableau et validez votre participation
-            en quelques clics. Les inscriptions sont centralisées et mises à jour
-            en temps réel.
+          <div className="badge-pill w-fit">Participer au trophée</div>
+          <h1 className="page-title sm:text-4xl">
+            Informations pratiques pour les joueurs
+          </h1>
+          <p className="page-subtitle max-w-3xl text-base">
+            Cette page rassemble les informations utiles pour préparer votre
+            participation aux tours du Trophée François Grieder.
           </p>
+          <div className="surface max-w-2xl p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">
+              Inscriptions en ligne bientôt disponibles
+            </p>
+            <p className="mt-2">
+              La mise en ligne actuelle est centrée sur les informations
+              publiques du trophée. En attendant l'ouverture du parcours
+              d'inscription, consultez les tours, les tableaux et les
+              coordonnées de l'organisation.
+            </p>
+          </div>
           <div className="flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href="/me/inscriptions">S'inscrire</Link>
+              <Link href="/agenda">Voir l'agenda</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <Link href="/agenda">Voir l'agenda</Link>
+              <Link href="/tours">Voir les tours</Link>
             </Button>
           </div>
         </div>
       </header>
 
+      <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+        <Card className="surface border-border/60">
+          <CardHeader>
+            <CardTitle>Conditions de participation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {participationConditions.map((item) => (
+              <div key={item} className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="surface border-border/60 bg-muted/30">
+          <CardHeader>
+            <CardTitle>Pièces et infos utiles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {usefulInfo.map((item) => (
+              <div key={item} className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+
       <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
         <div className="page-header">
-          <h2 className="page-title text-2xl">Votre inscription en 3 étapes</h2>
+          <h2 className="page-title text-2xl">Fonctionnement des tableaux</h2>
           <p className="page-subtitle">
-            Un parcours simple pour vous inscrire rapidement.
+            Le trophée s'appuie sur des catégories lisibles, annoncées tour par
+            tour.
           </p>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          {steps.map((step, index) => (
-            <Card key={step.title} className="surface border-border/60">
+          {tableauRules.map((item) => (
+            <Card key={item.title} className="surface border-border/60">
               <CardHeader>
-                <div className="badge-pill w-fit">Étape {index + 1}</div>
-                <CardTitle className="mt-2">{step.title}</CardTitle>
+                <CardTitle>{item.title}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                {step.description}
+                {item.description}
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Conditions d'inscription</CardTitle>
+            <CardTitle>Avant de venir</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Licence FFTT valide requise.</p>
-            <p>Respect du règlement et des horaires de convocation.</p>
-            <p>Tableaux attribués selon le classement officiel.</p>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {practicalNotes.map((item) => (
+              <div key={item} className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                <span>{item}</span>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/agenda">Agenda & salles</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <Link href="/classement">Classements</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="surface border-border/60 bg-muted/30">
+        <Card className="surface border-border/60 bg-background">
           <CardHeader>
-            <CardTitle>Besoin d'aide ?</CardTitle>
+            <CardTitle>Contact organisateur</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Contactez l'organisation pour toute question ou demande de
-              modification.
+              Pour toute question sur un tour, un tableau ou les modalités de
+              participation, utilisez les coordonnées de contact affichées dans
+              le pied de page du site.
+            </p>
+            <p>
+              Les clubs organisateurs et les salles hôtes sont également visibles
+              dans l'agenda et sur chaque fiche de tour.
             </p>
             <Button asChild size="sm" variant="secondary">
-              <Link href="/contact">Contacter l'organisation</Link>
+              <Link href="/agenda">Consulter les coordonnées utiles</Link>
             </Button>
           </CardContent>
         </Card>
-      </section>
-
-      <section className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">
-        <div className="page-header">
-          <h2 className="page-title text-2xl">Questions fréquentes</h2>
-          <p className="page-subtitle">
-            Les réponses aux questions les plus courantes.
-          </p>
-        </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          {faq.map((item) => (
-            <div key={item.question} className="surface px-5 py-4">
-              <p className="text-sm font-semibold text-foreground">
-                {item.question}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {item.answer}
-              </p>
-            </div>
-          ))}
-        </div>
       </section>
     </section>
   );

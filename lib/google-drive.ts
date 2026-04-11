@@ -30,10 +30,14 @@ function parseServiceAccountKey(raw: string) {
 
 async function getDriveClient() {
   const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY ?? "";
+  if (!rawKey.trim()) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY manquant.");
+  }
+
   const key = parseServiceAccountKey(rawKey);
 
   if (!key || !key.client_email || !key.private_key) {
-    throw new Error("Invalid Google service account key");
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY invalide.");
   }
 
   const auth = new google.auth.JWT({
@@ -49,6 +53,10 @@ export async function listDriveChildren(
   folderId: string,
   options?: { mimeType?: string; pageSize?: number },
 ): Promise<DriveFile[]> {
+  if (!folderId.trim()) {
+    throw new Error("GOOGLE_DRIVE_FOLDER_ID manquant.");
+  }
+
   const drive = await getDriveClient();
   const mimeFilter = options?.mimeType
     ? ` and mimeType='${options.mimeType}'`

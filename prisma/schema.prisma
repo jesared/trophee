@@ -149,6 +149,7 @@ model TableauTemplate {
   name      String
   minPoints Int?
   maxPoints Int?
+  startTime String?
 
   createdAt DateTime @default(now())
 
@@ -169,6 +170,8 @@ model Tableau {
   tour   Tour   @relation(fields: [tourId], references: [id])
 
   registrations Registration[]
+
+  @@unique([tourId, templateId])
 }
 
 model Player {

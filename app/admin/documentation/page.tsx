@@ -82,7 +82,7 @@ export default function AdminDocumentationPage() {
                 4. Définir les <b>Templates</b> (plages de points).
               </li>
               <li>
-                5. Créer les <b>Tableaux</b> par tour + horaire.
+                5. Créer les <b>Tableaux</b> par tour à partir des templates et de leur horaire.
               </li>
               <li>
                 6. Ajouter les <b>Joueurs</b> (FFTT ou saisie manuelle).
@@ -109,7 +109,7 @@ export default function AdminDocumentationPage() {
               <b>Tour</b> contient des <b>Tableaux</b> (définis via un Template).
             </div>
             <div>
-              <b>TableauTemplate</b> définit une plage de points.
+              <b>TableauTemplate</b> définit une plage de points et un horaire de référence.
             </div>
             <div>
               <b>Tableau</b> est lié à un Tour et à un Template.
@@ -156,7 +156,7 @@ export default function AdminDocumentationPage() {
               affichage clair sur l’agenda et les pages publiques.
             </p>
             <p>
-              Vérifier les horaires de tableaux avant ouverture des
+              Vérifier les horaires définis dans les templates avant ouverture des
               inscriptions.
             </p>
           <p>
@@ -229,11 +229,10 @@ export default function AdminDocumentationPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div>
-            <b>Template</b> : modèle d’un tableau (plage de points + nom).
+            <b>Template</b> : modèle d’un tableau (plage de points + horaire).
           </div>
           <div>
-            <b>Tableau</b> : instance liée à un tour, basée sur un template, avec
-            un horaire précis.
+            <b>Tableau</b> : instance liée à un tour, basée sur un template.
           </div>
           <div>
             <b>Inscription</b> : lien entre un joueur, un tour et un tableau.

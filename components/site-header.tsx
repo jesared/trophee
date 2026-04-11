@@ -3,9 +3,7 @@
 import {
   BarChart3,
   CalendarDays,
-  ClipboardList,
   Home,
-  LogIn,
   LogOut,
   Menu,
   Shield,
@@ -44,7 +42,6 @@ const navItems = [
   { label: "Trophée", href: "/trophee", icon: Trophy },
   { label: "Agenda & salles", href: "/agenda", icon: CalendarDays },
   { label: "Classement", href: "/classement", icon: BarChart3 },
-  { label: "Inscription", href: "/inscription", icon: ClipboardList },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -68,13 +65,7 @@ function UserMenu() {
     : "U";
   const isAdmin = user?.role === "ADMIN";
 
-  if (!user) {
-    return (
-      <Button size="sm" asChild>
-        <Link href="/login">Login</Link>
-      </Button>
-    );
-  }
+  if (!user) return null;
 
   return (
     <DropdownMenu>
@@ -136,12 +127,14 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="border-b border-border/50 bg-muted/40">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 text-xs text-muted-foreground">
-          <span>Inscriptions ouvertes — rejoignez la saison en cours.</span>
+          <span>
+            Consultez l&apos;agenda, les salles et les classements de la saison.
+          </span>
           <Link
-            href="/inscription"
+            href="/agenda"
             className="font-medium text-foreground transition-colors hover:text-primary"
           >
-            S'inscrire
+            Voir l&apos;agenda
           </Link>
         </div>
       </div>
@@ -200,11 +193,10 @@ export function SiteHeader() {
                   </Avatar>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
-                      {user?.name ?? "Visiteur"}
+                      {user?.name ?? "Version information"}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {user?.email ??
-                        "Connectez-vous pour gérer vos inscriptions"}
+                      {user?.email ?? "Agenda, tours et classements publics"}
                     </p>
                   </div>
                 </div>
@@ -235,23 +227,16 @@ export function SiteHeader() {
 
                 <div className="flex items-center justify-between">
                   <ThemeToggle />
-                  {!user ? (
-                    <Button size="sm" asChild>
-                      <Link href="/login">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Login
-                      </Link>
-                    </Button>
-                  ) : (
+                  {user ? (
                     <Button
                       size="sm"
                       variant="secondary"
                       onClick={() => signOut()}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Déconnexion
-                    </Button>
-                  )}
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Déconnexion
+                      </Button>
+                  ) : null}
                 </div>
                 {user ? (
                   <Button asChild size="sm" variant="secondary">

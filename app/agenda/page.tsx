@@ -85,7 +85,7 @@ export default async function AgendaPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/inscription">S&apos;inscrire</Link>
+              <Link href="/tours">Voir les tours</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link href="/classement">Classements</Link>
@@ -185,13 +185,10 @@ export default async function AgendaPage() {
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
                             <Button asChild variant="outline" size="sm">
-                              <Link href={`/tours/${tour.id}`}>Voir</Link>
+                              <Link href={`/tours/${tour.id}`}>
+                                Infos pratiques
+                              </Link>
                             </Button>
-                            {!isPast ? (
-                              <Button asChild size="sm">
-                                <Link href="/inscription">S&apos;inscrire</Link>
-                              </Button>
-                            ) : null}
                           </div>
                         </div>
 
@@ -200,12 +197,6 @@ export default async function AgendaPage() {
                             <span className="badge-pill">
                               Club : {tour.club.name}
                             </span>
-                          ) : null}
-                          {tour.venue ? (
-                            <span className="badge-pill">{tour.venue}</span>
-                          ) : null}
-                          {tour.city ? (
-                            <span className="badge-pill">{tour.city}</span>
                           ) : null}
                         </div>
 

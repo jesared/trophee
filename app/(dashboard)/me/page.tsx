@@ -14,82 +14,62 @@ export default function UserDashboardPage() {
   return (
     <section className="page">
       <div className="page-header">
-        <p className="badge-pill w-fit">Dashboard</p>
-        <h1 className="page-title">Mon espace</h1>
+        <p className="badge-pill w-fit">Espace joueur</p>
+        <h1 className="page-title">Bientôt disponible</h1>
         <p className="page-subtitle">
-          Suivez vos inscriptions, prochains tours et performances.
+          Cette première version publique ne propose pas encore de parcours
+          joueur complet.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <Card className="card-hover">
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Résumé utilisateur</CardTitle>
-            <CardDescription>Vue rapide de votre saison.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="flex items-center justify-between">
-              <span>Inscriptions</span>
-              <span className="text-foreground">—</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Prochain tour</span>
-              <span className="text-foreground">—</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Classement</span>
-              <span className="text-foreground">—</span>
-            </div>
-            <p className="text-xs">
-              Les données s’afficheront dès que vos inscriptions seront créées.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Prochains tours</CardTitle>
-            <CardDescription>Ne manquez aucun rendez-vous.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <p>Aucun tour suivi pour le moment.</p>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/agenda">Voir l’agenda</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Derniers résultats</CardTitle>
-            <CardDescription>Vos derniers parcours.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Aucun résultat disponible pour l’instant.</p>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/classement">Consulter les classements</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="card-hover">
-          <CardHeader>
-            <CardTitle>Actions rapides</CardTitle>
+            <CardTitle>Le site est actuellement en mode information</CardTitle>
             <CardDescription>
-              Accès direct aux actions courantes.
+              Agenda, salles, tours et classements restent accessibles
+              librement.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="flex flex-col gap-3">
-            <Button asChild className="w-full">
-              <Link href="/inscription">S’inscrire</Link>
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <p>
+              L'espace joueur reviendra dans une version ultérieure avec les
+              inscriptions en ligne, le suivi de participation et les
+              informations personnelles.
+            </p>
+            <div className="surface p-4">
+              <p className="font-medium text-foreground">
+                Pour le moment, utilisez le site comme portail d'information du
+                trophée.
+              </p>
+              <p className="mt-2">
+                Vous pouvez déjà consulter les prochains tours, les salles
+                d'accueil et les classements officiels.
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/agenda">Voir l'agenda</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/me/inscriptions">Voir mes inscriptions</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/me/avis">Laisser un avis</Link>
+            <Button asChild variant="secondary">
+              <Link href="/classement">Consulter les classements</Link>
             </Button>
           </CardFooter>
+        </Card>
+
+        <Card className="surface border-border/60 bg-muted/30">
+          <CardHeader>
+            <CardTitle>À retenir</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>Les inscriptions en ligne ne sont pas encore ouvertes.</p>
+            <p>Les données joueur ne sont pas affichées dans cette version.</p>
+            <p>
+              L'administration du site reste accessible séparément pour
+              l'organisation.
+            </p>
+          </CardContent>
         </Card>
       </div>
     </section>

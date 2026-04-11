@@ -26,7 +26,7 @@ L'objectif est d'expliquer comment gérer une saison, un tour, les tableaux et l
 2. **Créer les clubs** organisateurs.
 3. **Créer les tours** (avec saison + club).
 4. **Créer les templates de tableau**.
-5. **Créer les tableaux** pour chaque tour.
+5. **Créer les tableaux** pour chaque tour, individuellement ou en ajoutant tous les templates.
 6. **Ouvrir les inscriptions** (status OPEN).
 7. **Gérer les inscriptions / présence / exports**.
 
