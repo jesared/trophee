@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
+import {
+  deleteCloudinaryResources,
+  isCloudinaryConfigured,
+} from "@/lib/cloudinary-admin";
 import { getCurrentUser } from "@/lib/current-user";
-import { getSupabaseAdmin, getSupabaseBucket } from "@/lib/supabase-admin";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -14,12 +17,10 @@ export async function POST(request: Request) {
   }
 
   if (
-    !process.env.SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    !process.env.SUPABASE_STORAGE_BUCKET
+    !isCloudinaryConfigured()
   ) {
     return NextResponse.json(
-      { ok: false, message: "Variables Supabase manquantes." },
+      { ok: false, message: "Variables Cloudinary manquantes." },
       { status: 400 },
     );
   }
@@ -33,13 +34,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = getSupabaseAdmin();
-  const bucket = getSupabaseBucket();
-  const { error } = await supabase.storage.from(bucket).remove([name]);
-
-  if (error) {
+  try {
+    await deleteCloudinaryResources([name]);
+  } catch (error) {
     return NextResponse.json(
-      { ok: false, message: "Suppression echouee. " + error.message },
+      {
+        ok: false,
+        message:
+          "Suppression echouee. " +
+          (error instanceof Error ? error.message : "Erreur Cloudinary."),
+      },
       { status: 500 },
     );
   }

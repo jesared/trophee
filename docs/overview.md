@@ -1,33 +1,33 @@
-# Documentation Admin — Vue d'ensemble
+# Documentation Admin - Vue d'ensemble
 
-Cette documentation couvre **uniquement l'espace admin**.  
-L'objectif est d'expliquer comment gérer une saison, un tour, les tableaux et les inscriptions.
+Cette documentation couvre **uniquement l'espace admin**.
+L'objectif est d'expliquer comment gerer une saison, un tour, les tableaux et les inscriptions.
 
-## Rôles et accès
+## Roles et acces
 
-- Seuls les comptes `ADMIN` accèdent à `/admin`.
-- L'accès est contrôlé par `requireAdmin()`.
+- Seuls les comptes `ADMIN` accedent a `/admin`.
+- L'acces est controle par `requireAdmin()`.
 
 ## Pages admin (principales)
 
-- `/admin` : page d'accueil admin + hiérarchie des actions.
-- `/admin/seasons` : création + activation de la saison.
+- `/admin` : page d'accueil admin + hierarchie des actions.
+- `/admin/seasons` : creation + activation de la saison.
 - `/admin/clubs` : gestion des clubs organisateurs.
-- `/admin/tours` : création/gestion des tours (statut OPEN/CLOSED).
-- `/admin/tableau-templates` : création des templates de tableaux.
-- `/admin/tableaux` : tableaux liés aux tours.
-- `/admin/inscriptions` : inscriptions et gestion des tableaux associés.
-- `/admin/users` : utilisateurs + gestion des rôles.
-- `/admin/medias` : gestion des médias (Supabase).
+- `/admin/tours` : creation/gestion des tours (statut OPEN/CLOSED).
+- `/admin/tableau-templates` : creation des templates de tableaux.
+- `/admin/tableaux` : tableaux lies aux tours.
+- `/admin/inscriptions` : inscriptions et gestion des tableaux associes.
+- `/admin/users` : utilisateurs + gestion des roles.
+- `/admin/medias` : gestion des medias (Cloudinary).
 
-## Flux global recommandé
+## Flux global recommande
 
-1. **Créer une saison** et l’activer.
-2. **Créer les clubs** organisateurs.
-3. **Créer les tours** (avec saison + club).
-4. **Créer les templates de tableau**.
-5. **Créer les tableaux** pour chaque tour, individuellement ou en ajoutant tous les templates.
+1. **Creer une saison** et l'activer.
+2. **Creer les clubs** organisateurs.
+3. **Creer les tours** (avec saison + club).
+4. **Creer les templates de tableau**.
+5. **Creer les tableaux** pour chaque tour, individuellement ou en ajoutant tous les templates.
 6. **Ouvrir les inscriptions** (status OPEN).
-7. **Gérer les inscriptions / présence / exports**.
+7. **Gerer les inscriptions / presence / exports**.
 
-Pour le détail complet, voir `docs/admin.md`.
+Pour le detail complet, voir `docs/admin.md`.

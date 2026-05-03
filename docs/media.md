@@ -1,10 +1,11 @@
-# Médias (Supabase)
+# Medias (Cloudinary)
 
 ## Configuration `.env`
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_STORAGE_BUCKET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_MEDIA_FOLDER` (optionnel)
 
 ## Page admin
 
@@ -18,4 +19,5 @@ Fonctions :
 
 ## Recommandations
 
-- Créer des dossiers logiques : `logos`, `affiches`, `photos`.
+- Creer des dossiers logiques : `logos`, `affiches`, `photos`.
+- Utiliser `CLOUDINARY_MEDIA_FOLDER` pour isoler les assets du projet dans Cloudinary.

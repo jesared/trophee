@@ -6,7 +6,11 @@ import { AdminMediaSortBar } from "@/components/admin-media-sort-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getSupabaseAdmin, getSupabaseBucket } from "@/lib/supabase-admin";
+import {
+  getMediaFolders,
+  isCloudinaryConfigured,
+  listCloudinaryFolder,
+} from "@/lib/cloudinary-admin";
 
 type MediaFile = {
   name: string;
@@ -16,64 +20,29 @@ type MediaFile = {
   url?: string | null;
 };
 
-const IMAGE_REGEX = /\.(png|jpe?g|webp|gif|svg)$/i;
-const MEDIA_FOLDERS = [
-  { label: "Logos", value: "logos" },
-  { label: "Affiches", value: "affiches" },
-  { label: "Photos", value: "photos" },
-  { label: "Autres", value: "autres" },
-];
+const MEDIA_FOLDERS = getMediaFolders();
 
 async function loadMediaByFolder(): Promise<
   { label: string; value: string; files: MediaFile[] }[]
 > {
   try {
-    const supabase = getSupabaseAdmin();
-    const bucket = getSupabaseBucket();
-
     const sections = await Promise.all(
       MEDIA_FOLDERS.map(async (folder) => {
-        const { data } = await supabase.storage.from(bucket).list(folder.value, {
-          limit: 200,
-          sortBy: { column: "name", order: "desc" },
+        const files = (await listCloudinaryFolder(folder.value)).map((item) => {
+          const name = item.public_id.split("/").pop() ?? item.public_id;
+          return {
+            name: item.format ? `${name}.${item.format}` : name,
+            path: item.public_id,
+            size: item.bytes ?? null,
+            updatedAt: item.created_at ?? null,
+            url: item.secure_url ?? null,
+          };
         });
-
-        const files = (data ?? [])
-          .filter((item) => IMAGE_REGEX.test(item.name))
-          .map((item) => ({
-            name: item.name,
-            path: `${folder.value}/${item.name}`,
-            size: item.metadata?.size ?? null,
-            updatedAt: item.updated_at ?? item.created_at ?? null,
-          }));
 
         return { ...folder, files };
       }),
     );
-
-    const allFiles = sections.flatMap((section) => section.files);
-    if (allFiles.length === 0) {
-      return sections;
-    }
-
-    const { data: signed } = await supabase.storage
-      .from(bucket)
-      .createSignedUrls(
-        allFiles.map((item) => item.path),
-        60 * 60,
-      );
-
-    const signedMap = new Map(
-      signed?.map((entry) => [entry.path, entry.signedUrl]) ?? [],
-    );
-
-    return sections.map((section) => ({
-      ...section,
-      files: section.files.map((file) => ({
-        ...file,
-        url: signedMap.get(file.path) ?? null,
-      })),
-    }));
+    return sections;
   } catch {
     return MEDIA_FOLDERS.map((folder) => ({ ...folder, files: [] }));
   }
@@ -87,10 +56,7 @@ export default async function AdminMediasPage({
   searchParams?: Promise<{ sort?: string }>;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const envMissing =
-    !process.env.SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    !process.env.SUPABASE_STORAGE_BUCKET;
+  const envMissing = !isCloudinaryConfigured();
 
   const mediaSections = envMissing ? [] : await loadMediaByFolder();
   const sortParam = resolvedSearchParams?.sort;
@@ -149,12 +115,12 @@ export default async function AdminMediasPage({
         <Card className="border-destructive/30 bg-destructive/10">
           <CardHeader>
             <CardTitle className="text-base text-destructive">
-              Configuration Supabase manquante
+              Configuration Cloudinary manquante
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Ajoutez `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` et
-            `SUPABASE_STORAGE_BUCKET` dans le fichier .env pour activer la
+            Ajoutez `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et
+            `CLOUDINARY_API_SECRET` dans le fichier .env pour activer la
             galerie.
           </CardContent>
         </Card>
@@ -169,8 +135,8 @@ export default async function AdminMediasPage({
             <AdminMediaUpload folders={MEDIA_FOLDERS} />
             <Separator />
             <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              Les images sont stockees dans le bucket Supabase defini dans votre
-              .env.
+              Les images sont stockees sur Cloudinary et pretes a etre
+              reutilisees dans vos contenus.
             </div>
           </CardContent>
         </Card>

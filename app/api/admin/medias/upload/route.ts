@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
+import {
+  isCloudinaryConfigured,
+  isMediaFolderValue,
+  uploadCloudinaryImage,
+} from "@/lib/cloudinary-admin";
 import { getCurrentUser } from "@/lib/current-user";
-import { getSupabaseAdmin, getSupabaseBucket } from "@/lib/supabase-admin";
-
-const ALLOWED_FOLDERS = ["logos", "affiches", "photos", "autres"] as const;
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -19,12 +21,10 @@ export async function POST(request: Request) {
   const file = formData.get("file");
 
   if (
-    !process.env.SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    !process.env.SUPABASE_STORAGE_BUCKET
+    !isCloudinaryConfigured()
   ) {
     return NextResponse.json(
-      { ok: false, message: "Variables Supabase manquantes." },
+      { ok: false, message: "Variables Cloudinary manquantes." },
       { status: 400 },
     );
   }
@@ -48,22 +48,21 @@ export async function POST(request: Request) {
     typeof formData.get("folder") === "string"
       ? String(formData.get("folder"))
       : "autres";
-  const safeFolder = ALLOWED_FOLDERS.includes(folder as never)
-    ? folder
-    : "autres";
-  const path = `${safeFolder}/${Date.now()}-${cleanName}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const safeFolder = isMediaFolderValue(folder) ? folder : "autres";
 
-  const supabase = getSupabaseAdmin();
-  const bucket = getSupabaseBucket();
-  const { error } = await supabase.storage.from(bucket).upload(path, buffer, {
-    contentType: file.type,
-    upsert: false,
-  });
-
-  if (error) {
+  try {
+    await uploadCloudinaryImage(
+      new File([file], cleanName, { type: file.type }),
+      safeFolder,
+    );
+  } catch (error) {
     return NextResponse.json(
-      { ok: false, message: "Upload echoue. " + error.message },
+      {
+        ok: false,
+        message:
+          "Upload echoue. " +
+          (error instanceof Error ? error.message : "Erreur Cloudinary."),
+      },
       { status: 500 },
     );
   }
