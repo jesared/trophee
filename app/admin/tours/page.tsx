@@ -1,9 +1,12 @@
 import { revalidatePath } from "next/cache";
+import { CalendarDays, Clock3, DoorOpen, Layers3 } from "lucide-react";
 
+import { AdminTourFilters } from "@/components/admin-tour-filters";
 import { AdminTourCreateDialog } from "@/components/admin-tour-create-dialog";
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminTourRowActions } from "@/components/admin-tour-row-actions";
 import { EmptyState } from "@/components/empty-state";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,28 +15,92 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
+import {
+  getAdminTourStatusAction,
+  getTourStatusLabel,
+  type TourStatus,
+} from "@/lib/tour-status";
+import { readTourFormData, validateTourFormData } from "@/lib/tour-form";
 
 type ActionState = {
   ok: boolean;
   message: string;
 };
 
-function normalizeSupabasePublicUrl(value: string) {
-  if (!value) return value;
-  const signedMarker = "/storage/v1/object/sign/";
-  const publicMarker = "/storage/v1/object/public/";
-  if (value.includes(signedMarker)) {
-    const [base] = value.split("?");
-    return base.replace(signedMarker, publicMarker);
-  }
-  return value;
+type PageProps = {
+  searchParams: Promise<{
+    q?: string;
+    seasonId?: string;
+    status?: string;
+    clubId?: string;
+    period?: string;
+  }>;
+};
+
+type SeasonItem = {
+  id: string;
+  name: string;
+  year: number;
+  isActive: boolean;
+};
+
+type ClubItem = {
+  id: string;
+  name: string;
+};
+
+type TourItem = {
+  id: string;
+  name: string;
+  date: Date;
+  status: TourStatus;
+  seasonId: string;
+  clubId: string | null;
+  venue: string | null;
+  city: string | null;
+  address: string | null;
+  coverUrl: string | null;
+  rulesUrl: string | null;
+  season: { name: string };
+  club: { name: string } | null;
+  _count: {
+    tableaux: number;
+    registrations: number;
+  };
+};
+
+const TOUR_STATUS_SEARCH_ALIASES: Record<TourStatus, string[]> = {
+  DRAFT: ["draft", "brouillon"],
+  OPEN: ["open", "ouvert", "ouverte", "inscription ouverte", "inscriptions ouvertes"],
+  CLOSED: ["closed", "ferme", "fermee", "fermer", "clos", "cloture"],
+  DONE: ["done", "termine", "terminee", "fini", "fini", "passe", "passee"],
+};
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
-type PageProps = {
-  searchParams: Promise<{ q?: string }>;
-};
+function getMatchingStatuses(query?: string) {
+  const normalizedQuery = normalizeSearchText(query ?? "");
+
+  if (!normalizedQuery) {
+    return [] as TourStatus[];
+  }
+
+  return (Object.entries(TOUR_STATUS_SEARCH_ALIASES) as Array<
+    [TourStatus, string[]]
+  >)
+    .filter(([, aliases]) =>
+      aliases.some((alias) => normalizedQuery.includes(normalizeSearchText(alias))),
+    )
+    .map(([status]) => status);
+}
 
 async function createTour(
   _prevState: ActionState,
@@ -43,50 +110,57 @@ async function createTour(
 
   await requireAdmin();
 
-  const seasonId = String(formData.get("seasonId") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
-  const dateValue = String(formData.get("date") ?? "").trim();
-  const clubId = String(formData.get("clubId") ?? "").trim();
-  const venue = String(formData.get("venue") ?? "").trim();
-  const city = String(formData.get("city") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
-  const coverUrl = normalizeSupabasePublicUrl(
-    String(formData.get("coverUrl") ?? "").trim(),
-  );
-  const rulesUrl = normalizeSupabasePublicUrl(
-    String(formData.get("rulesUrl") ?? "").trim(),
-  );
+  const parsed = validateTourFormData(readTourFormData(formData));
 
-  if (!seasonId || !name || !dateValue || !venue || !clubId) {
-    return {
-      ok: false,
-      message: "Saison, club, nom, date et salle obligatoires.",
-    };
-  }
-
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return { ok: false, message: "Date invalide." };
+  if (!parsed.ok) {
+    return parsed;
   }
 
   await prisma.tour.create({
-    data: {
-      name,
-      date,
-      venue: venue || null,
-      city: city || null,
-      address: address || null,
-      coverUrl: coverUrl || null,
-      rulesUrl: rulesUrl || null,
-      seasonId,
-      clubId,
-    },
+    data: parsed.data,
   });
 
   revalidatePath("/admin/tours");
+  revalidatePath("/admin");
+  revalidatePath("/agenda");
+  revalidatePath("/tours");
 
-  return { ok: true, message: "Tour créé." };
+  return { ok: true, message: "Tour cree." };
+}
+
+async function updateTour(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    return { ok: false, message: "Tour introuvable." };
+  }
+
+  const parsed = validateTourFormData(readTourFormData(formData));
+
+  if (!parsed.ok) {
+    return parsed;
+  }
+
+  await prisma.tour.update({
+    where: { id },
+    data: parsed.data,
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/tours");
+  revalidatePath(`/admin/tours/${id}`);
+  revalidatePath("/agenda");
+  revalidatePath("/tours");
+  revalidatePath(`/tours/${id}`);
+
+  return { ok: true, message: "Tour mis a jour." };
 }
 
 async function deleteTour(
@@ -110,7 +184,7 @@ async function deleteTour(
   if (linkedTableaux > 0) {
     return {
       ok: false,
-      message: "Supprimez d'abord les tableaux liés à ce tour.",
+      message: "Supprimez d'abord les tableaux lies a ce tour.",
     };
   }
 
@@ -120,7 +194,7 @@ async function deleteTour(
 
   revalidatePath("/admin/tours");
 
-  return { ok: true, message: "Tour supprimé." };
+  return { ok: true, message: "Tour supprime." };
 }
 
 async function toggleTourStatus(formData: FormData) {
@@ -135,6 +209,21 @@ async function toggleTourStatus(formData: FormData) {
     return;
   }
 
+  const tour = await prisma.tour.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+
+  if (!tour) {
+    return;
+  }
+
+  const allowedAction = getAdminTourStatusAction(tour.status as TourStatus);
+
+  if (!allowedAction || allowedAction.nextStatus !== nextStatus) {
+    return;
+  }
+
   await prisma.tour.update({
     where: { id },
     data: { status: nextStatus },
@@ -146,20 +235,52 @@ async function toggleTourStatus(formData: FormData) {
 export default async function AdminToursPage({ searchParams }: PageProps) {
   await requireAdmin();
 
-  const { q } = await searchParams;
+  const { q, seasonId, status, clubId, period } = await searchParams;
   const query = q?.trim();
+  const selectedSeasonId = seasonId?.trim() || undefined;
+  const selectedStatus = (
+    status && ["DRAFT", "OPEN", "CLOSED", "DONE"].includes(status)
+      ? status
+      : undefined
+  ) as TourStatus | undefined;
+  const selectedClubId = clubId?.trim() || undefined;
+  const selectedPeriod =
+    period === "upcoming" || period === "past" ? period : "all";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const matchingStatuses = getMatchingStatuses(query);
+  const searchClauses = query
+    ? [
+        { name: { contains: query, mode: "insensitive" as const } },
+        { venue: { contains: query, mode: "insensitive" as const } },
+        { city: { contains: query, mode: "insensitive" as const } },
+        { address: { contains: query, mode: "insensitive" as const } },
+        {
+          season: {
+            name: { contains: query, mode: "insensitive" as const },
+          },
+        },
+        {
+          club: {
+            name: { contains: query, mode: "insensitive" as const },
+          },
+        },
+        ...(matchingStatuses.length > 0
+          ? [{ status: { in: matchingStatuses } }]
+          : []),
+      ]
+    : [];
 
-  type SeasonItem = { id: string; name: string; year: number; isActive: boolean };
-  type ClubItem = { id: string; name: string };
-  type TourItem = {
-    id: string;
-    name: string;
-    date: Date;
-    status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
-    venue: string | null;
-    city: string | null;
-    season: { name: string };
-    club: { name: string } | null;
+  const whereClause = {
+    ...(searchClauses.length > 0 ? { OR: searchClauses } : {}),
+    ...(selectedSeasonId ? { seasonId: selectedSeasonId } : {}),
+    ...(selectedStatus ? { status: selectedStatus } : {}),
+    ...(selectedClubId ? { clubId: selectedClubId } : {}),
+    ...(selectedPeriod === "upcoming"
+      ? { date: { gte: today } }
+      : selectedPeriod === "past"
+        ? { date: { lt: today } }
+        : {}),
   };
 
   const [seasons, clubs, tours]: [SeasonItem[], ClubItem[], TourItem[]] =
@@ -167,21 +288,38 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
       prisma.season.findMany({ orderBy: { year: "desc" } }),
       prisma.club.findMany({ orderBy: { name: "asc" } }),
       prisma.tour.findMany({
-        where: query
-          ? {
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                { venue: { contains: query, mode: "insensitive" } },
-                { city: { contains: query, mode: "insensitive" } },
-                { address: { contains: query, mode: "insensitive" } },
-                { season: { name: { contains: query, mode: "insensitive" } } },
-              ],
-            }
-          : undefined,
-        include: { season: true, club: true },
+        where: whereClause,
+        include: {
+          season: true,
+          club: true,
+          _count: {
+            select: {
+              tableaux: true,
+              registrations: true,
+            },
+          },
+        },
         orderBy: { date: "asc" },
       }),
     ]);
+  const selectedSeason = seasons.find((season) => season.id === selectedSeasonId);
+  const selectedClub = clubs.find((club) => club.id === selectedClubId);
+  const hasActiveCriteria = Boolean(
+    query || selectedSeasonId || selectedStatus || selectedClubId || selectedPeriod !== "all",
+  );
+  const activeCriteria = [
+    ...(query ? [`Recherche: ${query}`] : []),
+    ...(selectedSeason
+      ? [`Saison: ${selectedSeason.name} (${selectedSeason.year})`]
+      : []),
+    ...(selectedStatus ? [`Statut: ${getTourStatusLabel(selectedStatus)}`] : []),
+    ...(selectedClub ? [`Club: ${selectedClub.name}`] : []),
+    ...(selectedPeriod === "upcoming"
+      ? ["Periode: A venir"]
+      : selectedPeriod === "past"
+        ? ["Periode: Passes"]
+        : []),
+  ];
 
   const formatter = new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
@@ -189,12 +327,61 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
     year: "numeric",
   });
 
+  const upcomingTours = tours.filter((tour) => tour.date >= today);
+  const openRegistrationTours = tours.filter((tour) => tour.status === "OPEN");
+  const toursWithoutTableaux = tours.filter((tour) => tour._count.tableaux === 0);
+  const pastToursToClose = tours.filter(
+    (tour) => tour.date < today && tour.status !== "DONE",
+  );
+
+  const stats = [
+    {
+      label: "Tours a venir",
+      value: upcomingTours.length.toString(),
+      hint:
+        upcomingTours.length > 0
+          ? `${upcomingTours[0]?.name ?? ""} en tete de planning`
+          : "Aucune date future dans cette vue",
+      icon: CalendarDays,
+    },
+    {
+      label: "Inscriptions ouvertes",
+      value: openRegistrationTours.length.toString(),
+      hint:
+        openRegistrationTours.length > 0
+          ? `${openRegistrationTours.reduce(
+              (sum, tour) => sum + tour._count.registrations,
+              0,
+            )} inscription(s) cumulee(s)`
+          : "Aucun tour ouvert actuellement",
+      icon: DoorOpen,
+    },
+    {
+      label: "Sans tableaux",
+      value: toursWithoutTableaux.length.toString(),
+      hint:
+        toursWithoutTableaux.length > 0
+          ? "Configuration a completer"
+          : "Tous les tours ont au moins un tableau",
+      icon: Layers3,
+    },
+    {
+      label: "Passes a cloturer",
+      value: pastToursToClose.length.toString(),
+      hint:
+        pastToursToClose.length > 0
+          ? "Marquez-les termines quand le tour est fini"
+          : "Aucun tour en attente de cloture",
+      icon: Clock3,
+    },
+  ];
+
   return (
     <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="page-header">
           <h1 className="page-title">Tours</h1>
-          <p className="page-subtitle">Gérez les tours par saison.</p>
+          <p className="page-subtitle">Gerez les tours par saison.</p>
         </div>
 
         <AdminTourCreateDialog
@@ -204,11 +391,67 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
         />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <Card key={stat.label} className="surface border-border/60">
+              <CardContent className="flex items-start justify-between gap-4 pt-6">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="text-3xl font-semibold text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{stat.hint}</p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-muted/40 p-3 text-muted-foreground">
+                  <Icon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <AdminTourFilters
+        seasons={seasons}
+        clubs={clubs}
+        currentSeasonId={selectedSeasonId}
+        currentStatus={selectedStatus}
+        currentClubId={selectedClubId}
+        currentPeriod={selectedPeriod}
+      />
+
+      {hasActiveCriteria ? (
+        <div className="surface flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Resultats pour {tours.length} tour(s)
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Les filtres et la recherche ci-dessous sont actuellement appliques.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {activeCriteria.map((criterion) => (
+              <Badge key={criterion} variant="secondary">
+                {criterion}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {seasons.length === 0 || clubs.length === 0 ? (
         <div className="surface p-4 text-sm text-muted-foreground">
           {seasons.length === 0
-            ? "Aucune saison disponible. Créez une saison pour ajouter un tour."
-            : "Aucun club disponible. Créez un club pour ajouter un tour."}
+            ? "Aucune saison disponible. Creez une saison pour ajouter un tour."
+            : "Aucun club disponible. Creez un club pour ajouter un tour."}
         </div>
       ) : null}
 
@@ -217,66 +460,74 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nom</TableHead>
-              <TableHead>Saison</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Inscriptions</TableHead>
-              <TableHead>Club</TableHead>
-              <TableHead>Salle</TableHead>
-              <TableHead>Ville</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Organisation / lieu</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tours.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-6">
+                <TableCell colSpan={5} className="py-6">
                   <EmptyState
                     title="Aucun tour pour le moment"
-                    description="Créez un tour pour lier les tableaux."
+                    description="Creez un tour pour lier les tableaux."
                   />
                 </TableCell>
               </TableRow>
             ) : (
-              tours.map((tour: TourItem) => (
-                <TableRow key={tour.id}>
-                  <TableCell className="font-medium">{tour.name}</TableCell>
-                  <TableCell>{tour.season.name}</TableCell>
-                  <TableCell>{formatter.format(tour.date)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+              tours.map((tour) => {
+                const statusAction = getAdminTourStatusAction(tour.status);
+
+                return (
+                  <TableRow key={tour.id}>
+                    <TableCell className="min-w-0">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">{tour.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {tour.season.name} · {tour._count.registrations} inscription(s) ·{" "}
+                          {tour._count.tableaux} tableau(x)
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatter.format(tour.date)}</TableCell>
+                    <TableCell>
                       <span className="badge-pill">
-                        {tour.status === "OPEN"
-                          ? "Ouvert"
-                          : tour.status === "CLOSED"
-                            ? "Fermé"
-                            : "Brouillon"}
+                        {getTourStatusLabel(tour.status)}
                       </span>
-                      <form action={toggleTourStatus}>
-                        <input type="hidden" name="id" value={tour.id} />
-                        <input
-                          type="hidden"
-                          name="nextStatus"
-                          value={tour.status === "OPEN" ? "CLOSED" : "OPEN"}
-                        />
-                        <Button size="sm" variant="secondary">
-                          {tour.status === "OPEN" ? "Fermer" : "Ouvrir"}
-                        </Button>
-                      </form>
-                    </div>
-                  </TableCell>
-                  <TableCell>{tour.club?.name ?? "-"}</TableCell>
-                  <TableCell>{tour.venue ?? "-"}</TableCell>
-                  <TableCell>{tour.city ?? "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <Button asChild size="sm" variant="secondary">
-                        <a href={`/admin/tours/${tour.id}`}>Dashboard</a>
-                      </Button>
-                      <AdminDeleteForm id={tour.id} action={deleteTour} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                    <TableCell className="min-w-0">
+                      <div className="space-y-1">
+                        <p className="text-sm text-foreground">
+                          {tour.club?.name ?? "Club non renseigne"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {tour.venue ?? "Salle non renseignee"}
+                          {tour.city ? ` · ${tour.city}` : ""}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AdminTourRowActions
+                        tourId={tour.id}
+                        tourName={tour.name}
+                        tourStatus={tour.status}
+                        statusLabel={getTourStatusLabel(tour.status)}
+                        statusAction={statusAction}
+                        toggleAction={toggleTourStatus}
+                        deleteAction={deleteTour}
+                        editAction={updateTour}
+                        editDialogProps={{
+                          seasons,
+                          clubs,
+                          tour,
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

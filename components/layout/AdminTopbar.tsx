@@ -8,6 +8,7 @@ import Link from "next/link";
 import { AdminBreadcrumbs } from "@/components/layout/AdminBreadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { openAdminTourCreateDialog } from "@/lib/admin-events";
 
 export function AdminTopbar() {
   const router = useRouter();
@@ -60,6 +61,8 @@ export function AdminTopbar() {
 
     return map.find((item) => pathname.startsWith(item.match));
   }, [pathname]);
+  const opensInlineTourDialog =
+    pathname === "/admin/tours" && createAction?.match === "/admin/tours";
 
   return (
     <div className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -98,12 +101,19 @@ export function AdminTopbar() {
             <Bell className="h-4 w-4" />
           </Button>
           {createAction ? (
-            <Button asChild className="gap-2">
-              <Link href={createAction.href}>
+            opensInlineTourDialog ? (
+              <Button className="gap-2" onClick={openAdminTourCreateDialog}>
                 <Plus className="h-4 w-4" />
                 {createAction.label}
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild className="gap-2">
+                <Link href={createAction.href}>
+                  <Plus className="h-4 w-4" />
+                  {createAction.label}
+                </Link>
+              </Button>
+            )
           ) : (
             <Button className="gap-2">
               <Plus className="h-4 w-4" />

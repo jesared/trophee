@@ -15,6 +15,7 @@ type AdminDeleteFormProps = {
   id: string;
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
   label?: string;
+  onSuccess?: () => void;
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -31,6 +32,7 @@ export function AdminDeleteForm({
   id,
   action,
   label = "Supprimer",
+  onSuccess,
 }: AdminDeleteFormProps) {
   const [state, formAction] = React.useActionState(action, {
     ok: false,
@@ -44,11 +46,12 @@ export function AdminDeleteForm({
 
     if (state.ok) {
       notifySuccess(state.message);
+      onSuccess?.();
       return;
     }
 
     notifyError(state.message);
-  }, [state.message, state.ok]);
+  }, [onSuccess, state.message, state.ok]);
 
   return (
     <form action={formAction}>

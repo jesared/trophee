@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { PencilLine } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +14,77 @@ export const revalidate = 0;
 type PageProps = {
   params: Promise<{ id: string }>;
 };
+
+function readAuthSessionToken(
+  entries: { name: string; value: string }[],
+): string | null {
+  const bases = [
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+    "authjs.session-token",
+    "__Secure-authjs.session-token",
+  ];
+
+  for (const base of bases) {
+    const direct = entries.find((entry) => entry.name === base);
+
+    if (direct?.value) {
+      return direct.value;
+    }
+
+    const chunks = entries
+      .filter((entry) => entry.name.startsWith(`${base}.`))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    if (chunks.length > 0) {
+      return chunks.map((entry) => entry.value).join("");
+    }
+  }
+
+  return null;
+}
+
+async function getIsCurrentVisitorAdmin() {
+  const user = await getCurrentUser();
+
+  if (user?.role === "ADMIN") {
+    return true;
+  }
+
+  if (user?.email) {
+    const dbUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: user.email,
+          mode: "insensitive",
+        },
+      },
+      select: { role: true },
+    });
+
+    if (dbUser?.role === "ADMIN") {
+      return true;
+    }
+  }
+
+  const cookieStore = await cookies();
+  const sessionToken = readAuthSessionToken(cookieStore.getAll());
+
+  if (!sessionToken) {
+    return false;
+  }
+
+  const session = await prisma.session.findUnique({
+    where: { sessionToken },
+    select: {
+      user: {
+        select: { role: true },
+      },
+    },
+  });
+
+  return session?.user.role === "ADMIN";
+}
 
 function buildFallbackDescription(tour: {
   name: string;
@@ -23,26 +97,27 @@ function buildFallbackDescription(tour: {
 }) {
   const locationBits = [tour.city, tour.venue].filter(Boolean);
   const locationLabel =
-    locationBits.length > 0 ? ` à ${locationBits.join(", ")}` : "";
+    locationBits.length > 0 ? ` a ${locationBits.join(", ")}` : "";
   const organizerLabel = tour.club?.name
-    ? ` organisé par ${tour.club.name}`
+    ? ` organise par ${tour.club.name}`
     : "";
 
   const intro = `${tour.name} fait partie de ${tour.season.name}${organizerLabel}${locationLabel}.`;
 
   if (tour.tableaux.length > 0) {
-    return `${intro} Retrouvez ci-dessous les tableaux prévus, leurs horaires et les catégories de points associées.`;
+    return `${intro} Retrouvez ci-dessous les tableaux prevus, leurs horaires et les categories de points associees.`;
   }
 
   if (tour.status === "DONE") {
-    return `${intro} Ce tour est désormais terminé. Les informations principales sont conservées ici pour consultation.`;
+    return `${intro} Ce tour est desormais termine. Les informations principales sont conservees ici pour consultation.`;
   }
 
-  return `${intro} Les précisions complémentaires seront ajoutées prochainement par l'organisation.`;
+  return `${intro} Les precisions complementaires seront ajoutees prochainement par l'organisation.`;
 }
 
 export default async function TourDetailPage({ params }: PageProps) {
   const { id } = await params;
+  const isAdmin = await getIsCurrentVisitorAdmin();
 
   const tour = await prisma.tour.findUnique({
     where: { id },
@@ -69,9 +144,9 @@ export default async function TourDetailPage({ params }: PageProps) {
   });
   const publicInfoLabel =
     tour.status === "OPEN"
-      ? "Inscriptions bientôt disponibles"
+      ? "Inscriptions bientot disponibles"
       : tour.status === "DONE"
-        ? "Tour terminé"
+        ? "Tour termine"
         : "Informations uniquement";
   const description = tour.description?.trim() || buildFallbackDescription(tour);
 
@@ -109,9 +184,9 @@ export default async function TourDetailPage({ params }: PageProps) {
               {tour.status === "OPEN"
                 ? "Ouvert"
                 : tour.status === "CLOSED"
-                  ? "Fermé"
+                  ? "Ferme"
                   : tour.status === "DONE"
-                    ? "Terminé"
+                    ? "Termine"
                     : "Brouillon"}
             </span>
             {tour.club?.name ? (
@@ -130,6 +205,25 @@ export default async function TourDetailPage({ params }: PageProps) {
             {description}
           </p>
         </div>
+
+        {isAdmin ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                Mode administration
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Modifie rapidement ce tour depuis la page publique.
+              </p>
+            </div>
+            <Button asChild size="sm" className="gap-2 self-start sm:self-auto">
+              <Link href={`/admin/tours/${tour.id}`}>
+                <PencilLine className="h-4 w-4" />
+                Modifier ce tour
+              </Link>
+            </Button>
+          </div>
+        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -170,7 +264,7 @@ export default async function TourDetailPage({ params }: PageProps) {
           {tour.rulesUrl ? (
             <Button asChild variant="secondary" size="sm">
               <Link href={tour.rulesUrl} target="_blank" rel="noreferrer">
-                Règlement du tour
+                Reglement du tour
               </Link>
             </Button>
           ) : null}
@@ -186,7 +280,7 @@ export default async function TourDetailPage({ params }: PageProps) {
         </div>
         {tour.tableaux.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucun tableau défini pour ce tour.
+            Aucun tableau defini pour ce tour.
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -208,7 +302,7 @@ export default async function TourDetailPage({ params }: PageProps) {
                         Tableau {tableau.template.name}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">
-                        Catégorie par points
+                        Categorie par points
                       </p>
                     </div>
                   </div>

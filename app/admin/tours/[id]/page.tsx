@@ -1,26 +1,19 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminTourEditDialog } from "@/components/admin-tour-edit-dialog";
 import { AdminTourRegistrations } from "@/components/admin-tour-registrations";
-import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { requireAdmin } from "@/lib/require-admin";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
+import {
+  getAdminTourStatusAction,
+  getTourStatusLabel,
+  type TourStatus,
+} from "@/lib/tour-status";
+import { readTourFormData, validateTourFormData } from "@/lib/tour-form";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -38,6 +31,21 @@ async function toggleTourStatus(formData: FormData) {
     return;
   }
 
+  const tour = await prisma.tour.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+
+  if (!tour) {
+    return;
+  }
+
+  const allowedAction = getAdminTourStatusAction(tour.status as TourStatus);
+
+  if (!allowedAction || allowedAction.nextStatus !== nextStatus) {
+    return;
+  }
+
   await prisma.tour.update({
     where: { id },
     data: { status: nextStatus },
@@ -47,7 +55,7 @@ async function toggleTourStatus(formData: FormData) {
   revalidatePath("/admin/tours");
 }
 
-async function deleteTableau(
+async function updateTour(
   _prevState: { ok: boolean; message: string },
   formData: FormData,
 ): Promise<{ ok: boolean; message: string }> {
@@ -56,21 +64,30 @@ async function deleteTableau(
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
+
   if (!id) {
-    return { ok: false, message: "Tableau introuvable." };
+    return { ok: false, message: "Tour introuvable." };
   }
 
-  const tableau = await prisma.tableau.findUnique({
+  const parsed = validateTourFormData(readTourFormData(formData));
+
+  if (!parsed.ok) {
+    return parsed;
+  }
+
+  await prisma.tour.update({
     where: { id },
-    select: { tourId: true },
+    data: parsed.data,
   });
 
-  await prisma.tableau.delete({ where: { id } });
+  revalidatePath("/admin");
   revalidatePath("/admin/tours");
-  if (tableau?.tourId) {
-    revalidatePath(`/admin/tours/${tableau.tourId}`);
-  }
-  return { ok: true, message: "Tableau supprimé." };
+  revalidatePath(`/admin/tours/${id}`);
+  revalidatePath("/agenda");
+  revalidatePath("/tours");
+  revalidatePath(`/tours/${id}`);
+
+  return { ok: true, message: "Tour mis a jour." };
 }
 
 export default async function AdminTourDashboard({ params }: PageProps) {
@@ -78,13 +95,17 @@ export default async function AdminTourDashboard({ params }: PageProps) {
 
   const { id } = await params;
 
-  const tour = await prisma.tour.findUnique({
-    where: { id },
-    include: {
-      season: true,
-      club: true,
-    },
-  });
+  const [tour, seasons, clubs] = await Promise.all([
+    prisma.tour.findUnique({
+      where: { id },
+      include: {
+        season: true,
+        club: true,
+      },
+    }),
+    prisma.season.findMany({ orderBy: { year: "desc" } }),
+    prisma.club.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   if (!tour) {
     notFound();
@@ -122,29 +143,15 @@ export default async function AdminTourDashboard({ params }: PageProps) {
   const stats = [
     { label: "Inscriptions", value: totalRegistrations },
     { label: "Joueurs", value: uniquePlayers },
-    { label: "Présents", value: presentCount },
+    { label: "Presents", value: presentCount },
     { label: "Absents", value: absentCount },
     { label: "Tableaux", value: tableaux.length },
-    { label: "Taux présence", value: `${presenceRate}%` },
+    { label: "Taux presence", value: `${presenceRate}%` },
   ];
-
-  const tableauStats = registrations.reduce(
-    (acc, registration) => {
-      const key = registration.tableauId;
-      const current = acc.get(key) ?? { total: 0, present: 0 };
-      current.total += 1;
-      if (registration.presence === "PRESENT") {
-        current.present += 1;
-      }
-      acc.set(key, current);
-      return acc;
-    },
-    new Map<string, { total: number; present: number }>(),
-  );
 
   const grouped = registrations.reduce(
     (acc, registration) => {
-      const key = `${registration.playerId}`;
+      const key = registration.playerId;
       const existing = acc.get(key);
       if (!existing) {
         acc.set(key, {
@@ -204,10 +211,7 @@ export default async function AdminTourDashboard({ params }: PageProps) {
     month: "long",
     year: "numeric",
   });
-  const timeFormatter = new Intl.DateTimeFormat("fr-FR", {
-    timeStyle: "short",
-    timeZone: "Europe/Paris",
-  });
+  const statusAction = getAdminTourStatusAction(tour.status as TourStatus);
 
   return (
     <section className="page">
@@ -217,32 +221,61 @@ export default async function AdminTourDashboard({ params }: PageProps) {
           <p className="page-subtitle">
             {tour.season.name} · {dateFormatter.format(tour.date)}
           </p>
+          <div className="mt-2">
+            <span className="badge-pill">
+              {getTourStatusLabel(tour.status as TourStatus)}
+            </span>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <AdminTourEditDialog
+            action={updateTour}
+            seasons={seasons}
+            clubs={clubs}
+            tour={{
+              id: tour.id,
+              name: tour.name,
+              date: tour.date,
+              seasonId: tour.seasonId,
+              clubId: tour.clubId,
+              venue: tour.venue,
+              city: tour.city,
+              address: tour.address,
+              coverUrl: tour.coverUrl,
+              rulesUrl: tour.rulesUrl,
+            }}
+            trigger={
+              <Button size="sm" variant="secondary">
+                Modifier
+              </Button>
+            }
+          />
           <Button asChild variant="secondary" size="sm">
-            <a href={`/admin/inscriptions?tourId=${tour.id}`}>
+            <Link href={`/admin/inscriptions?tourId=${tour.id}`}>
               Voir inscriptions
-            </a>
+            </Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <a href={`/admin/tours/${tour.id}/checkin`}>Check-in mobile</a>
+            <Link href={`/admin/tours/${tour.id}/checkin`}>Check-in mobile</Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <a href={`/api/admin/registrations/export?tourId=${tour.id}`}>
+            <Link href={`/api/admin/registrations/export?tourId=${tour.id}`}>
               Export CSV
-            </a>
+            </Link>
           </Button>
-          <form action={toggleTourStatus}>
-            <input type="hidden" name="id" value={tour.id} />
-            <input
-              type="hidden"
-              name="nextStatus"
-              value={tour.status === "OPEN" ? "CLOSED" : "OPEN"}
-            />
-            <Button size="sm" variant="secondary">
-              {tour.status === "OPEN" ? "Fermer" : "Ouvrir"}
-            </Button>
-          </form>
+          {statusAction ? (
+            <form action={toggleTourStatus}>
+              <input type="hidden" name="id" value={tour.id} />
+              <input
+                type="hidden"
+                name="nextStatus"
+                value={statusAction.nextStatus}
+              />
+              <Button size="sm" variant="secondary">
+                {statusAction.label}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </div>
 
@@ -279,11 +312,11 @@ export default async function AdminTourDashboard({ params }: PageProps) {
             <div>
               <CardTitle className="text-base">Inscriptions</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Dernières inscriptions sur ce tour.
+                Dernieres inscriptions sur ce tour.
               </p>
             </div>
             <Button asChild size="sm" variant="secondary">
-              <a href={`/admin/inscriptions?tourId=${tour.id}`}>Gérer</a>
+              <Link href={`/admin/inscriptions?tourId=${tour.id}`}>Gerer</Link>
             </Button>
           </CardHeader>
           <CardContent className="p-0">

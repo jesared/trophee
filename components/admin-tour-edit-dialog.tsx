@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OPEN_ADMIN_TOUR_CREATE_DIALOG_EVENT } from "@/lib/admin-events";
 
 type ActionState = {
   ok: boolean;
@@ -45,11 +44,52 @@ type ClubOption = {
   city?: string | null;
 };
 
-type AdminTourCreateDialogProps = {
+type TourEditItem = {
+  id: string;
+  name: string;
+  date: Date | string;
+  seasonId: string;
+  clubId: string | null;
+  venue: string | null;
+  city: string | null;
+  address: string | null;
+  coverUrl: string | null;
+  rulesUrl: string | null;
+};
+
+type AdminTourEditDialogProps = {
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
   seasons: SeasonOption[];
   clubs: ClubOption[];
+  tour: TourEditItem;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
+
+function toDateInputValue(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toISOString().slice(0, 10);
+}
+
+function buildInitialPlace(tour: TourEditItem): PlaceValue {
+  return {
+    value: tour.venue ?? tour.address ?? "",
+    place:
+      tour.venue || tour.address || tour.city
+        ? {
+            name: tour.venue ?? tour.address ?? "",
+            formatted_address: tour.address ?? tour.venue ?? "",
+            city: tour.city ?? "",
+            latitude: null,
+            longitude: null,
+          }
+        : undefined,
+  };
+}
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -61,68 +101,79 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export function AdminTourCreateDialog({
+export function AdminTourEditDialog({
   action,
   seasons,
   clubs,
-}: AdminTourCreateDialogProps) {
-  const [open, setOpen] = React.useState(false);
-  const [place, setPlace] = React.useState<PlaceValue>({ value: "" });
-  const [seasonId, setSeasonId] = React.useState("");
-  const [clubId, setClubId] = React.useState("");
+  tour,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: AdminTourEditDialogProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
   const [state, formAction] = React.useActionState(action, {
     ok: false,
     message: "",
   });
+  const [seasonId, setSeasonId] = React.useState(tour.seasonId);
+  const [clubId, setClubId] = React.useState(tour.clubId ?? "");
+  const [place, setPlace] = React.useState<PlaceValue>(() => buildInitialPlace(tour));
   const formRef = React.useRef<HTMLFormElement | null>(null);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      controlledOnOpenChange?.(nextOpen);
+      if (controlledOpen === undefined) {
+        setInternalOpen(nextOpen);
+      }
+    },
+    [controlledOnOpenChange, controlledOpen],
+  );
+
+  React.useEffect(() => {
+    if (!open) {
+      setSeasonId(tour.seasonId);
+      setClubId(tour.clubId ?? "");
+      setPlace(buildInitialPlace(tour));
+      formRef.current?.reset();
+    }
+  }, [open, tour]);
 
   React.useEffect(() => {
     if (state.ok) {
-      formRef.current?.reset();
-      setPlace({ value: "" });
-      setSeasonId("");
-      setClubId("");
       setOpen(false);
     }
-  }, [state.ok]);
-
-  React.useEffect(() => {
-    const handleOpen = () => setOpen(true);
-
-    window.addEventListener(OPEN_ADMIN_TOUR_CREATE_DIALOG_EVENT, handleOpen);
-
-    return () => {
-      window.removeEventListener(
-        OPEN_ADMIN_TOUR_CREATE_DIALOG_EVENT,
-        handleOpen,
-      );
-    };
-  }, []);
+  }, [setOpen, state.ok]);
 
   const venueValue = place.place?.name ?? place.value;
-  const cityValue = place.place?.city ?? "";
-  const addressValue = place.place?.formatted_address ?? place.value;
+  const cityValue = place.place?.city ?? tour.city ?? "";
+  const addressValue =
+    place.place?.formatted_address ??
+    (place.value ? place.value : (tour.address ?? ""));
 
   const hasSeason = seasons.length > 0;
   const hasClubs = clubs.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button disabled={!hasSeason || !hasClubs}>Créer un tour</Button>
-      </DialogTrigger>
+      {trigger ? (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Créer un tour</DialogTitle>
+          <DialogTitle>Modifier le tour</DialogTitle>
           <DialogDescription>
-            Renseignez les informations du nouveau tour.
+            Mettez a jour la date, le club, la salle et les liens associes.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
+          <input type="hidden" name="id" value={tour.id} />
           <div className="space-y-2">
-            <Label htmlFor="season">Saison</Label>
+            <Label htmlFor={`edit-season-${tour.id}`}>Saison</Label>
             <Select value={seasonId} onValueChange={setSeasonId}>
-              <SelectTrigger id="season">
+              <SelectTrigger id={`edit-season-${tour.id}`}>
                 <SelectValue placeholder="Choisir une saison" />
               </SelectTrigger>
               <SelectContent>
@@ -136,10 +187,11 @@ export function AdminTourCreateDialog({
             </Select>
             <input type="hidden" name="seasonId" value={seasonId} />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="club">Club organisateur</Label>
+            <Label htmlFor={`edit-club-${tour.id}`}>Club organisateur</Label>
             <Select value={clubId} onValueChange={setClubId}>
-              <SelectTrigger id="club">
+              <SelectTrigger id={`edit-club-${tour.id}`}>
                 <SelectValue placeholder="Choisir un club" />
               </SelectTrigger>
               <SelectContent>
@@ -152,51 +204,58 @@ export function AdminTourCreateDialog({
               </SelectContent>
             </Select>
             <input type="hidden" name="clubId" value={clubId} />
-            {!hasClubs ? (
-              <p className="text-xs text-muted-foreground">
-                Créez un club pour activer la création de tour.
-              </p>
-            ) : null}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="name">Nom</Label>
-            <Input id="name" name="name" placeholder="Tour découverte" />
+            <Label htmlFor={`edit-name-${tour.id}`}>Nom</Label>
+            <Input
+              id={`edit-name-${tour.id}`}
+              name="name"
+              defaultValue={tour.name}
+              placeholder="Tour decouverte"
+            />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input id="date" name="date" type="date" />
+            <Label htmlFor={`edit-date-${tour.id}`}>Date</Label>
+            <Input
+              id={`edit-date-${tour.id}`}
+              name="date"
+              type="date"
+              defaultValue={toDateInputValue(tour.date)}
+            />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="venue">Salle</Label>
+            <Label>Salle</Label>
             <PlaceAutocomplete value={place} onChange={setPlace} />
             <input type="hidden" name="venue" value={venueValue} />
             <input type="hidden" name="city" value={cityValue} />
             <input type="hidden" name="address" value={addressValue} />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="coverUrl">Couverture (URL)</Label>
+            <Label htmlFor={`edit-cover-${tour.id}`}>Couverture (URL)</Label>
             <Input
-              id="coverUrl"
+              id={`edit-cover-${tour.id}`}
               name="coverUrl"
-              placeholder="https://..."
               type="url"
+              placeholder="https://..."
+              defaultValue={tour.coverUrl ?? ""}
             />
-            <p className="text-xs text-muted-foreground">
-              Ajoutez une image de couverture pour la page du tour.
-            </p>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="rulesUrl">Règlement (URL)</Label>
+            <Label htmlFor={`edit-rules-${tour.id}`}>Reglement (URL)</Label>
             <Input
-              id="rulesUrl"
+              id={`edit-rules-${tour.id}`}
               name="rulesUrl"
-              placeholder="https://..."
               type="url"
+              placeholder="https://..."
+              defaultValue={tour.rulesUrl ?? ""}
             />
-            <p className="text-xs text-muted-foreground">
-              Lien vers le règlement PDF du tour.
-            </p>
           </div>
+
           {state.message ? (
             <p
               className={
@@ -208,8 +267,9 @@ export function AdminTourCreateDialog({
               {state.message}
             </p>
           ) : null}
+
           <div className="flex justify-end">
-            <SubmitButton disabled={!venueValue || !seasonId || !clubId} />
+            <SubmitButton disabled={!hasSeason || !hasClubs || !seasonId || !clubId || !venueValue} />
           </div>
         </form>
       </DialogContent>
