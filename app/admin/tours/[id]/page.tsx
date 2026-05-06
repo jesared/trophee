@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { PencilLine } from "lucide-react";
 
 import { AdminTourEditDialog } from "@/components/admin-tour-edit-dialog";
 import { AdminTourRegistrations } from "@/components/admin-tour-registrations";
@@ -17,6 +18,7 @@ import { readTourFormData, validateTourFormData } from "@/lib/tour-form";
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ edit?: string }>;
 };
 
 async function toggleTourStatus(formData: FormData) {
@@ -90,10 +92,15 @@ async function updateTour(
   return { ok: true, message: "Tour mis a jour." };
 }
 
-export default async function AdminTourDashboard({ params }: PageProps) {
+export default async function AdminTourDashboard({
+  params,
+  searchParams,
+}: PageProps) {
   await requireAdmin();
 
   const { id } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const defaultEditOpen = resolvedSearchParams?.edit === "1";
 
   const [tour, seasons, clubs] = await Promise.all([
     prisma.tour.findUnique({
@@ -232,6 +239,7 @@ export default async function AdminTourDashboard({ params }: PageProps) {
             action={updateTour}
             seasons={seasons}
             clubs={clubs}
+            defaultOpen={defaultEditOpen}
             tour={{
               id: tour.id,
               name: tour.name,
@@ -293,10 +301,18 @@ export default async function AdminTourDashboard({ params }: PageProps) {
           </Card>
         ))}
         <Card className="sm:col-span-2 xl:col-span-3">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Infos
-            </CardTitle>
+          <CardHeader className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Infos
+              </CardTitle>
+            </div>
+            <Button asChild size="sm" variant="secondary">
+              <Link href={`/admin/tours/${tour.id}?edit=1`} className="gap-2">
+                <PencilLine className="h-4 w-4" />
+                Modifier le tour
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-1 text-sm text-muted-foreground">
             <div>Club : {tour.club?.name ?? "-"}</div>

@@ -217,7 +217,7 @@ export default async function TourDetailPage({ params }: PageProps) {
               </p>
             </div>
             <Button asChild size="sm" className="gap-2 self-start sm:self-auto">
-              <Link href={`/admin/tours/${tour.id}`}>
+              <Link href={`/admin/tours/${tour.id}?edit=1`}>
                 <PencilLine className="h-4 w-4" />
                 Modifier ce tour
               </Link>

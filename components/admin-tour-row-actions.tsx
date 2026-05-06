@@ -134,6 +134,9 @@ export function AdminTourRowActions({
         <DropdownMenuItem asChild>
           <Link href={`/admin/tours/${tourId}`}>Voir le dashboard</Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/tours/${tourId}`}>Voir le tour</Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={(event) => {
             event.preventDefault();

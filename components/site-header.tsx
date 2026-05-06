@@ -10,7 +10,7 @@ import {
   Trophy,
   UserCircleIcon,
 } from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -165,7 +165,13 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <UserMenu />
+            {user ? (
+              <UserMenu />
+            ) : (
+              <Button asChild size="sm">
+                <Link href="/login">Connexion</Link>
+              </Button>
+            )}
           </div>
 
           <Sheet>
@@ -236,7 +242,11 @@ export function SiteHeader() {
                         <LogOut className="mr-2 h-4 w-4" />
                         Déconnexion
                       </Button>
-                  ) : null}
+                  ) : (
+                    <Button asChild size="sm">
+                      <Link href="/login">Connexion</Link>
+                    </Button>
+                  )}
                 </div>
                 {user ? (
                   <Button asChild size="sm" variant="secondary">

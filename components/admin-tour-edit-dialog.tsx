@@ -63,6 +63,7 @@ type AdminTourEditDialogProps = {
   clubs: ClubOption[];
   tour: TourEditItem;
   trigger?: React.ReactNode;
+  defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
@@ -107,10 +108,11 @@ export function AdminTourEditDialog({
   clubs,
   tour,
   trigger,
+  defaultOpen,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: AdminTourEditDialogProps) {
-  const [internalOpen, setInternalOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(defaultOpen ?? false);
   const [state, formAction] = React.useActionState(action, {
     ok: false,
     message: "",
@@ -129,6 +131,12 @@ export function AdminTourEditDialog({
     },
     [controlledOnOpenChange, controlledOpen],
   );
+
+  React.useEffect(() => {
+    if (controlledOpen === undefined && defaultOpen) {
+      setInternalOpen(true);
+    }
+  }, [controlledOpen, defaultOpen]);
 
   React.useEffect(() => {
     if (!open) {
@@ -161,7 +169,7 @@ export function AdminTourEditDialog({
           {trigger}
         </DialogTrigger>
       ) : null}
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Modifier le tour</DialogTitle>
           <DialogDescription>
@@ -243,6 +251,9 @@ export function AdminTourEditDialog({
               placeholder="https://..."
               defaultValue={tour.coverUrl ?? ""}
             />
+            <p className="text-xs text-muted-foreground">
+              URL de l&apos;image ou de l&apos;affiche affichee en haut de la page tour.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -254,6 +265,9 @@ export function AdminTourEditDialog({
               placeholder="https://..."
               defaultValue={tour.rulesUrl ?? ""}
             />
+            <p className="text-xs text-muted-foreground">
+              Lien public vers le PDF ou la page de reglement.
+            </p>
           </div>
 
           {state.message ? (
