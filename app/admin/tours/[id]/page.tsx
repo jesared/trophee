@@ -259,6 +259,9 @@ export default async function AdminTourDashboard({
             }
           />
           <Button asChild variant="secondary" size="sm">
+            <Link href={`/tours/${tour.id}`}>Voir le tour</Link>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
             <Link href={`/admin/inscriptions?tourId=${tour.id}`}>
               Voir inscriptions
             </Link>

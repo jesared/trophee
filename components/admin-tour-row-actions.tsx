@@ -2,7 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
+import {
+  Eye,
+  LayoutDashboard,
+  Lock,
+  MoreHorizontal,
+  PencilLine,
+  Trash2,
+  Unlock,
+} from "lucide-react";
 
 import { AdminDeleteForm } from "@/components/admin-delete-form";
 import { AdminTourEditDialog } from "@/components/admin-tour-edit-dialog";
@@ -89,6 +97,7 @@ export function AdminTourRowActions({
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const statusFormRef = React.useRef<HTMLFormElement | null>(null);
 
   return (
     <>
@@ -124,61 +133,81 @@ export function AdminTourRowActions({
       </Dialog>
 
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon-sm" variant="secondary" aria-label="Actions du tour">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Actions du tour</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link href={`/admin/tours/${tourId}`}>Voir le dashboard</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/tours/${tourId}`}>Voir le tour</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            setMenuOpen(false);
-            setEditOpen(true);
-          }}
-        >
-          Modifier
-        </DropdownMenuItem>
-        {statusAction ? (
-          <div className="px-1">
-            <form action={toggleAction}>
-              <input type="hidden" name="id" value={tourId} />
-              <input
-                type="hidden"
-                name="nextStatus"
-                value={statusAction.nextStatus}
-              />
-              <button
-                type="submit"
-                className="relative flex w-full cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground"
-              >
-                {statusAction.label}
-              </button>
-            </form>
-          </div>
-        ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
-          onSelect={(event) => {
-            event.preventDefault();
-            setMenuOpen(false);
-            setDeleteOpen(true);
-          }}
-        >
-          Supprimer
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>Statut: {statusLabel ?? tourStatus}</DropdownMenuLabel>
-      </DropdownMenuContent>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon-sm" variant="secondary" aria-label="Actions du tour">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Actions du tour</DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link href={`/admin/tours/${tourId}`} className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Voir le dashboard
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/tours/${tourId}`} className="gap-2">
+              <Eye className="h-4 w-4" />
+              Voir le tour
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              setMenuOpen(false);
+              setEditOpen(true);
+            }}
+          >
+            <PencilLine className="h-4 w-4" />
+            Modifier
+          </DropdownMenuItem>
+          {statusAction ? (
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                setMenuOpen(false);
+                statusFormRef.current?.requestSubmit();
+              }}
+            >
+              {statusAction.nextStatus === "OPEN" ? (
+                <Unlock className="h-4 w-4" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
+              {statusAction.label}
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={(event) => {
+              event.preventDefault();
+              setMenuOpen(false);
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Supprimer
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="px-2 py-1.5">
+            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground/80">
+              Statut
+            </span>
+            <span className="block pt-1 text-sm text-foreground">
+              {statusLabel ?? tourStatus}
+            </span>
+          </DropdownMenuLabel>
+        </DropdownMenuContent>
       </DropdownMenu>
+
+      {statusAction ? (
+        <form ref={statusFormRef} action={toggleAction} className="hidden">
+          <input type="hidden" name="id" value={tourId} />
+          <input type="hidden" name="nextStatus" value={statusAction.nextStatus} />
+        </form>
+      ) : null}
     </>
   );
 }
