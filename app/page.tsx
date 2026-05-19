@@ -34,6 +34,17 @@ const steps = [
   "Retrouvez le règlement et les classements mis à jour après chaque tour.",
 ];
 
+function getClubMark(name: string) {
+  const mark = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return mark || "TT";
+}
+
 export default async function Home() {
   type SeasonItem = {
     year: number;
@@ -120,11 +131,6 @@ export default async function Home() {
                 <Link href="/classement">Classements</Link>
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="badge-pill">Calendrier clair</span>
-              <span className="badge-pill">Tableaux homogènes</span>
-              <span className="badge-pill">Classement par saison</span>
-            </div>
           </div>
 
           <Card className="surface border-border/60 bg-background/90">
@@ -191,34 +197,39 @@ export default async function Home() {
         <div className="relative mt-6 overflow-hidden">
           <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-muted/80 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-muted/80 to-transparent" />
-          <div className="flex gap-4 animate-[scroll_22s_linear_infinite] hover:[animation-play-state:paused]">
+          <div className="flex gap-4 animate-[scroll_22s_linear_infinite]">
             {scrollerClubs.concat(scrollerClubs).map((club, index) => {
-              const initials = club.name
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part) => part[0]?.toUpperCase() ?? "")
-                .join("");
+              const mark = getClubMark(club.name);
+              const markClassName =
+                mark.length >= 3
+                  ? "text-[0.65rem] tracking-[0.2em]"
+                  : "text-sm tracking-[0.24em]";
               return (
                 <div
                   key={`${club.name}-${index}`}
-                  className="group surface min-w-[220px] px-5 py-4 text-sm font-medium tracking-tight backdrop-blur supports-[backdrop-filter]:bg-background/70 transition-transform duration-200 hover:-translate-y-1"
+                  className="group surface min-w-[240px] px-5 py-4 text-sm font-medium tracking-tight transition-colors duration-200 hover:border-primary/25 hover:bg-accent/20 backdrop-blur supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:hover:bg-accent/15"
                 >
                   <div className="flex items-center gap-3">
-                    {club.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={club.logoUrl}
-                        alt={club.name}
-                        className="h-10 w-10 rounded-full border border-border/60 object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted text-xs font-semibold text-foreground">
-                        {initials || "TT"}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="mt-0.5 truncate text-base text-foreground">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm transition-colors duration-200 group-hover:border-primary/20 group-hover:bg-accent/30">
+                      {club.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={club.logoUrl}
+                          alt={club.name}
+                          className="h-full w-full object-contain p-1.5"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-muted px-1 text-foreground transition-colors duration-200 group-hover:bg-accent/40">
+                          <span
+                            className={`block font-semibold uppercase ${markClassName}`}
+                          >
+                            {mark}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <div className="truncate text-base text-foreground">
                         {club.name}
                       </div>
                       {club.city ? (
