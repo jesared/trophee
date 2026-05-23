@@ -70,7 +70,7 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 px-2">
+        <Button variant="ghost" className="h-10 rounded-full px-2.5">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.image ?? ""} alt={user.name ?? "User"} />
             <AvatarFallback>{initials}</AvatarFallback>
@@ -124,26 +124,36 @@ export function SiteHeader() {
   const isAdmin = user?.role === "ADMIN";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="border-b border-border/50 bg-muted/40">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 text-xs text-muted-foreground">
+    <header className="app-header-shell">
+      <div className="app-header-strip">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-2.5 text-xs text-muted-foreground">
           <span>
             Consultez l&apos;agenda, les salles et les classements de la saison.
           </span>
           <Link
             href="/agenda"
-            className="font-medium text-foreground transition-colors hover:text-primary"
+            className="hidden font-semibold text-foreground transition-colors hover:text-primary sm:inline-flex"
           >
             Voir l&apos;agenda
           </Link>
         </div>
       </div>
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-sm font-semibold tracking-tight">
-            Trophée FG
+      <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-6">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary text-sm font-bold tracking-[-0.04em] text-primary-foreground shadow-sm">
+              FG
+            </span>
+            <span className="space-y-0.5">
+              <span className="block text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Circuit régional
+              </span>
+              <span className="block font-heading text-base font-bold tracking-[-0.04em] text-foreground">
+                Trophée FG
+              </span>
+            </span>
           </Link>
-          <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
+          <nav className="hidden items-center gap-2 md:flex">
             {navItems.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
@@ -151,8 +161,8 @@ export function SiteHeader() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "transition-colors hover:text-foreground",
-                    active && "font-medium text-primary",
+                    "nav-chip hover:border-primary/15 hover:bg-accent/20 hover:text-foreground",
+                    active && "nav-chip-active",
                   )}
                 >
                   {item.label}
@@ -176,12 +186,12 @@ export function SiteHeader() {
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon-sm" className="md:hidden">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
+            <SheetContent side="right" className="w-72 border-border/70 bg-background/95 backdrop-blur-xl">
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
                 <SheetDescription className="text-xs text-muted-foreground">
@@ -189,7 +199,7 @@ export function SiteHeader() {
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-6 flex flex-col gap-6 px-2">
-                <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-3">
+                <div className="flex items-center gap-3 rounded-[1.35rem] border border-border/70 bg-muted/30 px-3 py-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={user?.image ?? ""}
@@ -216,14 +226,14 @@ export function SiteHeader() {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-4 py-2 transition",
+                          "flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 font-semibold tracking-[-0.02em] transition",
                           active
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                            ? "border-primary/20 bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:border-primary/10 hover:bg-accent/20 hover:text-foreground",
                         )}
                       >
                         <Icon className="h-4 w-4" />
-                        <span className="font-medium">{item.label}</span>
+                        <span>{item.label}</span>
                       </Link>
                     );
                   })}
@@ -239,9 +249,9 @@ export function SiteHeader() {
                       variant="secondary"
                       onClick={() => signOut()}
                     >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Déconnexion
-                      </Button>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Déconnexion
+                    </Button>
                   ) : (
                     <Button asChild size="sm">
                       <Link href="/login">Connexion</Link>

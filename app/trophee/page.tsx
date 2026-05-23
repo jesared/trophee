@@ -96,11 +96,11 @@ export default function TropheePage() {
 
       <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-3 sm:p-8">
         {stats.map((stat) => (
-          <div key={stat.label} className="surface px-5 py-4">
-            <p className="text-xs font-medium text-muted-foreground">
+          <div key={stat.label} className="stat-panel px-5 py-4">
+            <p className="stat-label">
               {stat.label}
             </p>
-            <p className="text-2xl font-semibold text-foreground">
+            <p className="stat-value mt-3">
               {stat.value}
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function TropheePage() {
           {timeline.map((item, index) => (
             <div key={item.title} className="surface px-5 py-4">
               <div className="badge-pill w-fit">Étape {index + 1}</div>
-              <p className="mt-2 text-sm font-semibold text-foreground">
+              <p className="section-title mt-2">
                 {item.title}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ export default function TropheePage() {
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {benefits.map((item) => (
             <div key={item.title} className="surface px-5 py-4">
-              <p className="text-sm font-semibold text-foreground">
+              <p className="section-title">
                 {item.title}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -192,7 +192,7 @@ export default function TropheePage() {
       <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">
+            <h2 className="page-title text-2xl">
               Récompenses
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -205,7 +205,7 @@ export default function TropheePage() {
             </p>
           </div>
           <div className="surface p-5 text-sm text-muted-foreground">
-            <p className="text-xs font-medium text-muted-foreground">
+            <p className="stat-label">
               Pour aller plus loin
             </p>
             <p className="mt-2 text-foreground">
