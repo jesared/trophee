@@ -11,7 +11,6 @@ import {
   UserCircleIcon,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -142,15 +141,8 @@ export function SiteHeader() {
       <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl">
-              <Image
-                src="/logo-tfg-violet.png"
-                alt="Logo Trophée FG"
-                width={40}
-                height={40}
-                sizes="40px"
-                className="h-10 w-10 object-cover"
-              />
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary text-sm font-bold tracking-[-0.04em] text-primary-foreground shadow-sm">
+              FG
             </span>
             <span className="space-y-0.5">
               <span className="block text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
