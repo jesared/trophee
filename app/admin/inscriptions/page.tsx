@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { Prisma } from "@prisma/client";
 
 import { AdminRegistrationActions } from "@/components/admin-registration-actions";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { sortByTableauNaturalOrder } from "@/lib/tableau-order";
 import {
   fetchFfttLicence,
   initFfttSerie,
@@ -36,19 +38,6 @@ type ActionState = {
 
 type PageProps = {
   searchParams: Promise<{ tourId?: string; tableauId?: string; q?: string }>;
-};
-
-const formatRange = (minPoints: number | null, maxPoints: number | null) => {
-  if (minPoints != null && maxPoints != null) {
-    return `${minPoints} - ${maxPoints}`;
-  }
-  if (minPoints != null) {
-    return `>= ${minPoints}`;
-  }
-  if (maxPoints != null) {
-    return `<= ${maxPoints}`;
-  }
-  return "Libre";
 };
 
 async function createRegistration(
@@ -159,7 +148,7 @@ async function createRegistration(
           data: { ...updates, ffttLastSync: new Date() },
         });
       }
-    } catch (error) {
+    } catch {
       if (enforceFftt) {
         return {
           ok: false,
@@ -285,7 +274,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         template: { select: { name: true } },
         tour: { select: { name: true, season: { select: { year: true } } } },
       },
-      orderBy: { startTime: "asc" },
+      orderBy: [{ template: { name: "asc" } }, { startTime: "asc" }],
     }),
     prisma.registration.findMany({
       where: registrationWhere,
@@ -384,9 +373,16 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     new Map(),
   );
 
-  const groupedRows = Array.from(grouped.values()).sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-  );
+  const groupedRows = Array.from(grouped.values())
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((row) => ({
+      ...row,
+      tableaux: sortByTableauNaturalOrder(
+        row.tableaux as TableauItem[],
+        (tableau) => tableau.template.name,
+        (tableau) => tableau.startTime,
+      ),
+    }));
 
   const tableauxByTour = tableaux.reduce((acc, tableau) => {
     const list = acc.get(tableau.tourId) ?? [];
@@ -443,10 +439,10 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="secondary">
-                <a href="/admin/players">Nouveau joueur</a>
+                <Link href="/admin/players">Nouveau joueur</Link>
               </Button>
               <Button asChild size="sm" variant="secondary">
-                <a href="/admin/tableaux">Nouveau tableau</a>
+                <Link href="/admin/tableaux">Nouveau tableau</Link>
               </Button>
             </div>
           </CardHeader>
@@ -458,16 +454,16 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                 <p>Ajoutez au moins un joueur, un tableau et un tour.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild size="sm">
-                    <a href="/admin/players">Creer un joueur</a>
+                    <Link href="/admin/players">Creer un joueur</Link>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableau-templates">Creer un template</a>
+                    <Link href="/admin/tableau-templates">Creer un template</Link>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tableaux">Creer un tableau</a>
+                    <Link href="/admin/tableaux">Creer un tableau</Link>
                   </Button>
                   <Button asChild size="sm" variant="secondary">
-                    <a href="/admin/tours">Creer un tour</a>
+                    <Link href="/admin/tours">Creer un tour</Link>
                   </Button>
                 </div>
               </div>
@@ -546,12 +542,14 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                           playerName={`${row.player.firstName} ${row.player.lastName}`}
                           tourId={row.tourId}
                           tourName={row.tour.name}
-                          tableauOptions={(tableauxByTour.get(row.tourId) ?? []).map(
-                            (tableau) => ({
+                          tableauOptions={sortByTableauNaturalOrder(
+                            tableauxByTour.get(row.tourId) ?? [],
+                            (tableau) => tableau.template.name,
+                            (tableau) => tableau.startTime,
+                          ).map((tableau) => ({
                               id: tableau.id,
                               label: `${tableau.template.name} · ${tableau.tour.season.year}`,
-                            }),
-                          )}
+                          }))}
                           selectedTableauIds={row.tableaux.map(
                             (tableau: TableauItem) => tableau.id,
                           )}

@@ -23,6 +23,7 @@ import {
   type TourStatus,
 } from "@/lib/tour-status";
 import { readTourFormData, validateTourFormData } from "@/lib/tour-form";
+import { buildSeasonTemplateTableauxData } from "@/lib/tableau-template-defaults";
 
 type ActionState = {
   ok: boolean;
@@ -116,8 +117,32 @@ async function createTour(
     return parsed;
   }
 
-  await prisma.tour.create({
-    data: parsed.data,
+  const result = await prisma.$transaction(async (tx) => {
+    const tour = await tx.tour.create({
+      data: parsed.data,
+      select: { id: true, date: true, seasonId: true },
+    });
+
+    const { data, skippedWithoutTime } = await buildSeasonTemplateTableauxData(
+      tx,
+      {
+        seasonId: tour.seasonId,
+        tourId: tour.id,
+        tourDate: tour.date,
+      },
+    );
+
+    if (data.length > 0) {
+      await tx.tableau.createMany({
+        data,
+        skipDuplicates: true,
+      });
+    }
+
+    return {
+      createdTableaux: data.length,
+      skippedWithoutTime,
+    };
   });
 
   revalidatePath("/admin/tours");
@@ -125,7 +150,15 @@ async function createTour(
   revalidatePath("/agenda");
   revalidatePath("/tours");
 
-  return { ok: true, message: "Tour cree." };
+  const skippedMessage =
+    result.skippedWithoutTime.length > 0
+      ? ` ${result.skippedWithoutTime.length} template(s) sans horaire ignore(s).`
+      : "";
+
+  return {
+    ok: true,
+    message: `Tour cree. ${result.createdTableaux} tableau(x) ajoute(s).${skippedMessage}`,
+  };
 }
 
 async function updateTour(

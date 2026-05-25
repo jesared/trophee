@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getIsCurrentVisitorAdmin } from "@/lib/current-visitor-admin";
 import { prisma } from "@/lib/prisma";
+import { sortByTableauNaturalOrder } from "@/lib/tableau-order";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,24 +24,29 @@ function buildFallbackDescription(tour: {
   status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
   tableaux: { id: string }[];
 }) {
-  const locationBits = [tour.city, tour.venue].filter(Boolean);
-  const locationLabel =
-    locationBits.length > 0 ? ` a ${locationBits.join(", ")}` : "";
-  const organizerLabel = tour.club?.name
-    ? ` organise par ${tour.club.name}`
-    : "";
-
-  const intro = `${tour.name} fait partie de ${tour.season.name}${organizerLabel}${locationLabel}.`;
+  const intro = `${tour.name} fait partie de ${tour.season.name}.`;
+  const organizerSentence = tour.club?.name
+    ? `Ce tour est organis\u00e9 par ${tour.club.name}.`
+    : null;
+  const locationBits = [tour.venue, tour.city].filter(Boolean);
+  const locationSentence =
+    locationBits.length > 0
+      ? `Lieu pr\u00e9vu : ${locationBits.join(", ")}.`
+      : null;
+  const context = [organizerSentence, locationSentence].filter(Boolean).join(" ");
 
   if (tour.tableaux.length > 0) {
-    return `${intro} Retrouvez ci-dessous les tableaux prevus, leurs horaires et les categories de points associees.`;
+    return `${intro} ${context} Retrouvez ci-dessous les tableaux pr\u00e9vus, leurs horaires et les cat\u00e9gories de points associ\u00e9es.`
+      .trim();
   }
 
   if (tour.status === "DONE") {
-    return `${intro} Ce tour est desormais termine. Les informations principales sont conservees ici pour consultation.`;
+    return `${intro} ${context} Ce tour est d\u00e9sormais termin\u00e9. Les informations principales sont conserv\u00e9es ici pour consultation.`
+      .trim();
   }
 
-  return `${intro} Les precisions complementaires seront ajoutees prochainement par l'organisation.`;
+  return `${intro} ${context} Les pr\u00e9cisions compl\u00e9mentaires seront ajout\u00e9es prochainement par l'organisation.`
+    .trim();
 }
 
 export default async function TourDetailPage({ params }: PageProps) {
@@ -54,7 +60,7 @@ export default async function TourDetailPage({ params }: PageProps) {
       season: true,
       tableaux: {
         include: { template: true },
-        orderBy: { startTime: "asc" },
+        orderBy: [{ template: { name: "asc" } }, { startTime: "asc" }],
       },
     },
   });
@@ -70,25 +76,45 @@ export default async function TourDetailPage({ params }: PageProps) {
     timeStyle: "short",
     timeZone: "Europe/Paris",
   });
+  const statusLabel =
+    tour.status === "OPEN"
+      ? "Ouvert"
+      : tour.status === "CLOSED"
+        ? "Ferm\u00e9"
+        : tour.status === "DONE"
+          ? "Termin\u00e9"
+          : "Brouillon";
   const publicInfoLabel =
     tour.status === "OPEN"
-      ? "Inscriptions bientot disponibles"
+      ? "Inscriptions bient\u00f4t disponibles"
       : tour.status === "DONE"
-        ? "Tour termine"
+        ? "Tour termin\u00e9"
         : "Informations uniquement";
   const description = tour.description?.trim() || buildFallbackDescription(tour);
+  const locationLabel = [tour.venue, tour.city].filter(Boolean).join(" \u00b7 ");
+  const orderedTableaux = sortByTableauNaturalOrder(
+    tour.tableaux,
+    (tableau) => tableau.template.name,
+    (tableau) => tableau.startTime,
+  );
+  const earliestTableau =
+    tour.tableaux.reduce<Date | null>((earliest, tableau) => {
+      if (!earliest || tableau.startTime < earliest) {
+        return tableau.startTime;
+      }
+
+      return earliest;
+    }, null) ?? null;
 
   return (
     <section className="space-y-10">
       <header className="space-y-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Link href="/agenda" className="hover:text-foreground">
-            Agenda & salles
+            Agenda &amp; salles
           </Link>
-          <span>•</span>
+          <span>&bull;</span>
           <span>{tour.season.name}</span>
-          <span>•</span>
-          <span>{formatter.format(tour.date)}</span>
         </div>
 
         {tour.coverUrl ? (
@@ -108,30 +134,17 @@ export default async function TourDetailPage({ params }: PageProps) {
           </h1>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="badge-pill">
-              {tour.status === "OPEN"
-                ? "Ouvert"
-                : tour.status === "CLOSED"
-                  ? "Ferme"
-                  : tour.status === "DONE"
-                    ? "Termine"
-                    : "Brouillon"}
-            </span>
-            {tour.club?.name ? (
-              <span className="badge-pill">Club : {tour.club.name}</span>
-            ) : null}
-            {tour.venue ? (
-              <span className="badge-pill">{tour.venue}</span>
-            ) : null}
-            {tour.city ? <span className="badge-pill">{tour.city}</span> : null}
+            <span className="badge-pill">{statusLabel}</span>
+            <span className="badge-pill">{publicInfoLabel}</span>
+            {tour.club?.name ? <span className="badge-pill">{tour.club.name}</span> : null}
+            {locationLabel ? <span className="badge-pill">{locationLabel}</span> : null}
           </div>
 
           {tour.address ? (
             <p className="text-sm text-muted-foreground">{tour.address}</p>
           ) : null}
-          <p className="max-w-2xl text-base text-foreground/80">
-            {description}
-          </p>
+
+          <p className="max-w-2xl text-base text-foreground/80">{description}</p>
         </div>
 
         {isAdmin ? (
@@ -153,37 +166,62 @@ export default async function TourDetailPage({ params }: PageProps) {
           </div>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Date</CardTitle>
+              <CardTitle className="text-sm">Quand</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {formatter.format(tour.date)}
+            <CardContent className="space-y-1">
+              <p className="text-base font-semibold text-foreground">
+                {formatter.format(tour.date)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {earliestTableau
+                  ? `Premier tableau \u00e0 ${timeFormatter.format(earliestTableau)}`
+                  : "Horaires d\u00e9taill\u00e9s ci-dessous"}
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Club</CardTitle>
+              <CardTitle className="text-sm">Organisation</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {tour.club?.name ?? "-"}
+            <CardContent className="space-y-1">
+              <p className="text-base font-semibold text-foreground">
+                {tour.club?.name ?? "Club \u00e0 confirmer"}
+              </p>
+              <p className="text-sm text-muted-foreground">{tour.season.name}</p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Salle</CardTitle>
+              <CardTitle className="text-sm">Lieu</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {tour.venue ?? "-"}
+            <CardContent className="space-y-1">
+              <p className="text-base font-semibold text-foreground">
+                {tour.venue ?? tour.city ?? "Lieu \u00e0 confirmer"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {tour.address ?? tour.city ?? "Adresse \u00e0 venir"}
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Ville</CardTitle>
+              <CardTitle className="text-sm">Tableaux</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {tour.city ?? "-"}
+            <CardContent className="space-y-1">
+              <p className="text-base font-semibold text-foreground">
+                {tour.tableaux.length}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {tour.tableaux.length > 0
+                  ? "Cr\u00e9neaux publi\u00e9s"
+                  : "Aucun tableau d\u00e9fini"}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -192,13 +230,10 @@ export default async function TourDetailPage({ params }: PageProps) {
           {tour.rulesUrl ? (
             <Button asChild variant="secondary" size="sm">
               <Link href={tour.rulesUrl} target="_blank" rel="noreferrer">
-                Reglement du tour
+                R&egrave;glement du tour
               </Link>
             </Button>
           ) : null}
-          <Button size="sm" variant="outline" disabled>
-            {publicInfoLabel}
-          </Button>
         </div>
       </header>
 
@@ -208,11 +243,11 @@ export default async function TourDetailPage({ params }: PageProps) {
         </div>
         {tour.tableaux.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucun tableau defini pour ce tour.
+            Aucun tableau d&eacute;fini pour ce tour.
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {tour.tableaux.map((tableau) => (
+            {orderedTableaux.map((tableau) => (
               <Card
                 key={tableau.id}
                 className="bg-card transition hover:-translate-y-0.5"
@@ -230,7 +265,7 @@ export default async function TourDetailPage({ params }: PageProps) {
                         Tableau {tableau.template.name}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">
-                        Categorie par points
+                        Cat&eacute;gorie par points
                       </p>
                     </div>
                   </div>

@@ -15,14 +15,29 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ActionState = {
   ok: boolean;
   message: string;
 };
 
+type SeasonOption = {
+  id: string;
+  name: string;
+  year: number;
+  isActive: boolean;
+};
+
 type AdminTableauTemplateDialogProps = {
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
+  seasons: SeasonOption[];
 };
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -30,15 +45,17 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
   return (
     <Button type="submit" disabled={disabled || pending}>
-      {pending ? "Enregistrement..." : "Creer"}
+      {pending ? "Enregistrement..." : "Ajouter"}
     </Button>
   );
 }
 
 export function AdminTableauTemplateDialog({
   action,
+  seasons,
 }: AdminTableauTemplateDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [seasonId, setSeasonId] = React.useState("");
   const [state, formAction] = React.useActionState(action, {
     ok: false,
     message: "",
@@ -53,6 +70,7 @@ export function AdminTableauTemplateDialog({
     if (state.ok) {
       notifySuccess(state.message);
       formRef.current?.reset();
+      setSeasonId("");
       setOpen(false);
       return;
     }
@@ -63,16 +81,34 @@ export function AdminTableauTemplateDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Creer un template</Button>
+        <Button disabled={seasons.length === 0}>Ajouter un tableau</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouveau template</DialogTitle>
+          <DialogTitle>Nouveau tableau de reference</DialogTitle>
           <DialogDescription>
-            Definissez la plage de points et l'horaire de reference pour ce tableau.
+            Definissez la saison, la plage de points et l&apos;horaire de
+            ce tableau de reference.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="seasonId">Saison</Label>
+            <Select value={seasonId} onValueChange={setSeasonId}>
+              <SelectTrigger id="seasonId">
+                <SelectValue placeholder="Choisir une saison" />
+              </SelectTrigger>
+              <SelectContent>
+                {seasons.map((season) => (
+                  <SelectItem key={season.id} value={season.id}>
+                    {season.name} ({season.year})
+                    {season.isActive ? " active" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="seasonId" value={seasonId} />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="name">Nom</Label>
             <Input id="name" name="name" placeholder="-1300" minLength={1} />
@@ -92,7 +128,7 @@ export function AdminTableauTemplateDialog({
             <Input id="startTime" name="startTime" type="time" required />
           </div>
           <div className="flex justify-end">
-            <SubmitButton disabled={false} />
+            <SubmitButton disabled={!seasonId} />
           </div>
         </form>
       </DialogContent>

@@ -17,6 +17,11 @@ import {
 } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import {
+  buildSeasonTemplateTableauxData,
+  buildTableauStartTime,
+} from "@/lib/tableau-template-defaults";
+import { sortByTableauNaturalOrder } from "@/lib/tableau-order";
 
 type ActionState = {
   ok: boolean;
@@ -47,21 +52,6 @@ function formatTemplateTime(startTime: string | null) {
   return startTime?.trim() || "Horaire manquant";
 }
 
-function buildStartTime(date: Date, rawTime: string) {
-  if (!/^\d{2}:\d{2}$/.test(rawTime)) {
-    return null;
-  }
-
-  const [hours, minutes] = rawTime.split(":").map(Number);
-  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-    return null;
-  }
-
-  const startTime = new Date(date);
-  startTime.setHours(hours, minutes, 0, 0);
-  return startTime;
-}
-
 async function createTableau(
   _prevState: ActionState,
   formData: FormData,
@@ -84,7 +74,7 @@ async function createTableau(
 
   const tour = await prisma.tour.findUnique({
     where: { id: parsed.data.tourId },
-    select: { date: true },
+    select: { date: true, seasonId: true },
   });
 
   if (!tour) {
@@ -100,37 +90,23 @@ async function createTableau(
   );
 
   if (parsed.data.templateId === ALL_TEMPLATES_VALUE) {
-    const templates = await prisma.tableauTemplate.findMany({
-      orderBy: [{ startTime: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, startTime: true },
-    });
+    const { data, skippedWithoutTime } =
+      await buildSeasonTemplateTableauxData(prisma, {
+        seasonId: tour.seasonId,
+        tourId: parsed.data.tourId,
+        tourDate: tour.date,
+        excludeTemplateIds: existingTemplateIds,
+      });
 
-    const missingTemplates = templates.filter(
-      (template) => !existingTemplateIds.has(template.id),
-    );
-
-    if (missingTemplates.length === 0) {
+    if (data.length === 0) {
       return {
         ok: false,
-        message: "Tous les templates sont déjà ajoutés à ce tour.",
+        message:
+          skippedWithoutTime.length > 0
+            ? "Les templates manquants de cette saison n'ont pas tous un horaire."
+            : "Tous les templates de cette saison sont deja ajoutes a ce tour.",
       };
     }
-
-    const templateWithoutTime = missingTemplates.find(
-      (template) => !template.startTime,
-    );
-    if (templateWithoutTime) {
-      return {
-        ok: false,
-        message: `Horaire manquant pour le template ${templateWithoutTime.name}.`,
-      };
-    }
-
-    const data = missingTemplates.map((template) => ({
-      templateId: template.id,
-      tourId: parsed.data.tourId,
-      startTime: buildStartTime(tour.date, template.startTime!)!,
-    }));
 
     await prisma.tableau.createMany({
       data,
@@ -140,26 +116,38 @@ async function createTableau(
     revalidatePath("/admin/tableaux");
     revalidatePath(`/admin/tours/${parsed.data.tourId}`);
 
+    const skippedMessage =
+      skippedWithoutTime.length > 0
+        ? ` ${skippedWithoutTime.length} template(s) sans horaire ignore(s).`
+        : "";
+
     return {
       ok: true,
-      message: `${missingTemplates.length} tableau(x) ajouté(s).`,
+      message: `${data.length} tableau(x) ajoute(s).${skippedMessage}`,
+    };
+  }
+
+  const template = await prisma.tableauTemplate.findUnique({
+    where: { id: parsed.data.templateId },
+    select: { startTime: true, name: true, seasonId: true },
+  });
+
+  if (!template) {
+    return { ok: false, message: "Template introuvable." };
+  }
+
+  if (template.seasonId !== tour.seasonId) {
+    return {
+      ok: false,
+      message: "Ce template n'appartient pas a la saison du tour.",
     };
   }
 
   if (existingTemplateIds.has(parsed.data.templateId)) {
     return {
       ok: false,
-      message: "Ce template est déjà associé à ce tour.",
+      message: "Ce template est deja associe a ce tour.",
     };
-  }
-
-  const template = await prisma.tableauTemplate.findUnique({
-    where: { id: parsed.data.templateId },
-    select: { startTime: true, name: true },
-  });
-
-  if (!template) {
-    return { ok: false, message: "Template introuvable." };
   }
 
   if (!template.startTime) {
@@ -169,7 +157,7 @@ async function createTableau(
     };
   }
 
-  const startTime = buildStartTime(tour.date, template.startTime);
+  const startTime = buildTableauStartTime(tour.date, template.startTime);
   if (!startTime) {
     return { ok: false, message: "Horaire invalide sur le template." };
   }
@@ -187,7 +175,6 @@ async function createTableau(
 
   return { ok: true, message: "Tableau cree." };
 }
-
 async function deleteTableau(
   _prevState: ActionState,
   formData: FormData,
@@ -218,6 +205,7 @@ export default async function AdminTableauxPage() {
     id: string;
     name: string;
     date: Date;
+    seasonId: string;
     season: { year: number };
     status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
   };
@@ -227,6 +215,8 @@ export default async function AdminTableauxPage() {
     minPoints: number | null;
     maxPoints: number | null;
     startTime: string | null;
+    seasonId: string | null;
+    season: { year: number; name: string } | null;
   };
   type TableauItem = {
     id: string;
@@ -245,14 +235,23 @@ export default async function AdminTableauxPage() {
       orderBy: { date: "asc" },
     }),
     prisma.tableauTemplate.findMany({
-      orderBy: [{ startTime: "asc" }, { name: "asc" }],
+      include: { season: true },
+      orderBy: [
+        { season: { year: "desc" } },
+        { name: "asc" },
+        { startTime: "asc" },
+      ],
     }),
     prisma.tableau.findMany({
       include: {
-        template: true,
+        template: { include: { season: true } },
         tour: { include: { season: true } },
       },
-      orderBy: [{ tour: { date: "asc" } }, { startTime: "asc" }],
+      orderBy: [
+        { tour: { date: "asc" } },
+        { template: { name: "asc" } },
+        { startTime: "asc" },
+      ],
     }),
   ]);
 
@@ -273,6 +272,7 @@ export default async function AdminTableauxPage() {
     .map((tour: TourItem) => ({
       id: tour.id,
       label: `${tour.name} - ${tour.season.year}`,
+      seasonId: tour.seasonId,
     }));
 
   const templateOptions = templates.map((template: TemplateItem) => ({
@@ -281,6 +281,7 @@ export default async function AdminTableauxPage() {
     minPoints: template.minPoints,
     maxPoints: template.maxPoints,
     startTime: template.startTime,
+    seasonId: template.seasonId,
   }));
 
   const readyTemplates = templates.filter((template) => Boolean(template.startTime));
@@ -293,12 +294,19 @@ export default async function AdminTableauxPage() {
   }
 
   const tourCards = tours.map((tour) => {
-    const items = tableauxByTour.get(tour.id) ?? [];
+    const items = sortByTableauNaturalOrder(
+      tableauxByTour.get(tour.id) ?? [],
+      (tableau) => tableau.template.name,
+      (tableau) => tableau.startTime,
+    );
     const configuredTemplateIds = new Set(items.map((tableau) => tableau.template.id));
-    const missingTemplates = readyTemplates.filter(
+    const seasonReadyTemplates = readyTemplates.filter(
+      (template) => template.seasonId === tour.seasonId,
+    );
+    const missingTemplates = seasonReadyTemplates.filter(
       (template) => !configuredTemplateIds.has(template.id),
     );
-    const coverageBase = readyTemplates.length;
+    const coverageBase = seasonReadyTemplates.length;
     const coverage =
       coverageBase > 0
         ? Math.round((items.length / coverageBase) * 100)
@@ -308,6 +316,7 @@ export default async function AdminTableauxPage() {
       ...tour,
       tableaux: items,
       missingTemplates,
+      readyTemplateCount: seasonReadyTemplates.length,
       coverage,
       isUpcoming: tour.date >= today,
     };
@@ -315,7 +324,7 @@ export default async function AdminTableauxPage() {
 
   const configuredTours = tourCards.filter((tour) => tour.tableaux.length > 0).length;
   const completeTours = tourCards.filter(
-    (tour) => readyTemplates.length > 0 && tour.missingTemplates.length === 0,
+    (tour) => tour.readyTemplateCount > 0 && tour.missingTemplates.length === 0,
   ).length;
   const upcomingTours = tourCards.filter((tour) => tour.isUpcoming);
   const highlightedTours =
@@ -427,6 +436,11 @@ export default async function AdminTableauxPage() {
                 <p className="mt-1 text-xs text-muted-foreground">
                   {formatRange(template.minPoints, template.maxPoints)}
                 </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {template.season
+                    ? `Saison ${template.season.year}`
+                    : "Saison non rattachee"}
+                </p>
               </div>
             ))}
           </CardContent>
@@ -480,7 +494,7 @@ export default async function AdminTableauxPage() {
                         <CardTitle>{tour.name}</CardTitle>
                         <Badge variant={statusVariant}>{tour.status}</Badge>
                         {tour.missingTemplates.length === 0 &&
-                        readyTemplates.length > 0 ? (
+                        tour.readyTemplateCount > 0 ? (
                           <Badge variant="secondary">Complet</Badge>
                         ) : null}
                       </div>
@@ -493,12 +507,12 @@ export default async function AdminTableauxPage() {
                         Couverture
                       </p>
                       <p className="text-xl font-semibold text-foreground">
-                        {readyTemplates.length > 0
-                          ? `${tour.tableaux.length}/${readyTemplates.length}`
+                        {tour.readyTemplateCount > 0
+                          ? `${tour.tableaux.length}/${tour.readyTemplateCount}`
                           : tour.tableaux.length}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {readyTemplates.length > 0
+                        {tour.readyTemplateCount > 0
                           ? `${tour.coverage}% prêt`
                           : "Aucun template horaire"}
                       </p>

@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { sortByTableauNaturalOrder } from "@/lib/tableau-order";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -96,7 +97,10 @@ export default async function AdminTourCheckinPage({ params }: PageProps) {
   const rows: CheckinRow[] = Array.from(grouped.values()).map((row) => ({
     playerId: row.playerId,
     playerName: row.playerName,
-    tableaux: row.tableaux,
+    tableaux: sortByTableauNaturalOrder(
+      row.tableaux,
+      (tableau) => tableau.name,
+    ),
   }));
 
   const dateFormatter = new Intl.DateTimeFormat("fr-FR", {

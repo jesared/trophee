@@ -7,7 +7,6 @@ import {
   CalendarDays,
   ClipboardList,
   Image,
-  Layers,
   LayoutDashboard,
   LayoutGrid,
   LogOut,
@@ -60,12 +59,6 @@ const buildSections = (counts: SidebarCounts) => [
         href: "/admin/tours",
         icon: Trophy,
         badge: counts.tours,
-      },
-      {
-        label: "Tableaux",
-        href: "/admin/tableaux",
-        icon: Layers,
-        badge: counts.tableaux,
       },
       {
         label: "Templates",

@@ -11,7 +11,6 @@ const navItems = [
   { label: "Saison", href: "/admin/seasons" },
   { label: "Clubs", href: "/admin/clubs" },
   { label: "Tours", href: "/admin/tours" },
-  { label: "Tableaux", href: "/admin/tableaux" },
   { label: "Templates", href: "/admin/tableau-templates" },
   { label: "Joueurs", href: "/admin/players" },
   { label: "Inscriptions", href: "/admin/inscriptions" },

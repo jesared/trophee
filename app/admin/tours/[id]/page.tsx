@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { sortByTableauNaturalOrder } from "@/lib/tableau-order";
 import {
   getAdminTourStatusAction,
   getTourStatusLabel,
@@ -122,7 +123,7 @@ export default async function AdminTourDashboard({
     prisma.tableau.findMany({
       where: { tourId: id },
       include: { template: true },
-      orderBy: { startTime: "asc" },
+      orderBy: [{ template: { name: "asc" } }, { startTime: "asc" }],
     }),
     prisma.registration.findMany({
       where: { tourId: id },
@@ -135,6 +136,11 @@ export default async function AdminTourDashboard({
   ]);
 
   const totalRegistrations = registrations.length;
+  const orderedTableaux = sortByTableauNaturalOrder(
+    tableaux,
+    (tableau) => tableau.template.name,
+    (tableau) => tableau.startTime,
+  );
   const uniquePlayers = new Set(registrations.map((r) => r.playerId)).size;
   const presentCount = registrations.filter(
     (r) => r.presence === "PRESENT",
@@ -152,7 +158,7 @@ export default async function AdminTourDashboard({
     { label: "Joueurs", value: uniquePlayers },
     { label: "Presents", value: presentCount },
     { label: "Absents", value: absentCount },
-    { label: "Tableaux", value: tableaux.length },
+    { label: "Tableaux", value: orderedTableaux.length },
     { label: "Taux presence", value: `${presenceRate}%` },
   ];
 
@@ -202,13 +208,16 @@ export default async function AdminTourDashboard({
     createdAt: row.createdAt.toISOString(),
     presence: row.presence ?? "UNKNOWN",
     ids: row.ids,
-    tableaux: row.tableaux.map((tableau) => ({
+    tableaux: sortByTableauNaturalOrder(
+      row.tableaux,
+      (tableau) => tableau.template.name,
+    ).map((tableau) => ({
       id: tableau.id,
       name: tableau.template.name,
     })),
   }));
 
-  const tableauOptions = tableaux.map((tableau) => ({
+  const tableauOptions = orderedTableaux.map((tableau) => ({
     id: tableau.id,
     name: tableau.template.name,
   }));

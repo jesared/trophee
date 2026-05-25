@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -46,6 +45,7 @@ type ActionState = {
 type TourOption = {
   id: string;
   label: string;
+  seasonId: string;
 };
 
 type TemplateOption = {
@@ -54,6 +54,7 @@ type TemplateOption = {
   minPoints?: number | null;
   maxPoints?: number | null;
   startTime?: string | null;
+  seasonId?: string | null;
 };
 
 type AdminTableauDialogProps = {
@@ -103,6 +104,10 @@ export function AdminTableauDialog({
     notifyError(state.message);
   }, [state.message, state.ok]);
 
+  const selectedTour = tours.find((tour) => tour.id === tourId);
+  const filteredTemplates = selectedTour
+    ? templates.filter((template) => template.seasonId === selectedTour.seasonId)
+    : [];
   const disabled = tours.length === 0 || templates.length === 0;
 
   return (
@@ -114,34 +119,20 @@ export function AdminTableauDialog({
         <DialogHeader>
           <DialogTitle>Ajouter des tableaux</DialogTitle>
           <DialogDescription>
-            Ajoutez un template précis ou tous les templates manquants pour un tour.
+            Ajoutez un template precis ou tous les templates manquants pour un
+            tour, selon sa saison.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="template">Template</Label>
-            <Select value={templateId} onValueChange={setTemplateId}>
-              <SelectTrigger id="template">
-                <SelectValue placeholder="Choisir un template" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_TEMPLATES_VALUE}>
-                  Tous les templates manquants
-                </SelectItem>
-                {templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name} ({formatRange(template.minPoints, template.maxPoints)})
-                    {template.startTime ? ` · ${template.startTime}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input type="hidden" name="templateId" value={templateId} />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="tour">Tour</Label>
-            <Select value={tourId} onValueChange={setTourId}>
+            <Select
+              value={tourId}
+              onValueChange={(value) => {
+                setTourId(value);
+                setTemplateId("");
+              }}
+            >
               <SelectTrigger id="tour">
                 <SelectValue placeholder="Choisir un tour" />
               </SelectTrigger>
@@ -154,6 +145,40 @@ export function AdminTableauDialog({
               </SelectContent>
             </Select>
             <input type="hidden" name="tourId" value={tourId} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="template">Template</Label>
+            <Select
+              value={templateId}
+              onValueChange={setTemplateId}
+              disabled={!tourId || filteredTemplates.length === 0}
+            >
+              <SelectTrigger id="template">
+                <SelectValue
+                  placeholder={
+                    !tourId
+                      ? "Choisir un tour d'abord"
+                      : filteredTemplates.length === 0
+                        ? "Aucun template pour cette saison"
+                        : "Choisir un template"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_TEMPLATES_VALUE}>
+                  Tous les templates manquants
+                </SelectItem>
+                {filteredTemplates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name} (
+                    {formatRange(template.minPoints, template.maxPoints)})
+                    {template.startTime ? ` - ${template.startTime}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="templateId" value={templateId} />
           </div>
 
           <div className="flex justify-end">
