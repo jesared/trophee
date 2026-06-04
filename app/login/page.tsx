@@ -1,12 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -45,59 +51,21 @@ export default function LoginPage() {
 
   return (
     <div className="page">
-      <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="surface border-border/60 bg-muted/30">
-          <CardHeader>
-            <CardTitle>Accès réservé</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 text-sm text-muted-foreground">
-            <p className="text-base text-foreground">
-              L'espace joueur n'est pas encore ouvert dans cette première mise
-              en ligne.
-            </p>
-            <p>
-              Le site public se concentre pour le moment sur les informations
-              pratiques du trophée: agenda, salles, détails des tours et
-              classements.
-            </p>
-            <div className="surface p-4">
-              <p className="font-medium text-foreground">
-                Inscriptions et espace joueur bientôt disponibles
-              </p>
-              <p className="mt-2">
-                En attendant, utilisez le site comme portail d'information du
-                trophée.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild>
-                <Link href="/agenda">Voir l'agenda</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href="/classement">Voir les classements</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="surface border-border/60">
-          <CardHeader>
-            <CardTitle>Accès organisation</CardTitle>
+      <div className="mx-auto flex min-h-[42vh] max-w-md items-center justify-center">
+        <Card className="w-full border-border/70 bg-card shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Connexion</CardTitle>
+            <CardDescription>
+              Connectez-vous pour accéder à votre espace.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-sm text-muted-foreground">
-              Cet accès peut rester utilisé par l'organisation pour
-              l'administration du site.
-            </p>
-
-            <div className="space-y-3">
-              <Button
-                className="w-full"
-                onClick={() => signIn("google", { callbackUrl: "/" })}
-              >
-                Continuer avec Google
-              </Button>
-            </div>
+            <Button
+              className="w-full"
+              onClick={() => signIn("google", { callbackUrl: "/" })}
+            >
+              Continuer avec Google
+            </Button>
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="h-px flex-1 bg-border" />
@@ -112,15 +80,17 @@ export default function LoginPage() {
                   id="magic-email"
                   name="email"
                   type="email"
-                  placeholder="ex: organisation@mail.com"
+                  placeholder="ex: contact@mail.com"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
+                  required
                 />
               </div>
               {status ? (
                 <p className="text-xs text-muted-foreground">{status}</p>
               ) : null}
               <Button type="submit" className="w-full" disabled={pending}>
+                <Mail className="h-4 w-4" />
                 {pending ? "Envoi..." : "Envoyer un lien magique"}
               </Button>
             </form>
