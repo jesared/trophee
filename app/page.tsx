@@ -50,6 +50,7 @@ function getClubMark(name: string) {
 
 export default async function Home() {
   type SeasonItem = {
+    name: string;
     year: number;
     tours: {
       name: string;
@@ -112,7 +113,7 @@ export default async function Home() {
       ? partnerClubs
       : [{ name: "Clubs à venir", logoUrl: null, city: null }];
   const seasonLabel = season
-    ? `${season.year}-${String((season.year + 1) % 100).padStart(2, "0")}`
+    ? season.name
     : "Saison à venir";
   const nextTourDay = nextTour
     ? new Intl.DateTimeFormat("fr-FR", { day: "2-digit" }).format(nextTour.date)
