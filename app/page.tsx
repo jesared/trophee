@@ -3,7 +3,6 @@ import {
   CalendarDays,
   MapPin,
   Quote,
-  ShieldCheck,
   Trophy,
   Users,
 } from "lucide-react";
@@ -53,9 +52,11 @@ export default async function Home() {
     name: string;
     year: number;
     tours: {
+      id: string;
       name: string;
       date: Date;
       venue: string | null;
+      coverUrl: string | null;
       _count: { tableaux: number };
     }[];
   };
@@ -65,9 +66,11 @@ export default async function Home() {
     include: {
       tours: {
         select: {
+          id: true,
           name: true,
           date: true,
           venue: true,
+          coverUrl: true,
           _count: { select: { tableaux: true } },
         },
         orderBy: { date: "asc" },
@@ -91,22 +94,6 @@ export default async function Home() {
   const now = new Date();
   const nextTour = season?.tours.find((tour) => tour.date >= now) ?? null;
   const formatter = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
-  const totalTableaux =
-    season?.tours.reduce((sum, tour) => sum + tour._count.tableaux, 0) ?? 0;
-  const publicStats = [
-    {
-      label: "Tours publiés",
-      value: season ? season.tours.length.toString() : "0",
-    },
-    {
-      label: "Tableaux annoncés",
-      value: totalTableaux > 0 ? totalTableaux.toString() : "À venir",
-    },
-    {
-      label: "Clubs partenaires",
-      value: partnerClubs.length.toString(),
-    },
-  ];
 
   const scrollerClubs =
     clubNames.length > 0
@@ -124,6 +111,7 @@ export default async function Home() {
         .replace(".", "")
         .toUpperCase()
     : "DATE";
+  const nextTourHref = nextTour ? `/tours/${nextTour.id}` : "/agenda";
   const featuredTestimonials = testimonials.slice(0, 3);
   const heroSignals = [
     {
@@ -135,11 +123,6 @@ export default async function Home() {
       label: "Clubs engagés",
       value: partnerClubs.length > 0 ? partnerClubs.length.toString() : "00",
       icon: Users,
-    },
-    {
-      label: "Tableaux publiés",
-      value: totalTableaux > 0 ? totalTableaux.toString() : "À venir",
-      icon: ShieldCheck,
     },
   ];
 
@@ -176,7 +159,7 @@ export default async function Home() {
               </Button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {heroSignals.map((item) => {
                 const Icon = item.icon;
 
@@ -211,6 +194,21 @@ export default async function Home() {
                   {seasonLabel}
                 </div>
               </div>
+
+              {nextTour?.coverUrl ? (
+                <Link
+                  href={nextTourHref}
+                  className="group block overflow-hidden rounded-[1.5rem] border border-border/80 bg-background/80 dark:border-white/10 dark:bg-white/5"
+                  aria-label={`Voir la page de ${nextTour.name}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={nextTour.coverUrl}
+                    alt={`Couverture ${nextTour.name}`}
+                    className="aspect-[16/8] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </Link>
+              ) : null}
 
               <div className="grid gap-4 rounded-[1.5rem] border border-border/80 bg-background/80 p-4 sm:grid-cols-[96px_1fr] dark:border-white/10 dark:bg-white/5">
                 <div className="flex flex-col items-center justify-center rounded-[1.25rem] bg-primary px-4 py-5 text-primary-foreground">
@@ -248,49 +246,15 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[1.25rem] border border-border/80 bg-background/80 px-4 py-4 dark:border-white/10 dark:bg-white/5">
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground dark:text-white/60">
-                    Classements
-                  </p>
-                  <p className="mt-3 font-heading text-3xl font-bold leading-none tracking-[-0.05em]">
-                    Par saison
-                  </p>
-                </div>
-                <div className="rounded-[1.25rem] border border-border/80 bg-background/80 px-4 py-4 dark:border-white/10 dark:bg-white/5">
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground dark:text-white/60">
-                    Circuit
-                  </p>
-                  <p className="mt-3 font-heading text-3xl font-bold leading-none tracking-[-0.05em]">
-                    {season ? season.tours.length : 0} tours
-                  </p>
-                </div>
-              </div>
-
               <Button asChild size="sm" className="w-fit gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/trophee">
-                  Comprendre le trophée
+                <Link href={nextTourHref}>
+                  {nextTour ? "Voir la page du tour" : "Voir l'agenda"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        {publicStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="stat-panel rounded-[1.6rem] px-5 py-5"
-          >
-            <p className="stat-label">{stat.label}</p>
-            <p className="stat-value mt-3">{stat.value}</p>
-            <div className="mt-5 h-1.5 rounded-full bg-muted">
-              <div className="h-full w-2/3 rounded-full bg-primary" />
-            </div>
-          </div>
-        ))}
       </section>
 
       <section className="rounded-[2rem] border border-border/60 bg-muted/30 p-5 sm:p-6">
