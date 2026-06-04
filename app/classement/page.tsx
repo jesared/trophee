@@ -35,7 +35,7 @@ export default async function ClassementPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q } = await searchParams;
+  await searchParams;
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID ?? "";
 
   let error: string | null = null;
