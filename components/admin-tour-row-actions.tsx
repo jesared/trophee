@@ -115,7 +115,7 @@ export function AdminTourRowActions({
           <DialogHeader>
             <DialogTitle>Supprimer ce tour ?</DialogTitle>
             <DialogDescription>
-              Cette action supprimera {tourName} si aucun tableau n&apos;y est encore lie.
+              Cette action supprimera {tourName}, ses tableaux et les inscriptions associees.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

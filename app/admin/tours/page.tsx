@@ -210,24 +210,50 @@ async function deleteTour(
     return { ok: false, message: "Tour introuvable." };
   }
 
-  const linkedTableaux = await prisma.tableau.count({
-    where: { tourId: id },
+  const deleted = await prisma.$transaction(async (tx) => {
+    const tour = await tx.tour.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!tour) {
+      return null;
+    }
+
+    const registrations = await tx.registration.deleteMany({
+      where: { tourId: id },
+    });
+    const tableaux = await tx.tableau.deleteMany({
+      where: { tourId: id },
+    });
+
+    await tx.tour.delete({
+      where: { id },
+    });
+
+    return {
+      registrations: registrations.count,
+      tableaux: tableaux.count,
+    };
   });
 
-  if (linkedTableaux > 0) {
-    return {
-      ok: false,
-      message: "Supprimez d'abord les tableaux lies a ce tour.",
-    };
+  if (!deleted) {
+    return { ok: false, message: "Tour introuvable." };
   }
 
-  await prisma.tour.delete({
-    where: { id },
-  });
-
+  revalidatePath("/admin");
   revalidatePath("/admin/tours");
+  revalidatePath(`/admin/tours/${id}`);
+  revalidatePath("/admin/tableaux");
+  revalidatePath("/admin/inscriptions");
+  revalidatePath("/agenda");
+  revalidatePath("/tours");
+  revalidatePath(`/tours/${id}`);
 
-  return { ok: true, message: "Tour supprime." };
+  return {
+    ok: true,
+    message: `Tour supprime avec ${deleted.tableaux} tableau(x) et ${deleted.registrations} inscription(s).`,
+  };
 }
 
 async function toggleTourStatus(formData: FormData) {
