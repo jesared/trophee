@@ -134,9 +134,11 @@ function isActivePath(pathname: string, href: string) {
 function SidebarContent({
   collapsed,
   onToggle,
+  onNavigate,
 }: {
   collapsed: boolean;
   onToggle?: () => void;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const [counts, setCounts] = React.useState<SidebarCounts>({});
@@ -169,7 +171,7 @@ function SidebarContent({
       )}
     >
       <div className="flex items-center justify-between px-2">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link href="/admin" className="flex items-center gap-2" onClick={onNavigate}>
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Trophy className="h-4 w-4" />
           </span>
@@ -210,6 +212,7 @@ function SidebarContent({
                   active={isActivePath(pathname, item.href)}
                   collapsed={collapsed}
                   badge={item.badge}
+                  onNavigate={onNavigate}
                 />
               ))}
             </SidebarSection>
@@ -224,12 +227,14 @@ function SidebarContent({
             label="Retour au site"
             icon={ArrowUpRight}
             collapsed={collapsed}
+            onNavigate={onNavigate}
           />
           <SidebarFooterAction
             href="/me/profil"
             label="Mon profil"
             icon={UserCircle}
             collapsed={collapsed}
+            onNavigate={onNavigate}
           />
           <SidebarIdentity
             collapsed={collapsed}
@@ -295,7 +300,10 @@ export function Sidebar() {
               <SheetTitle>Admin navigation</SheetTitle>
               <SheetDescription>Menu admin</SheetDescription>
             </SheetHeader>
-            <SidebarContent collapsed={false} />
+            <SidebarContent
+              collapsed={false}
+              onNavigate={() => setMobileOpen(false)}
+            />
           </SheetContent>
         </Sheet>
       </div>

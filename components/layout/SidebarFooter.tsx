@@ -22,6 +22,7 @@ type SidebarFooterActionProps = {
   icon: LucideIcon;
   collapsed: boolean;
   badge?: string;
+  onNavigate?: () => void;
 };
 
 function withTooltip(
@@ -49,10 +50,12 @@ export function SidebarFooterAction({
   icon: Icon,
   collapsed,
   badge,
+  onNavigate,
 }: SidebarFooterActionProps) {
   const action = (
     <Link
       href={href}
+      onClick={onNavigate}
       aria-label={collapsed ? label : undefined}
       className={cn(
         buttonVariants({ variant: "ghost", size: "default" }),

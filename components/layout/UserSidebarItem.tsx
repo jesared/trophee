@@ -8,6 +8,7 @@ type UserSidebarItemProps = {
   icon: React.ElementType;
   active?: boolean;
   collapsed?: boolean;
+  onNavigate?: () => void;
 };
 
 export function UserSidebarItem(props: UserSidebarItemProps) {

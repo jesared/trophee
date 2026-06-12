@@ -17,6 +17,7 @@ type SidebarItemProps = {
   active?: boolean;
   collapsed?: boolean;
   badge?: string | number;
+  onNavigate?: () => void;
 };
 
 function Badge({ value }: { value: string | number }) {
@@ -34,10 +35,12 @@ export function SidebarItem({
   active = false,
   collapsed = false,
   badge,
+  onNavigate,
 }: SidebarItemProps) {
   const item = (
     <Link
       href={href}
+      onClick={onNavigate}
       className={cn(
         buttonVariants({
           variant: active ? "default" : "ghost",

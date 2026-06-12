@@ -112,6 +112,7 @@ function UserMenu() {
 export function SiteHeader() {
   const pathname = usePathname();
   const { data } = useSession();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   const user = data?.user;
   const initials = user?.name
     ? user.name
@@ -190,7 +191,7 @@ export function SiteHeader() {
             )}
           </div>
 
-          <Sheet>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-sm" className="md:hidden">
                 <Menu className="h-5 w-5" />
@@ -231,6 +232,7 @@ export function SiteHeader() {
                       <Link
                         key={item.href}
                         href={item.href}
+                        onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 font-semibold tracking-[-0.02em] transition",
                           active
@@ -264,7 +266,11 @@ export function SiteHeader() {
                       size="sm"
                       className="rounded-md border border-primary/15 bg-primary px-4 text-white font-bold tracking-[-0.01em] shadow-[0_10px_24px_-14px_hsl(var(--primary)/0.95)] hover:bg-primary/88 hover:text-white hover:shadow-[0_14px_28px_-16px_hsl(var(--primary)/0.95)]"
                     >
-                      <Link href="/login" aria-label="se connecter">
+                      <Link
+                        href="/login"
+                        aria-label="se connecter"
+                        onClick={() => setMobileOpen(false)}
+                      >
                         C&apos;est parti !
                       </Link>
                     </Button>
@@ -272,7 +278,11 @@ export function SiteHeader() {
                 </div>
                 {user ? (
                   <Button asChild size="sm" variant="secondary">
-                    <Link href="/me" className="flex items-center gap-2">
+                    <Link
+                      href="/me"
+                      className="flex items-center gap-2"
+                      onClick={() => setMobileOpen(false)}
+                    >
                       <UserCircleIcon className="h-4 w-4" />
                       Mon espace
                     </Link>
@@ -280,7 +290,11 @@ export function SiteHeader() {
                 ) : null}
                 {isAdmin ? (
                   <Button asChild size="sm" variant="secondary">
-                    <Link href="/admin" className="flex items-center gap-2">
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2"
+                      onClick={() => setMobileOpen(false)}
+                    >
                       <Shield className="h-4 w-4" />
                       Administration
                     </Link>

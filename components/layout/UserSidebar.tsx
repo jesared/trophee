@@ -56,9 +56,11 @@ function isActivePath(pathname: string, href: string) {
 function SidebarContent({
   collapsed,
   onToggle,
+  onNavigate,
 }: {
   collapsed: boolean;
   onToggle?: () => void;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const { data } = useSession();
@@ -72,7 +74,7 @@ function SidebarContent({
       )}
     >
       <div className="flex items-center justify-between px-2">
-        <Link href="/me" className="flex items-center gap-2">
+        <Link href="/me" className="flex items-center gap-2" onClick={onNavigate}>
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <UserCircle2 className="h-4 w-4" />
           </span>
@@ -101,6 +103,7 @@ function SidebarContent({
             icon={item.icon}
             active={isActivePath(pathname, item.href)}
             collapsed={collapsed}
+            onNavigate={onNavigate}
           />
         ))}
       </nav>
@@ -112,6 +115,7 @@ function SidebarContent({
             label="Retour au site"
             icon={ArrowUpRight}
             collapsed={collapsed}
+            onNavigate={onNavigate}
           />
 
           {isAdmin ? (
@@ -121,6 +125,7 @@ function SidebarContent({
               icon={Shield}
               collapsed={collapsed}
               badge="Admin"
+              onNavigate={onNavigate}
             />
           ) : null}
 
@@ -188,7 +193,10 @@ export function UserSidebar() {
               <SheetTitle>Navigation utilisateur</SheetTitle>
               <SheetDescription>Menu utilisateur</SheetDescription>
             </SheetHeader>
-            <SidebarContent collapsed={false} />
+            <SidebarContent
+              collapsed={false}
+              onNavigate={() => setMobileOpen(false)}
+            />
           </SheetContent>
         </Sheet>
       </div>
