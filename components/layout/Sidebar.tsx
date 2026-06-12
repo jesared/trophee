@@ -9,7 +9,6 @@ import {
   Image,
   LayoutDashboard,
   LayoutGrid,
-  LogOut,
   MessageSquare,
   PanelLeft,
   Settings,
@@ -17,11 +16,15 @@ import {
   UserCircle,
   Users,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
+import {
+  SidebarFooterAction,
+  SidebarIdentity,
+  SidebarSignOutButton,
+} from "@/components/layout/SidebarFooter";
 import { SidebarItem } from "@/components/layout/SidebarItem";
 import { SidebarSection } from "@/components/layout/SidebarSection";
 import { Button } from "@/components/ui/button";
@@ -128,33 +131,6 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-function AdminIdentity({ collapsed }: { collapsed: boolean }) {
-  const { data } = useSession();
-  const user = data?.user;
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "A";
-
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-        {initials}
-      </div>
-      <div className={cn("min-w-0", collapsed && "sr-only")}>
-        <p className="truncate text-sm font-medium">{user?.name ?? "Admin"}</p>
-        <p className="truncate text-xs text-muted-foreground">
-          {user?.email ?? "-"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function SidebarContent({
   collapsed,
   onToggle,
@@ -241,47 +217,27 @@ function SidebarContent({
         })}
       </div>
 
-      <div className="space-y-3">
-        <Button
-          asChild
-          variant="secondary"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-        >
-          <Link href="/" className="flex items-center gap-2">
-            <ArrowUpRight className="h-4 w-4" />
-            <span className={cn("text-sm", collapsed && "sr-only")}>
-              Retour au site
-            </span>
-          </Link>
-        </Button>
-
-        <Button
-          asChild
-          variant="secondary"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-        >
-          <Link href="/me/profil" className="flex items-center gap-2">
-            <UserCircle className="h-4 w-4" />
-            <span className={cn("text-sm", collapsed && "sr-only")}>
-              Mon profil
-            </span>
-          </Link>
-        </Button>
-
-        <AdminIdentity collapsed={collapsed} />
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-          onClick={() => signOut()}
-        >
-          <LogOut className="h-4 w-4" />
-          <span className={cn("ml-2 text-sm", collapsed && "sr-only")}>
-            Se deconnecter
-          </span>
-        </Button>
+      <div className="border-t border-border/60 pt-3">
+        <div className="space-y-2">
+          <SidebarFooterAction
+            href="/"
+            label="Retour au site"
+            icon={ArrowUpRight}
+            collapsed={collapsed}
+          />
+          <SidebarFooterAction
+            href="/me/profil"
+            label="Mon profil"
+            icon={UserCircle}
+            collapsed={collapsed}
+          />
+          <SidebarIdentity
+            collapsed={collapsed}
+            fallbackName="Admin"
+            fallbackInitial="A"
+          />
+          <SidebarSignOutButton collapsed={collapsed} />
+        </div>
       </div>
 
       <Button

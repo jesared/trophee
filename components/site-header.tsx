@@ -178,8 +178,14 @@ export function SiteHeader() {
             {user ? (
               <UserMenu />
             ) : (
-              <Button asChild size="sm">
-                <Link href="/login">Connexion</Link>
+              <Button
+                asChild
+                size="sm"
+                className="rounded-md border border-primary/15 bg-primary px-4 text-white font-bold tracking-[-0.01em] shadow-[0_10px_24px_-14px_hsl(var(--primary)/0.95)] hover:bg-primary/88 hover:text-white hover:shadow-[0_14px_28px_-16px_hsl(var(--primary)/0.95)]"
+              >
+                <Link href="/login" aria-label="se connecter">
+                  C&apos;est parti !
+                </Link>
               </Button>
             )}
           </div>
@@ -253,8 +259,14 @@ export function SiteHeader() {
                       Déconnexion
                     </Button>
                   ) : (
-                    <Button asChild size="sm">
-                      <Link href="/login">Connexion</Link>
+                    <Button
+                      asChild
+                      size="sm"
+                      className="rounded-md border border-primary/15 bg-primary px-4 text-white font-bold tracking-[-0.01em] shadow-[0_10px_24px_-14px_hsl(var(--primary)/0.95)] hover:bg-primary/88 hover:text-white hover:shadow-[0_14px_28px_-16px_hsl(var(--primary)/0.95)]"
+                    >
+                      <Link href="/login" aria-label="se connecter">
+                        C&apos;est parti !
+                      </Link>
                     </Button>
                   )}
                 </div>

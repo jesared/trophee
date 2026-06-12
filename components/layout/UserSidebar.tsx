@@ -3,17 +3,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
-  PanelLeft,
-  LayoutDashboard,
+  ArrowUpRight,
   ClipboardList,
+  LayoutDashboard,
   Medal,
+  MessageSquare,
+  PanelLeft,
+  Shield,
   Trophy,
   UserCircle2,
-  Shield,
-  ArrowUpRight,
-  MessageSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -27,6 +27,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  SidebarFooterAction,
+  SidebarIdentity,
+  SidebarSignOutButton,
+} from "@/components/layout/SidebarFooter";
 import { UserSidebarItem } from "@/components/layout/UserSidebarItem";
 
 const SIDEBAR_STORAGE_KEY = "user-sidebar-collapsed";
@@ -46,48 +51,6 @@ function isActivePath(pathname: string, href: string) {
   }
 
   return pathname.startsWith(href);
-}
-
-function AdminBadge({ collapsed }: { collapsed: boolean }) {
-  return (
-    <span
-      className={cn(
-        "rounded-full border border-primary/30 bg-primary px-2.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm",
-        collapsed && "sr-only",
-      )}
-    >
-      Admin
-    </span>
-  );
-}
-
-function UserIdentity({ collapsed }: { collapsed: boolean }) {
-  const { data } = useSession();
-  const user = data?.user;
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "U";
-
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-        {initials}
-      </div>
-      <div className={cn("min-w-0", collapsed && "sr-only")}>
-        <p className="truncate text-sm font-medium">
-          {user?.name ?? "Utilisateur"}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {user?.email ?? "-"}
-        </p>
-      </div>
-    </div>
-  );
 }
 
 function SidebarContent({
@@ -142,47 +105,32 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="space-y-3">
-        <Button
-          asChild
-          variant="secondary"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-        >
-          <Link href="/" className="flex items-center gap-2">
-            <ArrowUpRight className="h-4 w-4" />
-            <span className={cn("text-sm", collapsed && "sr-only")}>
-              Retour au site
-            </span>
-          </Link>
-        </Button>
+      <div className="border-t border-border/60 pt-3">
+        <div className="space-y-2">
+          <SidebarFooterAction
+            href="/"
+            label="Retour au site"
+            icon={ArrowUpRight}
+            collapsed={collapsed}
+          />
 
-        {isAdmin ? (
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            className={cn("w-full", collapsed && "px-2")}
-          >
-            <Link href="/admin" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span className={cn("text-sm", collapsed && "sr-only")}>
-                Administration
-              </span>
-              <AdminBadge collapsed={collapsed} />
-            </Link>
-          </Button>
-        ) : null}
+          {isAdmin ? (
+            <SidebarFooterAction
+              href="/admin"
+              label="Administration"
+              icon={Shield}
+              collapsed={collapsed}
+              badge="Admin"
+            />
+          ) : null}
 
-        <UserIdentity collapsed={collapsed} />
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-          onClick={() => signOut()}
-        >
-          {collapsed ? "Log" : "Se deconnecter"}
-        </Button>
+          <SidebarIdentity
+            collapsed={collapsed}
+            fallbackName="Utilisateur"
+            fallbackInitial="U"
+          />
+          <SidebarSignOutButton collapsed={collapsed} />
+        </div>
       </div>
 
       <Button
