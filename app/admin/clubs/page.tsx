@@ -1,9 +1,17 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { AdminPageHeader } from "@/components/admin-page-header";
 import { AdminClubDialog } from "@/components/admin-club-dialog";
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
 import { EmptyState } from "@/components/empty-state";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -151,51 +159,60 @@ export default async function AdminClubsPage() {
 
   return (
     <section className="page">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="page-header">
-          <h1 className="page-title">Clubs</h1>
-          <p className="page-subtitle">
-            Gere les clubs organisateurs des tours.
-          </p>
-        </div>
-        <AdminClubDialog action={createClub} />
-      </div>
+      <AdminPageHeader
+        title="Clubs"
+        description="Gere les clubs organisateurs et les donnees utiles a la programmation des tours."
+        actions={<AdminClubDialog action={createClub} />}
+      />
 
-      <div className="surface">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Numero</TableHead>
-              <TableHead>Ville</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clubs.length === 0 ? (
+      <Card className="border-border/70">
+        <CardHeader>
+          <CardTitle>Liste des clubs</CardTitle>
+          <CardDescription>
+            Centralisez les clubs utilises pour l&apos;organisation des tours.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="py-6">
-                  <EmptyState
-                    title="Aucun club pour le moment"
-                    description="Ajoutez un club organisateur pour debloquer les tours."
-                  />
-                </TableCell>
+                <TableHead>Nom</TableHead>
+                <TableHead>Numero</TableHead>
+                <TableHead>Ville</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              clubs.map((club) => (
-                <TableRow key={club.id}>
-                  <TableCell className="font-medium">{club.name}</TableCell>
-                  <TableCell>{club.ffttNumber ?? "-"}</TableCell>
-                  <TableCell>{club.city ?? "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <AdminDeleteForm id={club.id} action={deleteClub} />
+            </TableHeader>
+            <TableBody>
+              {clubs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-6">
+                    <EmptyState
+                      title="Aucun club pour le moment"
+                      description="Ajoutez un club organisateur pour debloquer les tours."
+                    />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                clubs.map((club) => (
+                  <TableRow key={club.id}>
+                    <TableCell className="font-medium">{club.name}</TableCell>
+                    <TableCell>{club.ffttNumber ?? "-"}</TableCell>
+                    <TableCell>{club.city ?? "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <AdminDeleteDialog
+                        id={club.id}
+                        action={deleteClub}
+                        title="Supprimer ce club ?"
+                        description={`Cette action supprimera ${club.name}.`}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   );
 }

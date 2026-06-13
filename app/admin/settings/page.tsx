@@ -1,11 +1,21 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 
+import { AdminPageHeader } from "@/components/admin-page-header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -62,178 +72,261 @@ async function updateFooterSettings(formData: FormData) {
 export default async function AdminSettingsPage() {
   await requireAdmin();
 
-  const footerSettings = await prisma.footerSettings
-    .findUnique({ where: { id: "footer" } })
-    .then((data) => ({
-      contactEmail: data?.contactEmail ?? FALLBACK_FOOTER.contactEmail,
-      contactPhone: data?.contactPhone ?? FALLBACK_FOOTER.contactPhone,
-      facebookUrl: data?.facebookUrl ?? FALLBACK_FOOTER.facebookUrl,
-      instagramUrl: data?.instagramUrl ?? FALLBACK_FOOTER.instagramUrl,
-      youtubeUrl: data?.youtubeUrl ?? FALLBACK_FOOTER.youtubeUrl,
-    }))
-    .catch(() => FALLBACK_FOOTER);
+  const [footerSettings, activeSeason, adminCount] = await Promise.all([
+    prisma.footerSettings
+      .findUnique({ where: { id: "footer" } })
+      .then((data) => ({
+        contactEmail: data?.contactEmail ?? FALLBACK_FOOTER.contactEmail,
+        contactPhone: data?.contactPhone ?? FALLBACK_FOOTER.contactPhone,
+        facebookUrl: data?.facebookUrl ?? FALLBACK_FOOTER.facebookUrl,
+        instagramUrl: data?.instagramUrl ?? FALLBACK_FOOTER.instagramUrl,
+        youtubeUrl: data?.youtubeUrl ?? FALLBACK_FOOTER.youtubeUrl,
+      }))
+      .catch(() => FALLBACK_FOOTER),
+    prisma.season.findFirst({
+      where: { isActive: true },
+      select: { name: true, year: true },
+      orderBy: { year: "desc" },
+    }),
+    prisma.user.count({ where: { role: "ADMIN" } }),
+  ]);
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <h1 className="page-title">Settings</h1>
-        <p className="page-subtitle">Configuration du dashboard admin.</p>
-      </div>
+    <section className="space-y-8">
+      <AdminPageHeader
+        badge="Parametres admin"
+        title="Parametres"
+        description="Centralisez les reglages relies a la saison active, au footer public et aux integrations techniques."
+      />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <Alert>
+        <AlertTitle>Portee de cette page</AlertTitle>
+        <AlertDescription>
+          Le footer public est deja connecte a la base. Les autres zones sont
+          presentees comme des points de pilotage ou des passerelles vers les
+          pages metier existantes.
+        </AlertDescription>
+      </Alert>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-border/70">
           <CardHeader>
-            <CardTitle>Général</CardTitle>
+            <CardDescription>Saison active</CardDescription>
+            <CardTitle className="text-2xl">
+              {activeSeason ? activeSeason.year : "-"}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="site-name">Nom du trophée</Label>
-              <Input id="site-name" defaultValue="Trophée François Grieder" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="site-tagline">Slogan</Label>
-              <Input
-                id="site-tagline"
-                defaultValue="Challenge régional de tennis de table"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="site-logo">Logo</Label>
-              <Input id="site-logo" type="file" />
-            </div>
-            <Button size="sm">Enregistrer</Button>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            {activeSeason ? activeSeason.name : "Aucune saison active definie."}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70">
           <CardHeader>
-            <CardTitle>Saison active</CardTitle>
+            <CardDescription>Admins actifs</CardDescription>
+            <CardTitle className="text-2xl">{adminCount}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="surface bg-muted/40 px-3 py-2 text-sm">
-              Saison active : <strong>2026</strong>
-            </div>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/admin/seasons">Gérer les saisons</Link>
-            </Button>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            Comptes capables de piloter la plateforme.
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70">
           <CardHeader>
-            <CardTitle>Contact & Réseaux (Footer)</CardTitle>
+            <CardDescription>Footer public</CardDescription>
+            <CardTitle className="text-2xl">Configure</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form action={updateFooterSettings} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="contact-email">Email</Label>
-                <Input
-                  id="contact-email"
-                  name="contactEmail"
-                  defaultValue={footerSettings.contactEmail}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-phone">Téléphone</Label>
-                <Input
-                  id="contact-phone"
-                  name="contactPhone"
-                  defaultValue={footerSettings.contactPhone}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-facebook">Facebook</Label>
-                <Input
-                  id="contact-facebook"
-                  name="facebookUrl"
-                  defaultValue={footerSettings.facebookUrl}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-instagram">Instagram</Label>
-                <Input
-                  id="contact-instagram"
-                  name="instagramUrl"
-                  defaultValue={footerSettings.instagramUrl}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-youtube">YouTube</Label>
-                <Input
-                  id="contact-youtube"
-                  name="youtubeUrl"
-                  defaultValue={footerSettings.youtubeUrl}
-                />
-              </div>
-              <Button size="sm">Enregistrer</Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Email & Notifications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="surface flex items-center justify-between px-3 py-2">
-              <div>
-                <p className="text-sm font-medium">Emails automatiques</p>
-                <p className="text-xs text-muted-foreground">
-                  Confirmation d’inscription et rappels.
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email-sender">Adresse expéditeur</Label>
-              <Input id="email-sender" defaultValue="no-reply@tropheefg.fr" />
-            </div>
-            <Button size="sm">Enregistrer</Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Google Maps</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="surface bg-muted/40 px-3 py-2 text-sm">
-              Clé API : <strong>Configurée</strong>
-            </div>
-            <Button size="sm" variant="secondary">
-              Configurer la clé API
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sécurité</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div>Admins actifs : 2</div>
-            <div>Dernière connexion admin : aujourd’hui</div>
-            <Button size="sm" variant="secondary">
-              Voir les utilisateurs
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              Les actions ci-dessous sont irréversibles. Elles sont désactivées
-              par défaut.
-            </p>
-            <Button size="sm" variant="destructive" disabled>
-              Reset de la base
-            </Button>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            Email, telephone et reseaux sont geres ici.
           </CardContent>
         </Card>
       </div>
+
+      <Tabs defaultValue="footer">
+        <TabsList>
+          <TabsTrigger value="footer">Footer</TabsTrigger>
+          <TabsTrigger value="operations">Pilotage</TabsTrigger>
+          <TabsTrigger value="technical">Technique</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="footer" className="space-y-6">
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Contact et reseaux du footer</CardTitle>
+              <CardDescription>
+                Reglages affiches dans le footer public du site.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={updateFooterSettings} className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-email">Email</Label>
+                    <Input
+                      id="contact-email"
+                      name="contactEmail"
+                      defaultValue={footerSettings.contactEmail}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-phone">Telephone</Label>
+                    <Input
+                      id="contact-phone"
+                      name="contactPhone"
+                      defaultValue={footerSettings.contactPhone}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-facebook">Facebook</Label>
+                    <Input
+                      id="contact-facebook"
+                      name="facebookUrl"
+                      defaultValue={footerSettings.facebookUrl}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-instagram">Instagram</Label>
+                    <Input
+                      id="contact-instagram"
+                      name="instagramUrl"
+                      defaultValue={footerSettings.instagramUrl}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contact-youtube">YouTube</Label>
+                  <Input
+                    id="contact-youtube"
+                    name="youtubeUrl"
+                    defaultValue={footerSettings.youtubeUrl}
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button size="sm" type="submit">
+                    Enregistrer le footer
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="operations" className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Pilotage rapide</CardTitle>
+              <CardDescription>
+                Liens courts vers les zones qui pilotent vraiment la plateforme.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3 text-sm">
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Saisons</p>
+                  <p className="text-muted-foreground">
+                    Activez la bonne saison avant de creer ou modifier les tours.
+                  </p>
+                </div>
+                <Separator />
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Utilisateurs</p>
+                  <p className="text-muted-foreground">
+                    Controlez les roles admin, organizer et user depuis
+                    l&apos;annuaire.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/admin/seasons">Gerer les saisons</Link>
+                </Button>
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/admin/users">Voir les utilisateurs</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Danger zone</CardTitle>
+              <CardDescription>
+                Actions sensibles a isoler derriere des confirmations explicites.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Les operations destructives globales ne sont pas exposees ici tant
+                qu&apos;elles ne sont pas portees par un vrai flux securise.
+              </p>
+              <Button size="sm" variant="destructive" disabled>
+                Reset de la base
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="technical" className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Email et notifications</CardTitle>
+              <CardDescription>
+                Etat actuel des reglages techniques lies a la messagerie.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Card size="sm" className="border-border/60 bg-muted/20">
+                <CardContent className="flex items-center justify-between gap-4 pt-3">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      Emails automatiques
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Confirmation d&apos;inscription et rappels.
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </CardContent>
+              </Card>
+              <div className="space-y-2">
+                <Label htmlFor="email-sender">Adresse expediteur</Label>
+                <Input
+                  id="email-sender"
+                  defaultValue="no-reply@tropheefg.fr"
+                  disabled
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cette zone est informative pour le moment et pourra etre reliee a
+                une vraie configuration plus tard.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Integrations</CardTitle>
+              <CardDescription>
+                Resume court des points techniques visibles par l&apos;admin.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Card size="sm" className="border-border/60 bg-muted/20">
+                <CardContent className="pt-3 text-sm text-muted-foreground">
+                  Google Maps: cle API a connecter via l&apos;environnement du projet.
+                </CardContent>
+              </Card>
+              <Card size="sm" className="border-border/60 bg-muted/20">
+                <CardContent className="pt-3 text-sm text-muted-foreground">
+                  Emails: expediteur configure en lecture seule sur cette page.
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </section>
   );
 }

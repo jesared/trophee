@@ -1,226 +1,57 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  BookOpen,
-  Building2,
-  CalendarDays,
-  ClipboardList,
-  Image,
-  LayoutDashboard,
-  LayoutGrid,
-  MessageSquare,
-  PanelLeft,
-  Settings,
-  Trophy,
-  UserCircle,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import * as React from "react";
+import { ArrowUpRight, Trophy, UserCircle2 } from "lucide-react";
 
+import { AppSidebar } from "@/components/layout/AppSidebar";
 import {
   SidebarFooterAction,
   SidebarIdentity,
   SidebarSignOutButton,
 } from "@/components/layout/SidebarFooter";
-import { SidebarItem } from "@/components/layout/SidebarItem";
-import { SidebarSection } from "@/components/layout/SidebarSection";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { getAdminSidebarSections } from "@/components/layout/sidebar-config";
+import type { SidebarStats } from "@/components/layout/sidebar-types";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-collapsed";
 
-type SidebarCounts = {
-  tours?: number;
-  tableaux?: number;
-  templates?: number;
-  clubs?: number;
-  players?: number;
-  registrations?: number;
-  users?: number;
-};
-
-const buildSections = (counts: SidebarCounts) => [
-  {
-    title: "MAIN",
-    items: [
-      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-      { label: "Saison", href: "/admin/seasons", icon: CalendarDays },
-      {
-        label: "Tours",
-        href: "/admin/tours",
-        icon: Trophy,
-        badge: counts.tours,
-      },
-      {
-        label: "Templates",
-        href: "/admin/tableau-templates",
-        icon: LayoutGrid,
-        badge: counts.templates,
-      },
-    ],
-  },
-  {
-    title: "DATA",
-    items: [
-      {
-        label: "Clubs",
-        href: "/admin/clubs",
-        icon: Building2,
-        badge: counts.clubs,
-      },
-      {
-        label: "Joueurs",
-        href: "/admin/players",
-        icon: Users,
-        badge: counts.players,
-      },
-      {
-        label: "Inscriptions",
-        href: "/admin/inscriptions",
-        icon: ClipboardList,
-        badge: counts.registrations,
-      },
-      {
-        label: "Avis",
-        href: "/admin/testimonials",
-        icon: MessageSquare,
-      },
-      {
-        label: "Médias",
-        href: "/admin/medias",
-        icon: Image,
-      },
-    ],
-  },
-  {
-    title: "SYSTEM",
-    items: [
-      {
-        label: "Users",
-        href: "/admin/users",
-        icon: UserCircle,
-        badge: counts.users,
-      },
-      {
-        label: "Documentation",
-        href: "/admin/documentation",
-        icon: BookOpen,
-      },
-      { label: "Settings", href: "/admin/settings", icon: Settings },
-    ],
-  },
-];
-
-function isActivePath(pathname: string, href: string) {
-  if (href === "/admin") {
-    return pathname === "/admin";
-  }
-
-  return pathname.startsWith(href);
-}
-
-function SidebarContent({
-  collapsed,
-  onToggle,
-  onNavigate,
-}: {
-  collapsed: boolean;
-  onToggle?: () => void;
-  onNavigate?: () => void;
-}) {
-  const pathname = usePathname();
-  const [counts, setCounts] = React.useState<SidebarCounts>({});
+export function Sidebar() {
+  const [counts, setCounts] = React.useState<SidebarStats>({});
 
   React.useEffect(() => {
     let active = true;
+
     const load = async () => {
       try {
         const res = await fetch("/api/admin/stats");
         if (!res.ok) return;
-        const data = (await res.json()) as SidebarCounts;
-        if (active) setCounts(data);
+
+        const data = (await res.json()) as SidebarStats;
+        if (active) {
+          setCounts(data);
+        }
       } catch {
         // ignore
       }
     };
+
     load();
+
     return () => {
       active = false;
     };
   }, []);
 
-  const sections = buildSections(counts);
-
   return (
-    <div
-      className={cn(
-        "flex h-full flex-col gap-6 bg-background px-3 py-4 transition-all duration-200",
-        collapsed ? "px-2" : "px-3",
-      )}
-    >
-      <div className="flex items-center justify-between px-2">
-        <Link href="/admin" className="flex items-center gap-2" onClick={onNavigate}>
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Trophy className="h-4 w-4" />
-          </span>
-          <span className={cn("text-sm font-semibold", collapsed && "sr-only")}>
-            Trophee Admin
-          </span>
-        </Link>
-        {onToggle ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            className="hidden md:inline-flex"
-          >
-            <PanelLeft className="h-4 w-4" />
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="flex-1 space-y-6 overflow-y-auto pb-6">
-        {sections.map((section) => {
-          const activeSection = section.items.some((item) =>
-            isActivePath(pathname, item.href),
-          );
-          return (
-            <SidebarSection
-              key={section.title}
-              title={section.title}
-              collapsed={collapsed}
-              active={activeSection}
-            >
-              {section.items.map((item) => (
-                <SidebarItem
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  icon={item.icon}
-                  active={isActivePath(pathname, item.href)}
-                  collapsed={collapsed}
-                  badge={item.badge}
-                  onNavigate={onNavigate}
-                />
-              ))}
-            </SidebarSection>
-          );
-        })}
-      </div>
-
-      <div className="border-t border-border/60 pt-3">
+    <AppSidebar
+      storageKey={SIDEBAR_STORAGE_KEY}
+      widthVariable="--sidebar-width"
+      desktopLabel="Admin navigation"
+      mobileLabel="Admin"
+      homeHref="/admin"
+      homeIcon={Trophy}
+      homeTitle="Trophee Admin"
+      sections={getAdminSidebarSections(counts)}
+      renderFooter={({ collapsed, onNavigate }) => (
         <div className="space-y-2">
           <SidebarFooterAction
             href="/"
@@ -232,7 +63,7 @@ function SidebarContent({
           <SidebarFooterAction
             href="/me/profil"
             label="Mon profil"
-            icon={UserCircle}
+            icon={UserCircle2}
             collapsed={collapsed}
             onNavigate={onNavigate}
           />
@@ -243,79 +74,7 @@ function SidebarContent({
           />
           <SidebarSignOutButton collapsed={collapsed} />
         </div>
-      </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onToggle}
-        className="mx-auto md:hidden"
-      >
-        <PanelLeft className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-}
-
-export function Sidebar() {
-  const [collapsed, setCollapsed] = React.useState(false);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    const stored = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
-    if (stored) {
-      setCollapsed(stored === "true");
-    }
-  }, []);
-
-  React.useEffect(() => {
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      collapsed ? "64px" : "260px",
-    );
-  }, [collapsed]);
-
-  const handleToggle = () => setCollapsed((prev) => !prev);
-
-  return (
-    <TooltipProvider delayDuration={200}>
-      <div className="md:hidden">
-        <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border/60 bg-background/80 px-4 py-3 backdrop-blur">
-          <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background"
-            onClick={() => setMobileOpen(true)}
-          >
-            <PanelLeft className="h-4 w-4" />
-          </button>
-          <span className="text-sm font-semibold">Admin</span>
-          <div className="h-9 w-9" />
-        </div>
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild>
-            <span className="hidden" />
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Admin navigation</SheetTitle>
-              <SheetDescription>Menu admin</SheetDescription>
-            </SheetHeader>
-            <SidebarContent
-              collapsed={false}
-              onNavigate={() => setMobileOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-30 hidden h-screen border-r border-border/60 bg-background transition-all duration-200 md:block",
-          collapsed ? "w-16" : "w-[260px]",
-        )}
-      >
-        <SidebarContent collapsed={collapsed} onToggle={handleToggle} />
-      </aside>
-    </TooltipProvider>
+      )}
+    />
   );
 }

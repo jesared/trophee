@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
 import { AdminTableauTemplateDialog } from "@/components/admin-tableau-template-dialog";
 import { AdminTableauTemplateDuplicateForm } from "@/components/admin-tableau-template-duplicate-form";
 import { EmptyState } from "@/components/empty-state";
@@ -537,9 +537,11 @@ export default async function AdminTableauTemplatesPage() {
                                   Protege
                                 </Button>
                               ) : (
-                                <AdminDeleteForm
+                                <AdminDeleteDialog
                                   id={template.id}
                                   action={deleteTableauTemplate}
+                                  title="Supprimer ce template ?"
+                                  description={`Cette action supprimera ${template.name}.`}
                                 />
                               )}
                             </TableCell>
@@ -604,9 +606,11 @@ export default async function AdminTableauTemplatesPage() {
                               Protege
                             </Button>
                           ) : (
-                            <AdminDeleteForm
+                            <AdminDeleteDialog
                               id={template.id}
                               action={deleteTableauTemplate}
+                              title="Supprimer ce template ?"
+                              description={`Cette action supprimera ${template.name}.`}
                             />
                           )}
                         </TableCell>

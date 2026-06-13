@@ -10,15 +10,15 @@ type UserLayoutProps = {
 
 export default function UserLayout({ children }: UserLayoutProps) {
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_color-mix(in_oklab,var(--color-primary)_8%,transparent),transparent_28%),linear-gradient(to_bottom,var(--color-muted)_0%,var(--color-background)_220px)]">
       <UserSidebar />
       <main className="min-h-screen transition-all duration-200 md:pl-[var(--user-sidebar-width,260px)]">
         <Suspense fallback={null}>
           <UserTopbar />
         </Suspense>
-        <div className="mx-auto w-full max-w-6xl px-4 py-8">
-          {children}
-        </div>
+        <section className="px-4 pb-10 pt-6 sm:pt-8 lg:px-6">
+          <div className="mx-auto w-full max-w-6xl">{children}</div>
+        </section>
       </main>
     </div>
   );

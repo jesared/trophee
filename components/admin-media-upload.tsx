@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { notifyError, notifySuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -21,9 +29,7 @@ export function AdminMediaUpload({
   const [pending, setPending] = React.useState(false);
   const [dragActive, setDragActive] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
-  const [folder, setFolder] = React.useState(
-    folders[0]?.value ?? "autres",
-  );
+  const [folder, setFolder] = React.useState(folders[0]?.value ?? "autres");
   const formRef = React.useRef<HTMLFormElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -61,7 +67,7 @@ export function AdminMediaUpload({
         }
       }
       if (success > 0) {
-        notifySuccess(`${success} image(s) uploadée(s).`);
+        notifySuccess(`${success} image(s) uploadee(s).`);
         setFiles([]);
         formRef.current?.reset();
         onUploaded?.();
@@ -77,21 +83,21 @@ export function AdminMediaUpload({
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label className="text-xs font-medium text-muted-foreground">
+        <Label htmlFor="media-folder" className="text-xs text-muted-foreground">
           Dossier
-        </label>
-        <select
-          name="folder"
-          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          value={folder}
-          onChange={(event) => setFolder(event.target.value)}
-        >
-          {folders.map((folder) => (
-            <option key={folder.value} value={folder.value}>
-              {folder.label}
-            </option>
-          ))}
-        </select>
+        </Label>
+        <Select value={folder} onValueChange={setFolder}>
+          <SelectTrigger id="media-folder" className="h-10 w-full">
+            <SelectValue placeholder="Choisir un dossier" />
+          </SelectTrigger>
+          <SelectContent>
+            {folders.map((folder) => (
+              <SelectItem key={folder.value} value={folder.value}>
+                {folder.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div
         className={cn(
@@ -130,15 +136,17 @@ export function AdminMediaUpload({
       </div>
       {files.length > 0 ? (
         <div className="space-y-2 text-xs text-muted-foreground">
-          <div className="flex items-center justify-between">
-            <span>{files.length} fichier(s) sélectionné(s)</span>
-            <button
+          <div className="flex items-center justify-between gap-2">
+            <span>{files.length} fichier(s) selectionne(s)</span>
+            <Button
               type="button"
-              className="text-xs text-destructive"
+              variant="ghost"
+              size="xs"
+              className="text-destructive hover:text-destructive"
               onClick={() => setFiles([])}
             >
               Vider
-            </button>
+            </Button>
           </div>
           <div className="max-h-24 space-y-1 overflow-auto rounded-md border border-border/60 bg-background px-3 py-2">
             {files.map((file, index) => (
@@ -154,7 +162,7 @@ export function AdminMediaUpload({
           {pending ? "Upload en cours..." : "Uploader"}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Les images sont ajoutées dans le dossier choisi.
+          Les images sont ajoutees dans le dossier choisi.
         </p>
       </div>
     </form>

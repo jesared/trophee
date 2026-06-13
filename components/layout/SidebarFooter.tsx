@@ -8,7 +8,9 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import * as React from "react";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -66,14 +68,15 @@ export function SidebarFooterAction({
       <Icon className="h-4 w-4" />
       <span className={cn("truncate", collapsed && "sr-only")}>{label}</span>
       {badge ? (
-        <span
+        <Badge
+          variant="secondary"
           className={cn(
-            "ml-auto rounded-full bg-primary/90 px-2.5 py-0.5 text-[0.6rem] font-bold uppercase text-primary-foreground",
+            "ml-auto px-2.5 py-0.5 text-[0.6rem] font-bold",
             collapsed && "sr-only",
           )}
         >
           {badge}
-        </span>
+        </Badge>
       ) : null}
     </Link>
   );
@@ -110,9 +113,11 @@ export function SidebarIdentity({
         collapsed && "justify-center px-2",
       )}
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-sm">
-        {initials}
-      </div>
+      <Avatar className="h-9 w-9 shrink-0 bg-primary text-primary-foreground shadow-sm">
+        <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
       <div className={cn("min-w-0 flex-1", collapsed && "sr-only")}>
         <p className="truncate text-sm font-semibold leading-5">{name}</p>
         <p className="truncate text-xs leading-4 text-muted-foreground">
@@ -127,11 +132,12 @@ export function SidebarIdentity({
 
 export function SidebarSignOutButton({ collapsed }: { collapsed: boolean }) {
   const action = (
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="default"
       aria-label={collapsed ? "Se deconnecter" : undefined}
       className={cn(
-        buttonVariants({ variant: "outline", size: "default" }),
         "h-9 w-full justify-start gap-2.5 rounded-lg border-border/80 bg-background/40 px-3 text-sm font-semibold hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive",
         collapsed && "size-10 justify-center px-0",
       )}
@@ -141,7 +147,7 @@ export function SidebarSignOutButton({ collapsed }: { collapsed: boolean }) {
       <span className={cn("truncate", collapsed && "sr-only")}>
         Se deconnecter
       </span>
-    </button>
+    </Button>
   );
 
   return withTooltip(collapsed, "Se deconnecter", action);

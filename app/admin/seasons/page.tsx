@@ -1,6 +1,15 @@
 import { revalidatePath } from "next/cache";
 
+import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EmptyState } from "@/components/empty-state";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -83,84 +91,100 @@ export default async function AdminSeasonsPage() {
 
   return (
     <section className="page">
-      <div className="page-header">
-        <h1 className="page-title">Saison</h1>
-        <p className="page-subtitle">
+      <div className="space-y-2">
+        <h1 className="font-heading text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+          Saison
+        </h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
           Creez vos saisons et definissez la saison active.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <div className="surface p-4">
-          <form action={createSeason} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom</Label>
-              <Input id="name" name="name" placeholder="Saison 2026" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="year">Annee</Label>
-              <Input id="year" name="year" type="number" placeholder="2026" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit">Creer une saison</Button>
-            </div>
-          </form>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Nouvelle saison</CardTitle>
+            <CardDescription>
+              Ajoutez une saison puis activez celle qui pilote les tours en cours.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={createSeason} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom</Label>
+                <Input id="name" name="name" placeholder="Saison 2026" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="year">Annee</Label>
+                <Input id="year" name="year" type="number" placeholder="2026" />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit">Creer une saison</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-        <div className="surface">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Annee</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {seasons.length === 0 ? (
+        <Card>
+        <CardHeader>
+          <CardTitle>Saisons disponibles</CardTitle>
+          <CardDescription>
+            Une seule saison peut etre active a la fois dans l&apos;administration.
+          </CardDescription>
+        </CardHeader>
+          <CardContent className="px-0">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="py-6">
-                    <EmptyState
-                      title="Aucune saison pour le moment"
-                      description="Créez votre première saison pour démarrer."
-                    />
-                  </TableCell>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Annee</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
-              ) : (
-                seasons.map((season: SeasonItem) => (
-                  <TableRow key={season.id}>
-                    <TableCell className="font-medium">
-                      {season.name}
-                    </TableCell>
-                    <TableCell>{season.year}</TableCell>
-                    <TableCell>
-                      {season.isActive ? (
-                        <span className="badge-pill bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="badge-pill">Inactive</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {season.isActive ? (
-                        <Button variant="outline" size="sm" disabled>
-                          Active
-                        </Button>
-                      ) : (
-                        <form action={activateSeason}>
-                          <input type="hidden" name="id" value={season.id} />
-                          <Button size="sm">Activer</Button>
-                        </form>
-                      )}
+              </TableHeader>
+              <TableBody>
+                {seasons.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-6">
+                      <EmptyState
+                        title="Aucune saison pour le moment"
+                        description="Creez votre premiere saison pour demarrer."
+                      />
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  seasons.map((season: SeasonItem) => (
+                    <TableRow key={season.id}>
+                      <TableCell className="font-medium">{season.name}</TableCell>
+                      <TableCell>{season.year}</TableCell>
+                      <TableCell>
+                        {season.isActive ? (
+                          <Badge className="border-emerald-200 bg-emerald-100 text-emerald-700">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">Inactive</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {season.isActive ? (
+                          <Button variant="outline" size="sm" disabled>
+                            Active
+                          </Button>
+                        ) : (
+                          <form action={activateSeason}>
+                            <input type="hidden" name="id" value={season.id} />
+                            <Button size="sm">Activer</Button>
+                          </form>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

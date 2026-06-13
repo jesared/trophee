@@ -2,14 +2,18 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 
+import { AdminPageHeader } from "@/components/admin-page-header";
 import { AdminRegistrationActions } from "@/components/admin-registration-actions";
 import { AdminRegistrationFilters } from "@/components/admin-registration-filters";
 import { AdminRegistrationForm } from "@/components/admin-registration-form";
 import { EmptyState } from "@/components/empty-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -398,31 +402,30 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
 
   return (
     <section className="page">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="page-header">
-          <h1 className="page-title">Inscriptions</h1>
-          <p className="page-subtitle">
-            Creez et suivez les inscriptions des joueurs.
-          </p>
-        </div>
-        <AdminRegistrationFilters
-          tours={tourOptions}
-          tableaux={tableauOptions}
-          currentTourId={tourId}
-          currentTableauId={tableauId}
-        />
-      </div>
+      <AdminPageHeader
+        title="Inscriptions"
+        description="Creez et suivez les inscriptions des joueurs par tour et par tableau."
+        actions={
+          <AdminRegistrationFilters
+            tours={tourOptions}
+            tableaux={tableauOptions}
+            currentTourId={tourId}
+            currentTableauId={tableauId}
+          />
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card key={stat.label} className="border-border/70">
+            <CardHeader>
+              <CardDescription>
                 {stat.label}
-              </CardTitle>
+              </CardDescription>
+              <CardTitle className="text-3xl">{stat.value}</CardTitle>
             </CardHeader>
-            <CardContent className="text-2xl font-semibold">
-              {stat.value}
+            <CardContent className="pt-0 text-sm text-muted-foreground">
+              Vue rapide de l&apos;activite courante.
             </CardContent>
           </Card>
         ))}
@@ -433,9 +436,9 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
           <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-base">Creer une inscription</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <CardDescription>
                 Choisissez un tour, un joueur et un tableau.
-              </p>
+              </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="secondary">
@@ -450,23 +453,25 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
             {playerOptions.length === 0 ||
             tableauOptionsUpcoming.length === 0 ||
             tourOptionsUpcoming.length === 0 ? (
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Ajoutez au moins un joueur, un tableau et un tour.</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild size="sm">
-                    <Link href="/admin/players">Creer un joueur</Link>
-                  </Button>
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href="/admin/tableau-templates">Creer un template</Link>
-                  </Button>
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href="/admin/tableaux">Creer un tableau</Link>
-                  </Button>
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href="/admin/tours">Creer un tour</Link>
-                  </Button>
-                </div>
-              </div>
+              <Alert>
+                <AlertDescription className="space-y-3">
+                  <p>Ajoutez au moins un joueur, un tableau et un tour.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild size="sm">
+                      <Link href="/admin/players">Creer un joueur</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/admin/tableau-templates">Creer un template</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/admin/tableaux">Creer un tableau</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/admin/tours">Creer un tour</Link>
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
             ) : (
               <AdminRegistrationForm
                 players={playerOptions}
@@ -481,9 +486,9 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
         <Card className="border-border/70">
           <CardHeader>
             <CardTitle className="text-base">Inscriptions recentes</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardDescription>
               Suivez les inscriptions et gerez les doublons rapidement.
-            </p>
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -516,9 +521,9 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
                           {row.tableaux.map((tableau: TableauItem) => (
-                            <span key={tableau.id} className="badge-pill">
+                            <Badge key={tableau.id} variant="secondary">
                               {tableau.template.name}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       </TableCell>

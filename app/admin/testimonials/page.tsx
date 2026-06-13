@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -68,7 +76,7 @@ async function deleteTestimonial(
   await prisma.testimonial.delete({ where: { id } });
   revalidatePath("/");
   revalidatePath("/admin/testimonials");
-  return { ok: true, message: "Avis supprimé." };
+  return { ok: true, message: "Avis supprime." };
 }
 
 type PageProps = {
@@ -93,10 +101,12 @@ export default async function AdminTestimonialsPage({ searchParams }: PageProps)
 
   return (
     <section className="page">
-      <div className="page-header">
-        <h1 className="page-title">Avis</h1>
-        <p className="page-subtitle">
-          Validez ou masquez les témoignages affichés sur l’accueil.
+      <div className="space-y-2">
+        <h1 className="font-heading text-3xl font-bold tracking-[-0.045em] text-foreground sm:text-4xl">
+          Avis
+        </h1>
+        <p className="max-w-2xl text-[0.95rem] leading-7 text-muted-foreground sm:text-base">
+          Validez ou masquez les temoignages affiches sur l&apos;accueil.
         </p>
       </div>
 
@@ -120,72 +130,83 @@ export default async function AdminTestimonialsPage({ searchParams }: PageProps)
           variant={normalized === "approved" ? "default" : "outline"}
           size="sm"
         >
-          <Link href="/admin/testimonials?status=approved">Publiés</Link>
+          <Link href="/admin/testimonials?status=approved">Publies</Link>
         </Button>
       </div>
 
-      <div className="surface">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead>Avis</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {testimonials.length === 0 ? (
+      <Card className="border-border/70">
+        <CardHeader>
+          <CardTitle>Moderation des avis</CardTitle>
+          <CardDescription>
+            Filtrez, approuvez ou retirez les temoignages publies sur l&apos;accueil.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="py-6">
-                  <EmptyState
-                    title="Aucun avis"
-                    description="Les avis déposés apparaîtront ici."
-                  />
-                </TableCell>
+                <TableHead>Nom</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Avis</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              testimonials.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.authorName}
-                  </TableCell>
-                  <TableCell>{item.authorRole ?? "-"}</TableCell>
-                  <TableCell className="max-w-md">
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {item.content}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <span className="badge-pill">
-                      {item.isApproved ? "Publié" : "En attente"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      {item.isApproved ? (
-                        <form action={rejectTestimonial}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <Button size="sm" variant="secondary">
-                            Mettre en attente
-                          </Button>
-                        </form>
-                      ) : (
-                        <form action={approveTestimonial}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <Button size="sm">Approuver</Button>
-                        </form>
-                      )}
-                      <AdminDeleteForm id={item.id} action={deleteTestimonial} />
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {testimonials.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-6">
+                    <EmptyState
+                      title="Aucun avis"
+                      description="Les avis deposes apparaitront ici."
+                    />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                testimonials.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.authorName}</TableCell>
+                    <TableCell>{item.authorRole ?? "-"}</TableCell>
+                    <TableCell className="max-w-md">
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                        {item.content}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={item.isApproved ? "secondary" : "outline"}>
+                        {item.isApproved ? "Publie" : "En attente"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {item.isApproved ? (
+                          <form action={rejectTestimonial}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <Button size="sm" variant="secondary">
+                              Mettre en attente
+                            </Button>
+                          </form>
+                        ) : (
+                          <form action={approveTestimonial}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <Button size="sm">Approuver</Button>
+                          </form>
+                        )}
+                        <AdminDeleteDialog
+                          id={item.id}
+                          action={deleteTestimonial}
+                          title="Supprimer cet avis ?"
+                          description={`Cette action supprimera l'avis de ${item.authorName}.`}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   );
 }

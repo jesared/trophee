@@ -1,8 +1,8 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,10 @@ const LABELS: Record<string, string> = {
   tableaux: "Tableaux",
   "tableau-templates": "Templates",
   users: "Utilisateurs",
-  settings: "Settings",
+  settings: "Paramètres",
+  medias: "Médias",
+  documentation: "Documentation",
+  testimonials: "Avis",
 };
 
 export function AdminBreadcrumbs() {
@@ -37,7 +40,10 @@ export function AdminBreadcrumbs() {
   });
 
   return (
-    <nav className="flex items-center gap-2 text-xs text-muted-foreground">
+    <nav
+      aria-label="Fil d’Ariane admin"
+      className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+    >
       {items.map((item, index) => (
         <div key={item.href} className="flex items-center gap-2">
           {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}

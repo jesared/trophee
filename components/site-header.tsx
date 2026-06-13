@@ -18,6 +18,7 @@ import * as React from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -44,6 +46,13 @@ const navItems = [
   { label: "Classement", href: "/classement", icon: BarChart3 },
 ];
 
+type HeaderUser = {
+  email?: string | null;
+  image?: string | null;
+  name?: string | null;
+  role?: string | null;
+};
+
 function isActivePath(pathname: string, href: string) {
   if (href === "/") {
     return pathname === "/";
@@ -52,27 +61,37 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-function UserMenu() {
-  const { data } = useSession();
-  const user = data?.user;
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "U";
-  const isAdmin = user?.role === "ADMIN";
+function getInitials(name?: string | null) {
+  if (!name) {
+    return "U";
+  }
 
-  if (!user) return null;
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function UserAvatarMenu({
+  isAdmin,
+  user,
+}: {
+  isAdmin: boolean;
+  user: HeaderUser;
+}) {
+  const initials = getInitials(user.name);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-10 rounded-full px-2.5">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.image ?? ""} alt={user.name ?? "User"} />
+            <AvatarImage
+              src={user.image ?? ""}
+              alt={user.name ?? "Utilisateur"}
+            />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -95,7 +114,7 @@ function UserMenu() {
           <DropdownMenuItem asChild>
             <Link href="/admin" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Admin
+              Administration
             </Link>
           </DropdownMenuItem>
         ) : null}
@@ -109,19 +128,88 @@ function UserMenu() {
   );
 }
 
+function HeaderAuthActions({
+  isAdmin,
+  mobile = false,
+  onNavigate,
+  user,
+}: {
+  isAdmin: boolean;
+  mobile?: boolean;
+  onNavigate?: () => void;
+  user?: HeaderUser;
+}) {
+  if (!user) {
+    return (
+      <Button
+        asChild
+        variant="cta"
+        size="sm"
+        className={cn(
+          "px-4 font-bold tracking-[-0.01em]",
+          mobile && "w-full justify-center",
+        )}
+      >
+        <Link href="/login" aria-label="se connecter" onClick={onNavigate}>
+          C&apos;est parti !
+        </Link>
+      </Button>
+    );
+  }
+
+  if (!mobile) {
+    return <UserAvatarMenu user={user} isAdmin={isAdmin} />;
+  }
+
+  return (
+    <>
+      <Button
+        asChild
+        size="sm"
+        variant="secondary"
+        className="w-full justify-start"
+      >
+        <Link href="/me" className="flex items-center gap-2" onClick={onNavigate}>
+          <UserCircleIcon className="h-4 w-4" />
+          Mon espace
+        </Link>
+      </Button>
+      {isAdmin ? (
+        <Button
+          asChild
+          size="sm"
+          variant="secondary"
+          className="w-full justify-start"
+        >
+          <Link
+            href="/admin"
+            className="flex items-center gap-2"
+            onClick={onNavigate}
+          >
+            <Shield className="h-4 w-4" />
+            Administration
+          </Link>
+        </Button>
+      ) : null}
+      <Button
+        size="sm"
+        variant="secondary"
+        className="w-full justify-start"
+        onClick={() => signOut()}
+      >
+        <LogOut className="h-4 w-4" />
+        Déconnexion
+      </Button>
+    </>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const { data } = useSession();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const user = data?.user;
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "U";
+  const initials = getInitials(user?.name);
   const isAdmin = user?.role === "ADMIN";
 
   return (
@@ -176,55 +264,69 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            {user ? (
-              <UserMenu />
-            ) : (
-              <Button
-                asChild
-                size="sm"
-                className="rounded-md border border-primary/15 bg-primary px-4 text-white font-bold tracking-[-0.01em] shadow-[0_10px_24px_-14px_hsl(var(--primary)/0.95)] hover:bg-primary/88 hover:text-white hover:shadow-[0_14px_28px_-16px_hsl(var(--primary)/0.95)]"
-              >
-                <Link href="/login" aria-label="se connecter">
-                  C&apos;est parti !
-                </Link>
-              </Button>
-            )}
+            <HeaderAuthActions user={user} isAdmin={isAdmin} />
           </div>
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-sm" className="md:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">Ouvrir le menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 border-border/70 bg-background/95 backdrop-blur-xl">
+            <SheetContent
+              side="right"
+              className="w-80 border-border/70 bg-background/95 backdrop-blur-xl"
+            >
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
                 <SheetDescription className="text-xs text-muted-foreground">
                   Accès rapide aux pages principales.
                 </SheetDescription>
               </SheetHeader>
-              <div className="mt-6 flex flex-col gap-6 px-2">
-                <div className="flex items-center gap-3 rounded-[1.35rem] border border-border/70 bg-muted/30 px-3 py-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={user?.image ?? ""}
-                      alt={user?.name ?? "User"}
-                    />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {user?.name ?? "Version information"}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {user?.email ?? "Agenda, tours et classements publics"}
-                    </p>
-                  </div>
-                </div>
+              <div className="flex flex-1 flex-col px-4 pb-4">
+                <Card size="sm" className="mt-2 shadow-none">
+                  <CardContent className="flex items-center gap-3">
+                    {user ? (
+                      <>
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={user.image ?? ""}
+                            alt={user.name ?? "Utilisateur"}
+                          />
+                          <AvatarFallback>{initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {user.name ?? "Utilisateur"}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {user.email ?? "Compte connecté"}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Accès public</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                          Consultez l&apos;agenda, les tours et les classements.
+                          Connectez-vous pour accéder à votre espace joueur.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">Apparence</p>
+                      <p className="text-xs text-muted-foreground">
+                        Basculer entre les thèmes clair et sombre
+                      </p>
+                    </div>
+                    <ThemeToggle />
+                  </CardFooter>
+                </Card>
 
-                <nav className="flex flex-col gap-2 text-sm">
+                <nav className="mt-6 flex flex-col gap-2 text-sm">
                   {navItems.map((item) => {
                     const active = isActivePath(pathname, item.href);
                     const Icon = item.icon;
@@ -247,59 +349,16 @@ export function SiteHeader() {
                   })}
                 </nav>
 
-                <Separator />
+                <Separator className="my-6" />
 
-                <div className="flex items-center justify-between">
-                  <ThemeToggle />
-                  {user ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => signOut()}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Déconnexion
-                    </Button>
-                  ) : (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="rounded-md border border-primary/15 bg-primary px-4 text-white font-bold tracking-[-0.01em] shadow-[0_10px_24px_-14px_hsl(var(--primary)/0.95)] hover:bg-primary/88 hover:text-white hover:shadow-[0_14px_28px_-16px_hsl(var(--primary)/0.95)]"
-                    >
-                      <Link
-                        href="/login"
-                        aria-label="se connecter"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        C&apos;est parti !
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-                {user ? (
-                  <Button asChild size="sm" variant="secondary">
-                    <Link
-                      href="/me"
-                      className="flex items-center gap-2"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <UserCircleIcon className="h-4 w-4" />
-                      Mon espace
-                    </Link>
-                  </Button>
-                ) : null}
-                {isAdmin ? (
-                  <Button asChild size="sm" variant="secondary">
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-2"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <Shield className="h-4 w-4" />
-                      Administration
-                    </Link>
-                  </Button>
-                ) : null}
+                <SheetFooter className="gap-2 p-0">
+                  <HeaderAuthActions
+                    mobile
+                    user={user}
+                    isAdmin={isAdmin}
+                    onNavigate={() => setMobileOpen(false)}
+                  />
+                </SheetFooter>
               </div>
             </SheetContent>
           </Sheet>

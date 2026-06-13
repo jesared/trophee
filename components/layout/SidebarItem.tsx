@@ -1,32 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import type { ElementType } from "react";
 
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type SidebarItemProps = {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: ElementType;
   active?: boolean;
   collapsed?: boolean;
   badge?: string | number;
   onNavigate?: () => void;
 };
-
-function Badge({ value }: { value: string | number }) {
-  return (
-    <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold text-muted-foreground transition-colors">
-      {value}
-    </span>
-  );
-}
 
 export function SidebarItem({
   href,
@@ -56,7 +50,12 @@ export function SidebarItem({
       <span className={cn("text-sm", collapsed && "sr-only")}>{label}</span>
       {!collapsed && badge !== undefined ? (
         <span className="ml-auto">
-          <Badge value={badge} />
+          <Badge
+            variant={active ? "outline" : "secondary"}
+            className="px-2 py-0.5 text-[0.65rem] tracking-normal"
+          >
+            {badge}
+          </Badge>
         </span>
       ) : null}
     </Link>

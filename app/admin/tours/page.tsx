@@ -5,8 +5,15 @@ import { AdminTourFilters } from "@/components/admin-tour-filters";
 import { AdminTourCreateDialog } from "@/components/admin-tour-create-dialog";
 import { AdminTourRowActions } from "@/components/admin-tour-row-actions";
 import { EmptyState } from "@/components/empty-state";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -438,9 +445,13 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
   return (
     <section className="page">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="page-header">
-          <h1 className="page-title">Tours</h1>
-          <p className="page-subtitle">Gerez les tours par saison.</p>
+        <div className="space-y-2">
+          <h1 className="font-heading text-3xl font-bold tracking-[-0.045em] text-foreground sm:text-4xl">
+            Tours
+          </h1>
+          <p className="max-w-2xl text-[0.95rem] leading-7 text-muted-foreground sm:text-base">
+            Gerez les tours par saison.
+          </p>
         </div>
 
         <AdminTourCreateDialog
@@ -455,7 +466,7 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
           const Icon = stat.icon;
 
           return (
-            <Card key={stat.label} className="surface border-border/60">
+            <Card key={stat.label} className="border-border/70">
               <CardContent className="flex items-start justify-between gap-4 pt-6">
                 <div className="space-y-1">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -485,16 +496,12 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
       />
 
       {hasActiveCriteria ? (
-        <div className="surface flex flex-col gap-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                Resultats pour {tours.length} tour(s)
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Les filtres et la recherche ci-dessous sont actuellement appliques.
-              </p>
-            </div>
+        <Alert className="gap-y-3">
+          <div className="space-y-1">
+            <AlertTitle>Resultats pour {tours.length} tour(s)</AlertTitle>
+            <AlertDescription>
+              Les filtres et la recherche ci-dessous sont actuellement appliques.
+            </AlertDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             {activeCriteria.map((criterion) => (
@@ -503,18 +510,27 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
               </Badge>
             ))}
           </div>
-        </div>
+        </Alert>
       ) : null}
 
       {seasons.length === 0 || clubs.length === 0 ? (
-        <div className="surface p-4 text-sm text-muted-foreground">
-          {seasons.length === 0
-            ? "Aucune saison disponible. Creez une saison pour ajouter un tour."
-            : "Aucun club disponible. Creez un club pour ajouter un tour."}
-        </div>
+        <Alert>
+          <AlertDescription>
+            {seasons.length === 0
+              ? "Aucune saison disponible. Creez une saison pour ajouter un tour."
+              : "Aucun club disponible. Creez un club pour ajouter un tour."}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      <div className="surface">
+      <Card className="border-border/70">
+        <CardHeader>
+          <CardTitle>Liste des tours</CardTitle>
+          <CardDescription>
+            Suivez le statut, la configuration et les inscriptions de chaque tour.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -552,9 +568,9 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
                     </TableCell>
                     <TableCell>{formatter.format(tour.date)}</TableCell>
                     <TableCell>
-                      <span className="badge-pill">
+                      <Badge variant="secondary">
                         {getTourStatusLabel(tour.status)}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="min-w-0">
                       <div className="space-y-1">
@@ -590,7 +606,8 @@ export default async function AdminToursPage({ searchParams }: PageProps) {
             )}
           </TableBody>
         </Table>
-      </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }

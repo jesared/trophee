@@ -3,9 +3,11 @@ import Link from "next/link";
 import { z } from "zod";
 import { CalendarDays, Clock3, Layers3, Sparkles } from "lucide-react";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
+import { AdminPageHeader } from "@/components/admin-page-header";
 import { AdminTableauDialog } from "@/components/admin-tableau-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,6 +177,7 @@ async function createTableau(
 
   return { ok: true, message: "Tableau cree." };
 }
+
 async function deleteTableau(
   _prevState: ActionState,
   formData: FormData,
@@ -222,7 +225,11 @@ export default async function AdminTableauxPage() {
     id: string;
     startTime: Date;
     template: TemplateItem;
-    tour: { id: string; name: string; status: "DRAFT" | "OPEN" | "CLOSED" | "DONE" };
+    tour: {
+      id: string;
+      name: string;
+      status: "DRAFT" | "OPEN" | "CLOSED" | "DONE";
+    };
   };
 
   const [tours, templates, tableaux]: [
@@ -327,23 +334,22 @@ export default async function AdminTableauxPage() {
     (tour) => tour.readyTemplateCount > 0 && tour.missingTemplates.length === 0,
   ).length;
   const upcomingTours = tourCards.filter((tour) => tour.isUpcoming);
-  const highlightedTours =
-    upcomingTours.length > 0 ? upcomingTours : tourCards;
+  const highlightedTours = upcomingTours.length > 0 ? upcomingTours : tourCards;
   const stats = [
     {
-      label: "Tableaux créés",
+      label: "Tableaux crees",
       value: tableaux.length.toString(),
-      hint: "Instances rattachées aux tours",
+      hint: "Instances rattachees aux tours",
       icon: Layers3,
     },
     {
-      label: "Tours configurés",
+      label: "Tours configures",
       value: configuredTours.toString(),
       hint: `${completeTours} tour(s) complets`,
       icon: CalendarDays,
     },
     {
-      label: "Templates prêts",
+      label: "Templates prets",
       value: readyTemplates.length.toString(),
       hint: `${templates.length} template(s) au total`,
       icon: Sparkles,
@@ -351,33 +357,30 @@ export default async function AdminTableauxPage() {
     {
       label: "Horaires manquants",
       value: templatesWithoutTime.length.toString(),
-      hint: "À corriger côté templates",
+      hint: "A corriger cote templates",
       icon: Clock3,
     },
   ];
 
   return (
     <section className="page">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="page-header">
-          <h1 className="page-title">Tableaux</h1>
-          <p className="page-subtitle">
-            Pilotez les tableaux par tour, repérez ce qui manque et ajoutez
-            toute une configuration en un clic.
-          </p>
-        </div>
-        <AdminTableauDialog
-          action={createTableau}
-          tours={tourOptions}
-          templates={templateOptions}
-        />
-      </div>
+      <AdminPageHeader
+        title="Tableaux"
+        description="Pilotez les tableaux par tour, reperez ce qui manque et ajoutez une configuration en un clic."
+        actions={
+          <AdminTableauDialog
+            action={createTableau}
+            tours={tourOptions}
+            templates={templateOptions}
+          />
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="surface border-border/60">
+            <Card key={stat.label} className="border-border/70">
               <CardContent className="flex items-start justify-between gap-4 pt-6">
                 <div className="space-y-1">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -398,57 +401,58 @@ export default async function AdminTableauxPage() {
       </div>
 
       {tours.length === 0 || templates.length === 0 ? (
-        <div className="surface p-4 text-sm text-muted-foreground">
-          Creez d&apos;abord un tour et un template pour ajouter un tableau.
-        </div>
+        <Alert>
+          <AlertDescription>
+            Creez d&apos;abord un tour et un template pour ajouter un tableau.
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {templates.length > 0 ? (
-        <Card className="surface border-border/60 bg-muted/20">
+        <Card className="border-border/70 bg-muted/20">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle>Référentiel de templates</CardTitle>
+              <CardTitle>Referentiel de templates</CardTitle>
               <CardDescription>
                 Les horaires viennent des templates. Si un template n&apos;a pas
-                d&apos;horaire, il ne pourra pas être ajouté automatiquement.
+                d&apos;horaire, il ne pourra pas etre ajoute automatiquement.
               </CardDescription>
             </div>
             <Button asChild size="sm" variant="secondary">
-              <Link href="/admin/tableau-templates">Gérer les templates</Link>
+              <Link href="/admin/tableau-templates">Gerer les templates</Link>
             </Button>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {templates.map((template) => (
-              <div
-                key={template.id}
-                className="rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-foreground">
-                    {template.name}
-                  </span>
-                  <Badge
-                    variant={template.startTime ? "secondary" : "destructive"}
-                  >
-                    {formatTemplateTime(template.startTime)}
-                  </Badge>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {formatRange(template.minPoints, template.maxPoints)}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {template.season
-                    ? `Saison ${template.season.year}`
-                    : "Saison non rattachee"}
-                </p>
-              </div>
+              <Card key={template.id} size="sm" className="border-border/60 bg-background">
+                <CardContent className="space-y-1 pt-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-foreground">
+                      {template.name}
+                    </span>
+                    <Badge
+                      variant={template.startTime ? "secondary" : "destructive"}
+                    >
+                      {formatTemplateTime(template.startTime)}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formatRange(template.minPoints, template.maxPoints)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {template.season
+                      ? `Saison ${template.season.year}`
+                      : "Saison non rattachee"}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </CardContent>
         </Card>
       ) : null}
 
       {templatesWithoutTime.length > 0 ? (
-        <Card className="surface border-destructive/30 bg-destructive/5">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
             <CardTitle>Templates incomplets</CardTitle>
             <CardDescription>
@@ -468,11 +472,11 @@ export default async function AdminTableauxPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         {highlightedTours.length === 0 ? (
-          <Card className="surface border-border/60 xl:col-span-2">
+          <Card className="border-border/70 xl:col-span-2">
             <CardContent className="pt-6">
               <EmptyState
-                title="Aucun tour à configurer"
-                description="Créez un tour puis ajoutez les tableaux nécessaires."
+                title="Aucun tour a configurer"
+                description="Creez un tour puis ajoutez les tableaux necessaires."
               />
             </CardContent>
           </Card>
@@ -486,7 +490,7 @@ export default async function AdminTableauxPage() {
                   : "outline";
 
             return (
-              <Card key={tour.id} className="surface border-border/60">
+              <Card key={tour.id} className="border-border/70">
                 <CardHeader className="space-y-3">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-2">
@@ -499,7 +503,7 @@ export default async function AdminTableauxPage() {
                         ) : null}
                       </div>
                       <CardDescription>
-                        {dateFormatter.format(tour.date)} · Saison {tour.season.year}
+                        {dateFormatter.format(tour.date)} - Saison {tour.season.year}
                       </CardDescription>
                     </div>
                     <div className="rounded-2xl border border-border/60 bg-muted/30 px-3 py-2 text-right">
@@ -513,7 +517,7 @@ export default async function AdminTableauxPage() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {tour.readyTemplateCount > 0
-                          ? `${tour.coverage}% prêt`
+                          ? `${tour.coverage}% pret`
                           : "Aucun template horaire"}
                       </p>
                     </div>
@@ -534,7 +538,7 @@ export default async function AdminTableauxPage() {
                 <CardContent className="space-y-4">
                   {tour.tableaux.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border/70 bg-muted/20 px-4 py-5 text-sm text-muted-foreground">
-                      Aucun tableau créé pour ce tour.
+                      Aucun tableau cree pour ce tour.
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -559,10 +563,13 @@ export default async function AdminTableauxPage() {
                               )}
                             </p>
                           </div>
-                          <AdminDeleteForm
+                          <AdminDeleteDialog
                             id={tableau.id}
                             action={deleteTableau}
-                            label="Retirer"
+                            triggerLabel="Retirer"
+                            confirmLabel="Retirer"
+                            title="Retirer ce tableau ?"
+                            description={`Cette action retirera ${tableau.template.name} de ce tour.`}
                           />
                         </div>
                       ))}
@@ -577,7 +584,7 @@ export default async function AdminTableauxPage() {
                       <div className="mt-3 flex flex-wrap gap-2">
                         {tour.missingTemplates.map((template) => (
                           <Badge key={template.id} variant="outline">
-                            {template.name} · {formatTemplateTime(template.startTime)}
+                            {template.name} - {formatTemplateTime(template.startTime)}
                           </Badge>
                         ))}
                       </div>

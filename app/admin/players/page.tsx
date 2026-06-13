@@ -1,10 +1,18 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminPageHeader } from "@/components/admin-page-header";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
 import { AdminPlayerDialog } from "@/components/admin-player-dialog";
 import { AdminPlayerImport } from "@/components/admin-player-import";
 import { EmptyState } from "@/components/empty-state";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -210,16 +218,14 @@ async function importPlayers(
   }
 
   const rows = parsedCsv.data;
-  const prepared = [] as Array<{
+  const prepared: Array<{
     firstName: string;
     lastName: string;
     email?: string | null;
     club?: string | null;
     points?: number | null;
     licence?: string | null;
-  }>;
-
-  let skipped = 0;
+  }> = [];
 
   for (const row of rows) {
     const parsed = playerSchema.safeParse({
@@ -232,7 +238,6 @@ async function importPlayers(
     });
 
     if (!parsed.success) {
-      skipped += 1;
       continue;
     }
 
@@ -311,60 +316,71 @@ export default async function AdminPlayersPage() {
 
   return (
     <section className="page">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="page-header">
-          <h1 className="page-title">Joueurs</h1>
-          <p className="page-subtitle">
-            Gere les profils des joueurs inscrits.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <AdminPlayerImport action={importPlayers} />
-          <AdminPlayerDialog action={createPlayer} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Joueurs"
+        description="Gere les profils des joueurs inscrits et centralise les imports CSV."
+        actions={
+          <>
+            <AdminPlayerImport action={importPlayers} />
+            <AdminPlayerDialog action={createPlayer} />
+          </>
+        }
+      />
 
-      <div className="surface">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Club</TableHead>
-              <TableHead>Points</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Licence</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {players.length === 0 ? (
+      <Card className="border-border/70">
+        <CardHeader>
+          <CardTitle>Base joueurs</CardTitle>
+          <CardDescription>
+            Consultez, importez et nettoyez les profils utilises dans les inscriptions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="py-6">
-                  <EmptyState
-                    title="Aucun joueur pour le moment"
-                    description="Créez un joueur ou importez votre CSV."
-                  />
-                </TableCell>
+                <TableHead>Nom</TableHead>
+                <TableHead>Club</TableHead>
+                <TableHead>Points</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Licence</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              players.map((player: PlayerItem) => (
-                <TableRow key={player.id}>
-                  <TableCell className="font-medium">
-                    {player.firstName} {player.lastName}
-                  </TableCell>
-                  <TableCell>{player.club ?? "-"}</TableCell>
-                  <TableCell>{player.points ?? "-"}</TableCell>
-                  <TableCell>{player.email ?? "-"}</TableCell>
-                  <TableCell>{player.licence ?? "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <AdminDeleteForm id={player.id} action={deletePlayer} />
+            </TableHeader>
+            <TableBody>
+              {players.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-6">
+                    <EmptyState
+                      title="Aucun joueur pour le moment"
+                      description="Creez un joueur ou importez votre CSV."
+                    />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                players.map((player: PlayerItem) => (
+                  <TableRow key={player.id}>
+                    <TableCell className="font-medium">
+                      {player.firstName} {player.lastName}
+                    </TableCell>
+                    <TableCell>{player.club ?? "-"}</TableCell>
+                    <TableCell>{player.points ?? "-"}</TableCell>
+                    <TableCell>{player.email ?? "-"}</TableCell>
+                    <TableCell>{player.licence ?? "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <AdminDeleteDialog
+                        id={player.id}
+                        action={deletePlayer}
+                        title="Supprimer ce joueur ?"
+                        description={`Cette action supprimera ${player.firstName} ${player.lastName}.`}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   );
 }

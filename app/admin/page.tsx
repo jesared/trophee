@@ -1,6 +1,24 @@
 import Link from "next/link";
 
+import { AdminPageHeader } from "@/components/admin-page-header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminPage() {
@@ -14,8 +32,12 @@ export default async function AdminPage() {
     }),
     prisma.tour.findMany({
       orderBy: { date: "desc" },
-      take: 3,
-      include: { season: { select: { year: true } }, club: { select: { name: true } } },
+      take: 5,
+      include: {
+        season: { select: { year: true } },
+        club: { select: { name: true } },
+        registrations: { select: { id: true } },
+      },
     }),
     prisma.registration.findMany({
       orderBy: { createdAt: "desc" },
@@ -31,254 +53,203 @@ export default async function AdminPage() {
   const totalTours = activeSeason?.tours.length ?? 0;
   const remainingTours =
     activeSeason?.tours.filter((tour) => tour.date >= now).length ?? 0;
+  const completedTours = Math.max(totalTours - remainingTours, 0);
 
   const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
   });
 
+  const setupSteps = [
+    ["Saisons", "Creer et activer la saison en cours."],
+    ["Clubs", "Ajouter les clubs organisateurs."],
+    ["Templates", "Definir les plages de points globales."],
+    ["Tours", "Creer les tours lies a la saison et au club."],
+    ["Tableaux", "Associer les tableaux aux tours."],
+    ["Joueurs", "Creer ou importer les joueurs."],
+    ["Inscriptions", "Inscrire les joueurs dans les tableaux."],
+    ["Verifications", "Controler agenda, salles et coherence globale."],
+  ] as const;
+
+  const quickActions = [
+    { href: "/admin/seasons", label: "Gerer les saisons" },
+    { href: "/admin/tours", label: "Voir les tours" },
+    { href: "/admin/inscriptions", label: "Ouvrir les inscriptions" },
+  ] as const;
+
   return (
-    <section className="page">
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">
-          Vue d&apos;ensemble de l&apos;administration du trophée.
-        </p>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="surface p-6">
-          <h2 className="text-base font-semibold">État de saison</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Suivi de la saison active et des tours restants.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <div className="surface px-4 py-3">
-              <p className="text-xs text-muted-foreground">Saison active</p>
-              <p className="text-xl font-semibold text-foreground">
-                {activeSeason?.year ?? "-"}
-              </p>
-            </div>
-            <div className="surface px-4 py-3">
-              <p className="text-xs text-muted-foreground">Tours planifiés</p>
-              <p className="text-xl font-semibold text-foreground">
-                {totalTours}
-              </p>
-            </div>
-            <div className="surface px-4 py-3">
-              <p className="text-xs text-muted-foreground">Tours restants</p>
-              <p className="text-xl font-semibold text-foreground">
-                {remainingTours}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/admin/seasons">Gérer les saisons</Link>
-            </Button>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/admin/tours">Voir les tours</Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="surface p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold">Export inscriptions</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Téléchargez la liste complète pour traitement externe.
-              </p>
-            </div>
+    <section className="space-y-8">
+      <AdminPageHeader
+        title="Tableau de bord"
+        description="Vue d'ensemble des flux principaux pour piloter la saison, les tours et les inscriptions."
+        actions={
+          <>
+            {quickActions.map((action) => (
+              <Button key={action.href} asChild size="sm" variant="secondary">
+                <Link href={action.href}>{action.label}</Link>
+              </Button>
+            ))}
             <Button asChild size="sm">
-              <Link href="/api/admin/registrations/export">
-                Exporter CSV
-              </Link>
+              <Link href="/api/admin/registrations/export">Exporter CSV</Link>
             </Button>
-          </div>
-          <div className="mt-4 text-xs text-muted-foreground">
-            Le fichier contient joueurs, tours, tableaux et dates d&apos;inscription.
-          </div>
-        </div>
+          </>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-border/70">
+          <CardHeader>
+            <CardDescription>Saison active</CardDescription>
+            <CardTitle className="text-3xl">
+              {activeSeason?.year ?? "-"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            {activeSeason
+              ? `${totalTours} tour(s) rattaches a la saison active.`
+              : "Aucune saison active pour le moment."}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/70">
+          <CardHeader>
+            <CardDescription>Tours a venir</CardDescription>
+            <CardTitle className="text-3xl">{remainingTours}</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            {completedTours} tour(s) deja passes sur la saison en cours.
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/70">
+          <CardHeader>
+            <CardDescription>Dernieres inscriptions</CardDescription>
+            <CardTitle className="text-3xl">{latestRegistrations.length}</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            Apercu des 5 derniers mouvements recents.
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        <div className="surface p-6">
-          <h2 className="text-base font-semibold">Derniers tours</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Les trois derniers tours créés.
-          </p>
-          <div className="mt-4 space-y-3 text-sm">
-            {latestTours.length === 0 ? (
-              <p className="text-muted-foreground">Aucun tour pour le moment.</p>
-            ) : (
-              latestTours.map((tour) => (
-                <div
-                  key={tour.id}
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium">{tour.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {tour.season?.year ?? "-"} ·{" "}
-                      {dateFormatter.format(tour.date)}
-                    </p>
+      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <Card className="border-border/70">
+          <CardHeader>
+            <CardTitle>Derniers tours</CardTitle>
+            <CardDescription>
+              Suivi rapide des tours recents, de leur club et du volume
+              d&apos;inscriptions associe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tour</TableHead>
+                  <TableHead>Saison</TableHead>
+                  <TableHead>Club</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Inscriptions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {latestTours.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                      Aucun tour pour le moment.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  latestTours.map((tour) => (
+                    <TableRow key={tour.id}>
+                      <TableCell className="font-medium">{tour.name}</TableCell>
+                      <TableCell>{tour.season?.year ?? "-"}</TableCell>
+                      <TableCell>{tour.club?.name ?? "-"}</TableCell>
+                      <TableCell>{dateFormatter.format(tour.date)}</TableCell>
+                      <TableCell className="text-right">
+                        {tour.registrations.length}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Alert>
+            <AlertTitle>Cycle de mise en place</AlertTitle>
+            <AlertDescription>
+              Travaillez dans l&apos;ordre saison, clubs, templates, tours,
+              tableaux puis inscriptions pour eviter les blocages de
+              configuration.
+            </AlertDescription>
+          </Alert>
+
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle>Ordre recommande</CardTitle>
+              <CardDescription>
+                Checklist rapide pour une saison propre.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              {setupSteps.map(([title, description], index) => (
+                <div key={title} className="space-y-4">
+                  {index > 0 ? <Separator /> : null}
+                  <div className="space-y-1">
+                    <p className="font-medium text-foreground">{title}</p>
+                    <p className="text-muted-foreground">{description}</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {tour.club?.name ?? "-"}
-                  </span>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="surface p-6">
-          <h2 className="text-base font-semibold">Dernières inscriptions</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Les 5 derniers joueurs inscrits.
-          </p>
-          <div className="mt-4 space-y-3 text-sm">
-            {latestRegistrations.length === 0 ? (
-              <p className="text-muted-foreground">
-                Aucune inscription pour le moment.
-              </p>
-            ) : (
-              latestRegistrations.map((registration) => (
-                <div
-                  key={registration.id}
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {registration.player.firstName}{" "}
-                      {registration.player.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {registration.tour.name} ·{" "}
-                      {registration.tableau.template.name}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {dateFormatter.format(registration.createdAt)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <div className="surface p-6">
-          <h2 className="text-base font-semibold">Hiérarchie des actions</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Suivez cet ordre pour initialiser une saison proprement.
-          </p>
-          <div className="mt-5 space-y-4 text-sm">
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                1
-              </span>
-              <div>
-                <p className="font-medium">Saisons</p>
-                <p className="text-muted-foreground">
-                  Créer et activer la saison en cours.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                2
-              </span>
-              <div>
-                <p className="font-medium">Clubs</p>
-                <p className="text-muted-foreground">
-                  Ajouter les clubs organisateurs.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                3
-              </span>
-              <div>
-                <p className="font-medium">Templates de tableaux</p>
-                <p className="text-muted-foreground">
-                  Définir les plages de points globales.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                4
-              </span>
-              <div>
-                <p className="font-medium">Tours</p>
-                <p className="text-muted-foreground">
-                  Créer les tours liés à la saison et au club.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                5
-              </span>
-              <div>
-                <p className="font-medium">Tableaux</p>
-                <p className="text-muted-foreground">
-                  Associer les tableaux aux tours.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                6
-              </span>
-              <div>
-                <p className="font-medium">Joueurs</p>
-                <p className="text-muted-foreground">
-                  Créer ou importer les joueurs.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                7
-              </span>
-              <div>
-                <p className="font-medium">Inscriptions</p>
-                <p className="text-muted-foreground">
-                  Inscrire les joueurs dans les tableaux.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                8
-              </span>
-              <div>
-                <p className="font-medium">Vérifications</p>
-                <p className="text-muted-foreground">
-                  Contrôler l'agenda, les salles et la cohérence globale.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="surface p-6">
-          <h2 className="text-base font-semibold">Conseils rapides</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Pour un démarrage fluide.
-          </p>
-          <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-            <li>Gardez une seule saison active à la fois.</li>
-            <li>Utilisez les templates pour uniformiser les tableaux.</li>
-            <li>Vérifiez les horaires des tableaux avant d'inscrire.</li>
-            <li>Utilisez l'import CSV pour gagner du temps.</li>
-          </ul>
-        </div>
-      </div>
+      <Card className="border-border/70">
+        <CardHeader>
+          <CardTitle>Dernieres inscriptions</CardTitle>
+          <CardDescription>
+            Les derniers joueurs inscrits pour controler les mouvements recents.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Joueur</TableHead>
+                <TableHead>Tour</TableHead>
+                <TableHead>Tableau</TableHead>
+                <TableHead className="text-right">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {latestRegistrations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    Aucune inscription pour le moment.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                latestRegistrations.map((registration) => (
+                  <TableRow key={registration.id}>
+                    <TableCell className="font-medium">
+                      {registration.player.firstName} {registration.player.lastName}
+                    </TableCell>
+                    <TableCell>{registration.tour.name}</TableCell>
+                    <TableCell>{registration.tableau.template.name}</TableCell>
+                    <TableCell className="text-right">
+                      {dateFormatter.format(registration.createdAt)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   );
 }

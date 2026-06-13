@@ -12,17 +12,9 @@ import {
   Unlock,
 } from "lucide-react";
 
-import { AdminDeleteForm } from "@/components/admin-delete-form";
+import { AdminDeleteDialog } from "@/components/admin-delete-dialog";
 import { AdminTourEditDialog } from "@/components/admin-tour-edit-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,27 +102,15 @@ export function AdminTourRowActions({
         onOpenChange={setEditOpen}
       />
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Supprimer ce tour ?</DialogTitle>
-            <DialogDescription>
-              Cette action supprimera {tourName}, ses tableaux et les inscriptions associees.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => setDeleteOpen(false)}>
-              Annuler
-            </Button>
-            <AdminDeleteForm
-              id={tourId}
-              action={deleteAction}
-              label="Supprimer"
-              onSuccess={() => setDeleteOpen(false)}
-            />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AdminDeleteDialog
+        id={tourId}
+        action={deleteAction}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        confirmLabel="Supprimer"
+        title="Supprimer ce tour ?"
+        description={`Cette action supprimera ${tourName}, ses tableaux et les inscriptions associees.`}
+      />
 
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>

@@ -3,6 +3,14 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { notifyError, notifySuccess } from "@/lib/toast";
 
 type RoleValue = "USER" | "ORGANIZER" | "ADMIN";
@@ -13,6 +21,11 @@ type AdminUserRoleProps = {
 };
 
 const roles = ["USER", "ORGANIZER", "ADMIN"] as const;
+const roleLabels: Record<RoleValue, string> = {
+  USER: "Utilisateur",
+  ORGANIZER: "Organisateur",
+  ADMIN: "Admin",
+};
 
 export function AdminUserRole({ id, role }: AdminUserRoleProps) {
   const router = useRouter();
@@ -50,22 +63,25 @@ export function AdminUserRole({ id, role }: AdminUserRoleProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <select
-        name="role"
+      <Select
         value={value}
+        onValueChange={(next) => handleChange(next as RoleValue)}
         disabled={pending}
-        onChange={(event) => handleChange(event.target.value as RoleValue)}
-        className="h-9 rounded-md border border-border bg-background px-2 text-sm"
       >
-        {roles.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
-      </select>
-      <span className="text-xs text-muted-foreground">
+        <SelectTrigger className="h-9 w-[170px]">
+          <SelectValue placeholder="Choisir un role" />
+        </SelectTrigger>
+        <SelectContent>
+          {roles.map((item) => (
+            <SelectItem key={item} value={item}>
+              {roleLabels[item]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Badge variant="secondary" className="text-[0.6rem]">
         {pending ? "Mise a jour..." : "Auto"}
-      </span>
+      </Badge>
     </div>
   );
 }

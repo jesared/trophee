@@ -1,3 +1,4 @@
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminLoading() {
@@ -9,24 +10,24 @@ export default function AdminLoading() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <div className="surface p-4">
-          <div className="space-y-3">
+        <Card>
+          <CardContent className="space-y-3 pt-4">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-full" />
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-full" />
             <Skeleton className="h-9 w-40" />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="surface">
-          <div className="space-y-3 p-4">
+        <Card>
+          <CardContent className="space-y-3 pt-4">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
