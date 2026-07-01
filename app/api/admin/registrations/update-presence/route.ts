@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 type Payload = {
   ids: string[];
@@ -9,7 +9,8 @@ type Payload = {
 };
 
 export async function POST(req: Request) {
-  await requireAdmin();
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   const body = (await req.json()) as Partial<Payload>;
   const ids = Array.isArray(body.ids)

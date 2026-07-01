@@ -51,6 +51,7 @@ function extractCity(components: AddressComponent[] | null | undefined) {
 
 export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
   const [inputValue, setInputValue] = React.useState(value.value ?? "");
+  const latestValueRef = React.useRef(value.value ?? "");
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const elementRef = React.useRef<google.maps.places.PlaceAutocompleteElement | null>(
     null,
@@ -66,6 +67,7 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
   });
 
   React.useEffect(() => {
+    latestValueRef.current = value.value ?? "";
     setInputValue(value.value ?? "");
     if (elementRef.current && value.value) {
       (elementRef.current as unknown as { value?: string }).value = value.value;
@@ -114,7 +116,7 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
         const formatted =
           place.formattedAddress ??
           place.displayName ??
-          inputValue ??
+          latestValueRef.current ??
           "";
 
         const details: PlaceDetails = {
@@ -126,6 +128,7 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
         };
 
         setInputValue(formatted);
+        latestValueRef.current = formatted;
         onChange({ value: formatted, place: details });
       };
 
@@ -134,14 +137,16 @@ export function PlaceAutocomplete({ value, onChange }: PlaceAutocompleteProps) {
         const nextValue =
           target?.value ?? (placeAutocomplete as unknown as { value?: string }).value ?? "";
         setInputValue(nextValue);
+        latestValueRef.current = nextValue;
         onChange({ value: nextValue });
       };
 
       placeAutocomplete.addEventListener("gmp-select", handleSelect);
       placeAutocomplete.addEventListener("input", handleInput);
 
-      if (value.value) {
-        (placeAutocomplete as unknown as { value?: string }).value = value.value;
+      if (latestValueRef.current) {
+        (placeAutocomplete as unknown as { value?: string }).value =
+          latestValueRef.current;
       }
     };
 

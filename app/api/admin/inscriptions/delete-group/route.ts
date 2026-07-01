@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
-import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "ADMIN") {
-    return NextResponse.json(
-      { ok: false, message: "Acces interdit." },
-      { status: 401 },
-    );
-  }
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   const body = (await request.json()) as { ids?: string[] };
   const ids = body.ids ?? [];

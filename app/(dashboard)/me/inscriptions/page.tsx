@@ -40,7 +40,7 @@ export default function UserRegistrationsPage() {
                   action={
                     <div className="flex flex-wrap justify-center gap-2">
                       <Button asChild size="sm">
-                        <Link href="/inscription">S'inscrire</Link>
+                        <Link href="/inscription">S&apos;inscrire</Link>
                       </Button>
                       <Button asChild size="sm" variant="secondary">
                         <Link href="/agenda">Voir les tours</Link>

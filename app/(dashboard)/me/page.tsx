@@ -33,24 +33,24 @@ export default function UserDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              L'espace joueur reviendra dans une version ultérieure avec les
+              L&apos;espace joueur reviendra dans une version ultérieure avec les
               inscriptions en ligne, le suivi de participation et les
               informations personnelles.
             </p>
             <div className="surface p-4">
               <p className="font-medium text-foreground">
-                Pour le moment, utilisez le site comme portail d'information du
+                Pour le moment, utilisez le site comme portail d&apos;information du
                 trophée.
               </p>
               <p className="mt-2">
                 Vous pouvez déjà consulter les prochains tours, les salles
-                d'accueil et les classements officiels.
+                d&apos;accueil et les classements officiels.
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/agenda">Voir l'agenda</Link>
+              <Link href="/agenda">Voir l&apos;agenda</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link href="/classement">Consulter les classements</Link>
@@ -66,8 +66,8 @@ export default function UserDashboardPage() {
             <p>Les inscriptions en ligne ne sont pas encore ouvertes.</p>
             <p>Les données joueur ne sont pas affichées dans cette version.</p>
             <p>
-              L'administration du site reste accessible séparément pour
-              l'organisation.
+              L&apos;administration du site reste accessible séparément pour
+              l&apos;organisation.
             </p>
           </CardContent>
         </Card>

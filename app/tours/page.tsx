@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { PencilLine } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
@@ -85,12 +86,13 @@ export default async function ToursPage() {
                 >
                   <CardHeader className="space-y-0 p-0">
                     {tour.coverUrl ? (
-                      <div className="overflow-hidden rounded-t-xl">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative aspect-[16/10] overflow-hidden rounded-t-xl">
+                        <Image
                           src={tour.coverUrl}
                           alt={`Couverture ${tour.name}`}
-                          className="aspect-[16/10] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          fill
+                          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         />
                       </div>
                     ) : null}

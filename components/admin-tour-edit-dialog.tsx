@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { ExternalLink, ImageIcon, Link2 } from "lucide-react";
 
 import {
@@ -319,12 +320,13 @@ export function AdminTourEditDialog({
                   </p>
                   <div className="space-y-3">
                     {coverUrl ? (
-                      <div className="overflow-hidden rounded-[28px] border border-border/60 bg-background shadow-sm">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative aspect-[16/9] overflow-hidden rounded-[28px] border border-border/60 bg-background shadow-sm">
+                        <Image
                           src={coverUrl}
                           alt={`Couverture ${tour.name}`}
-                          className="aspect-[16/9] w-full rounded-[28px] object-cover"
+                          fill
+                          sizes="(max-width: 1023px) 100vw, 380px"
+                          className="object-cover"
                         />
                       </div>
                     ) : (

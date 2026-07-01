@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 import { AdminMediaBulkActions } from "@/components/admin-media-bulk-actions";
 import { AdminMediaCopyButton } from "@/components/admin-media-copy-button";
@@ -113,10 +114,12 @@ export function AdminMediaList({ sections }: { sections: MediaSection[] }) {
                         />
                         <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/30">
                           {media.url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <Image
                               src={media.url}
                               alt={media.name}
+                              width={56}
+                              height={56}
+                              sizes="56px"
                               className="h-full w-full object-cover"
                             />
                           ) : (

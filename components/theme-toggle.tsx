@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
 
 export function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -18,8 +18,7 @@ export function ThemeToggle() {
     return null;
   }
 
-  const current = theme === "system" ? resolvedTheme : theme;
-  const isDark = current === "dark";
+  const isDark = theme === "dark";
 
   const handleToggle = () => {
     setTheme(isDark ? "light" : "dark");

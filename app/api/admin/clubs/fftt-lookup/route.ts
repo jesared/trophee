@@ -5,10 +5,11 @@ import {
   fetchFfttClubSearch,
   isFfttEnabled,
 } from "@/lib/fftt";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 export async function POST(request: Request) {
-  await requireAdmin();
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   if (!isFfttEnabled()) {
     return NextResponse.json(

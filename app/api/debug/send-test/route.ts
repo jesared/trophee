@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+import { requireAdminApi } from "@/lib/require-admin-api";
+
 export async function POST(request: Request) {
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
+
   const body = (await request.json()) as { to?: string };
   const to = String(body.to ?? "").trim();
 

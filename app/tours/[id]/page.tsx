@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PencilLine } from "lucide-react";
 
@@ -118,12 +119,14 @@ export default async function TourDetailPage({ params }: PageProps) {
         </div>
 
         {tour.coverUrl ? (
-          <div className="overflow-hidden rounded-2xl border border-border/60">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60">
+            <Image
               src={tour.coverUrl}
               alt={`Couverture ${tour.name}`}
-              className="h-auto w-full object-cover"
+              fill
+              preload
+              sizes="(max-width: 1279px) 100vw, 1200px"
+              className="object-cover"
             />
           </div>
         ) : null}

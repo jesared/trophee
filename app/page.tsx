@@ -6,6 +6,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -35,17 +36,6 @@ const highlights = [
     cta: "Voir les tours",
   },
 ];
-
-function getClubMark(name: string) {
-  const mark = name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 3)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
-  return mark || "TT";
-}
 
 export default async function Home() {
   type SeasonItem = {
@@ -198,14 +188,16 @@ export default async function Home() {
               {nextTour?.coverUrl ? (
                 <Link
                   href={nextTourHref}
-                  className="group block overflow-hidden rounded-[1.5rem] border border-border/80 bg-background/80 dark:border-white/10 dark:bg-white/5"
+                  className="group relative block aspect-[16/8] overflow-hidden rounded-[1.5rem] border border-border/80 bg-background/80 dark:border-white/10 dark:bg-white/5"
                   aria-label={`Voir la page de ${nextTour.name}`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={nextTour.coverUrl}
                     alt={`Couverture ${nextTour.name}`}
-                    className="aspect-[16/8] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    fill
+                    preload
+                    sizes="(max-width: 1279px) 100vw, 42vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 </Link>
               ) : null}
@@ -274,38 +266,14 @@ export default async function Home() {
         </div>
 
         <div className="relative mt-6 overflow-hidden rounded-[1.35rem] border border-border/70 bg-background/70 px-3 py-3 backdrop-blur">
-          <div className="flex w-max gap-3 animate-[scroll_28s_linear_infinite]">
+          <div className="flex w-max gap-3 animate-[scroll_56s_linear_infinite]">
             {scrollerClubs.concat(scrollerClubs).map((club, index) => {
-              const mark = getClubMark(club.name);
-              const markClassName =
-                mark.length >= 3
-                  ? "text-[0.65rem] tracking-[0.2em]"
-                  : "text-sm tracking-[0.24em]";
-
               return (
                 <div
                   key={`${club.name}-${index}`}
                   className="group surface min-w-[248px] max-w-[248px] rounded-[1.2rem] px-4 py-3 text-sm font-medium tracking-tight transition-colors duration-200 hover:border-primary/30 hover:bg-accent/20 sm:min-w-[272px] sm:max-w-[272px] backdrop-blur supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:hover:bg-accent/20"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-background shadow-sm transition-colors duration-200 group-hover:border-primary/20 group-hover:bg-accent/30">
-                      {club.logoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={club.logoUrl}
-                          alt={club.name}
-                          className="h-full w-full object-contain p-1.5"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-muted px-1 text-foreground transition-colors duration-200 group-hover:bg-accent/40">
-                          <span
-                            className={`block font-semibold uppercase ${markClassName}`}
-                          >
-                            {mark}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center">
                     <div className="min-w-0 space-y-1">
                       <div className="line-clamp-2 text-sm leading-tight font-semibold tracking-[-0.03em] text-foreground sm:text-base">
                         {club.name}

@@ -2,90 +2,149 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
 
-const stats = [
-  { label: "Saisons actives", value: "1" },
-  { label: "Tours officiels", value: "8" },
-  { label: "Tableaux par niveau", value: "12+" },
-];
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const principles = [
-  "Des tableaux répartis par niveaux de points",
-  "Un barème identique sur chaque tournoi",
-  "Un classement général par tableau",
-  "Une remise de récompenses en fin de saison",
-];
+const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
 
-const tieBreakers = [
-  "Nombre de tournois disputés",
-  "Nombre de victoires",
-  "Nombre de places de finaliste, puis demi-finaliste, etc.",
-  "Âge du joueur en dernier critère",
-];
+function formatPoints(minPoints: number | null, maxPoints: number | null) {
+  if (minPoints != null && maxPoints != null) {
+    return `${minPoints} - ${maxPoints} pts`;
+  }
 
-const timeline = [
-  {
-    title: "Lancement de la saison",
-    description:
-      "Publication de l'agenda officiel et ouverture des inscriptions.",
-  },
-  {
-    title: "Tours homologués",
-    description:
-      "Accumulation des points à chaque tournoi selon les tableaux.",
-  },
-  {
-    title: "Finale & clôture",
-    description:
-      "Dernier tour de la saison et consolidation du classement général.",
-  },
-  {
-    title: "Cérémonie",
-    description:
-      "Remise officielle des récompenses aux vainqueurs de chaque tableau.",
-  },
-];
+  if (minPoints != null) {
+    return `A partir de ${minPoints} pts`;
+  }
 
-const benefits = [
-  {
-    title: "Un circuit structuré",
-    description:
-      "Chaque tour suit le même barème pour garantir la cohérence du classement.",
-  },
-  {
-    title: "Une progression visible",
-    description:
-      "Suivez vos points et votre position tableau par tableau tout au long de la saison.",
-  },
-  {
-    title: "Une communauté active",
-    description:
-      "Rencontrez les clubs de la région dans une ambiance compétitive mais conviviale.",
-  },
-];
+  if (maxPoints != null) {
+    return `Jusqu'a ${maxPoints} pts`;
+  }
 
-export default function TropheePage() {
+  return "Plage libre";
+}
+
+function getStatusLabel(status: "DRAFT" | "OPEN" | "CLOSED" | "DONE") {
+  if (status === "OPEN") return "Ouvert";
+  if (status === "CLOSED") return "Ferme";
+  if (status === "DONE") return "Termine";
+  return "Brouillon";
+}
+
+async function getDisplaySeason() {
+  const include = {
+    tours: {
+      include: {
+        club: { select: { name: true, city: true } },
+        _count: { select: { tableaux: true, registrations: true } },
+      },
+      orderBy: { date: "asc" as const },
+    },
+    tableauTemplates: {
+      select: {
+        id: true,
+        name: true,
+        minPoints: true,
+        maxPoints: true,
+        startTime: true,
+      },
+      orderBy: { name: "asc" as const },
+    },
+  };
+
+  const activeSeason = await prisma.season.findFirst({
+    where: { isActive: true },
+    include,
+    orderBy: { year: "desc" },
+  });
+
+  if (activeSeason) {
+    return activeSeason;
+  }
+
+  return prisma.season.findFirst({
+    include,
+    orderBy: { year: "desc" },
+  });
+}
+
+export default async function TropheePage() {
+  const season = await getDisplaySeason();
+  const tours = season?.tours ?? [];
+  const templates = season?.tableauTemplates ?? [];
+  const hostClubs = Array.from(
+    new Map(
+      tours
+        .map((tour) => tour.club)
+        .filter((club): club is NonNullable<typeof club> => Boolean(club))
+        .map((club) => [club.name, club]),
+    ).values(),
+  ).sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const nextTour =
+    tours.find((tour) => tour.date >= new Date() && tour.status !== "DONE") ??
+    null;
+  const totalRegistrations = tours.reduce(
+    (total, tour) => total + tour._count.registrations,
+    0,
+  );
+
+  const stats = [
+    {
+      label: "Saison affichee",
+      value: season?.name ?? "Aucune",
+      detail: season?.isActive ? "Saison active" : "Derniere saison configuree",
+    },
+    {
+      label: "Tours planifies",
+      value: tours.length.toString(),
+      detail: nextTour
+        ? `Prochain: ${nextTour.name}, le ${dateFormatter.format(nextTour.date)}`
+        : "Calendrier a completer",
+    },
+    {
+      label: "Tableaux types",
+      value: templates.length.toString(),
+      detail:
+        templates.length > 0
+          ? "Plages de points configurees"
+          : "Aucun tableau type",
+    },
+    {
+      label: "Clubs organisateurs",
+      value: hostClubs.length.toString(),
+      detail:
+        totalRegistrations > 0
+          ? `${totalRegistrations} inscription(s) enregistree(s)`
+          : "Inscriptions non ouvertes",
+    },
+  ];
+
   return (
     <section className="page">
       <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-background p-8 sm:p-10">
-        <div className="space-y-5">
-          <p className="badge-pill w-fit">Le Trophée</p>
+        <div className="max-w-4xl space-y-5">
+          <p className="badge-pill w-fit">Le Trophee</p>
           <h1 className="page-title sm:text-4xl">
-            Trophée François Grieder
+            Trophee Francois Grieder
           </h1>
           <p className="page-subtitle max-w-3xl text-base text-foreground/80">
-            Le Trophée François Grieder est un challenge régional de tennis de
-            table organisé autour des tournois homologués du département de la
-            Marne et des Ardennes.
+            Le Trophee FG rassemble les tours de la saison, les clubs
+            organisateurs, les tableaux par plages de points et les documents de
+            classement publies sur le site.
           </p>
           <p className="page-subtitle max-w-3xl text-base text-foreground/80">
-            Créé en hommage à François Grieder, fidèle participant du circuit,
-            ce trophée récompense la régularité et la performance des joueurs
-            tout au long de la saison.
+            Cette page reprend les informations configurees dans
+            l&apos;administration. Pour les resultats et classements officiels,
+            consultez la page Classement.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/agenda">Voir l'agenda</Link>
+              <Link href="/agenda">Voir l&apos;agenda</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link href="/classement">Classements</Link>
@@ -94,134 +153,150 @@ export default function TropheePage() {
         </div>
       </header>
 
-      <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-3 sm:p-8">
+      <section className="grid gap-4 rounded-3xl border border-border/60 bg-background p-6 sm:grid-cols-2 xl:grid-cols-4 sm:p-8">
         {stats.map((stat) => (
           <div key={stat.label} className="stat-panel px-5 py-4">
-            <p className="stat-label">
-              {stat.label}
-            </p>
-            <p className="stat-value mt-3">
-              {stat.value}
-            </p>
+            <p className="stat-label">{stat.label}</p>
+            <p className="stat-value mt-3 text-3xl">{stat.value}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{stat.detail}</p>
           </div>
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="surface border-border/60">
           <CardHeader>
-            <CardTitle>Le principe</CardTitle>
+            <CardTitle>Fonctionnement actuel</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              Chaque tournoi du circuit propose les mêmes tableaux par
-              catégories de points. Les joueurs accumulent des points en
-              fonction de leurs résultats afin d'établir un classement général
-              sur l'ensemble de la saison.
+              Une saison regroupe plusieurs tours. Chaque tour est organise par
+              un club et contient des tableaux crees a partir des tableaux types
+              de la saison.
             </p>
             <ul className="list-disc space-y-2 pl-5">
-              {principles.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
+              <li>Les tours, lieux et clubs sont visibles dans l&apos;agenda.</li>
+              <li>
+                Les tableaux types definissent les plages de points utilisees
+                pour les inscriptions.
+              </li>
+              <li>
+                Les documents de classement sont centralises dans la page
+                Classement.
+              </li>
             </ul>
           </CardContent>
         </Card>
 
         <Card className="surface border-border/60 bg-muted/30">
           <CardHeader>
-            <CardTitle>Fonctionnement</CardTitle>
+            <CardTitle>Tableaux de la saison</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <p>
-              Les points sont attribués selon la performance réalisée dans
-              chaque tableau. En cas d'égalité au classement général, le
-              départage s'effectue selon plusieurs critères successifs :
-            </p>
-            <ul className="list-disc space-y-2 pl-5">
-              {tieBreakers.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {templates.length === 0 ? (
+              <p>Aucun tableau type n&apos;est configure pour cette saison.</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="rounded-xl border border-border/60 bg-background/70 px-3 py-2"
+                  >
+                    <p className="font-semibold text-foreground">
+                      Tableau {template.name}
+                    </p>
+                    <p className="text-xs">
+                      {formatPoints(template.minPoints, template.maxPoints)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
 
       <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
         <div className="page-header">
-          <h2 className="page-title text-2xl">Chronologie de la saison</h2>
+          <h2 className="page-title text-2xl">Calendrier de la saison</h2>
           <p className="page-subtitle">
-            Les grandes étapes du trophée tout au long de l'année.
+            Les tours actuellement renseignes pour {season?.name ?? "la saison"}.
           </p>
         </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          {timeline.map((item, index) => (
-            <div key={item.title} className="surface px-5 py-4">
-              <div className="badge-pill w-fit">Étape {index + 1}</div>
-              <p className="section-title mt-2">
-                {item.title}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {item.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-border/60 bg-background p-6 sm:p-8">
-        <div className="page-header">
-          <h2 className="page-title text-2xl">Pourquoi participer ?</h2>
-          <p className="page-subtitle">
-            Un format compétitif et convivial qui valorise la régularité.
-          </p>
-        </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          {benefits.map((item) => (
-            <div key={item.title} className="surface px-5 py-4">
-              <p className="section-title">
-                {item.title}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {item.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-border/60 bg-muted/30 p-6 sm:p-8">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-4">
-            <h2 className="page-title text-2xl">
-              Récompenses
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Chaque club participant contribue à la dotation du challenge afin
-              de récompenser les trois premiers de chaque classement général.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              La cérémonie officielle de remise des récompenses a lieu à
-              l'issue du dernier tournoi de la saison.
-            </p>
+        {tours.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-border/70 bg-background/70 p-6 text-sm text-muted-foreground">
+            Aucun tour n&apos;est encore configure.
           </div>
-          <div className="surface p-5 text-sm text-muted-foreground">
-            <p className="stat-label">
-              Pour aller plus loin
+        ) : (
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            {tours.map((tour) => (
+              <div key={tour.id} className="surface px-5 py-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="badge-pill w-fit">{tour.name}</span>
+                  <span className="badge-pill w-fit">
+                    {getStatusLabel(tour.status)}
+                  </span>
+                </div>
+                <p className="section-title mt-3">
+                  {dateFormatter.format(tour.date)}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {tour.club?.name ?? "Club a confirmer"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {[tour.venue, tour.city].filter(Boolean).join(" - ") ||
+                    "Lieu a confirmer"}
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {tour._count.tableaux} tableau(x) configure(s)
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card className="surface border-border/60">
+          <CardHeader>
+            <CardTitle>Clubs organisateurs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            {hostClubs.length === 0 ? (
+              <p>Aucun club organisateur n&apos;est encore associe aux tours.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {hostClubs.map((club) => (
+                  <span key={club.name} className="badge-pill">
+                    {club.name}
+                    {club.city ? ` - ${club.city}` : ""}
+                  </span>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="surface border-border/60 bg-muted/30">
+          <CardHeader>
+            <CardTitle>Documents officiels</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <p>
+              Les classements et documents sportifs sont publies separement,
+              afin de garder cette page centree sur l&apos;organisation de la
+              saison.
             </p>
-            <p className="mt-2 text-foreground">
-              Consultez le détail des tableaux, le barème des points et la
-              liste complète des récompenses.
-            </p>
-            <div className="mt-4 flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="secondary">
-                <Link href="/classement">Classements</Link>
+                <Link href="/classement">Voir les classements</Link>
               </Button>
               <Button asChild size="sm" variant="secondary">
                 <Link href="/agenda">Agenda & salles</Link>
               </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </section>
     </section>
   );

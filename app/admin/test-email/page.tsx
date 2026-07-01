@@ -52,7 +52,7 @@ export default function AdminTestEmailPage() {
       <div className="page-header">
         <h1 className="page-title">Test email</h1>
         <p className="page-subtitle">
-          Envoi d'un email de test via SMTP.
+          Envoi d&apos;un email de test via SMTP.
         </p>
       </div>
 

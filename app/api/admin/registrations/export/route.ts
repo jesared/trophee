@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { PresenceStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 function escapeCsv(value: string) {
   if (value.includes("\"") || value.includes(",") || value.includes("\n")) {
@@ -13,7 +13,8 @@ function escapeCsv(value: string) {
 }
 
 export async function GET(request: Request) {
-  await requireAdmin();
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   const { searchParams } = new URL(request.url);
   const tourId = searchParams.get("tourId") ?? undefined;

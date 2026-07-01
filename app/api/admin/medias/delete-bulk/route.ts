@@ -5,16 +5,11 @@ import {
   deleteCloudinaryResources,
   isCloudinaryConfigured,
 } from "@/lib/cloudinary-admin";
-import { getCurrentUser } from "@/lib/current-user";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "ADMIN") {
-    return NextResponse.json(
-      { ok: false, message: "Acces interdit." },
-      { status: 401 },
-    );
-  }
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   if (
     !isCloudinaryConfigured()

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminApi } from "@/lib/require-admin-api";
 
 export async function GET() {
-  await requireAdmin();
+  const auth = await requireAdminApi();
+  if (auth.response) return auth.response;
 
   const [
     tours,

@@ -59,14 +59,14 @@ export default function InscriptionPage() {
             </p>
             <p className="mt-2">
               La mise en ligne actuelle est centrée sur les informations
-              publiques du trophée. En attendant l'ouverture du parcours
-              d'inscription, consultez les tours, les tableaux et les
-              coordonnées de l'organisation.
+              publiques du trophée. En attendant l&apos;ouverture du parcours
+              d&apos;inscription, consultez les tours, les tableaux et les
+              coordonnées de l&apos;organisation.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href="/agenda">Voir l'agenda</Link>
+              <Link href="/agenda">Voir l&apos;agenda</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
               <Link href="/tours">Voir les tours</Link>
@@ -109,7 +109,7 @@ export default function InscriptionPage() {
         <div className="page-header">
           <h2 className="page-title text-2xl">Fonctionnement des tableaux</h2>
           <p className="page-subtitle">
-            Le trophée s'appuie sur des catégories lisibles, annoncées tour par
+            Le trophée s&apos;appuie sur des catégories lisibles, annoncées tour par
             tour.
           </p>
         </div>
@@ -162,7 +162,7 @@ export default function InscriptionPage() {
             </p>
             <p>
               Les clubs organisateurs et les salles hôtes sont également visibles
-              dans l'agenda et sur chaque fiche de tour.
+              dans l&apos;agenda et sur chaque fiche de tour.
             </p>
             <Button asChild size="sm" variant="secondary">
               <Link href="/agenda">Consulter les coordonnées utiles</Link>

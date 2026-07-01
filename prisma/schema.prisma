@@ -193,6 +193,10 @@ model Player {
   updatedAt DateTime @updatedAt
 
   registrations Registration[]
+
+  @@index([lastName, firstName])
+  @@index([club])
+  @@index([licence])
 }
 
 model Registration {
@@ -212,6 +216,11 @@ model Registration {
   player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
   @@unique([tourId, tableauId, playerId])
+  @@index([playerId])
+  @@index([playerId, tourId])
+  @@index([tourId, createdAt])
+  @@index([tourId, presence, createdAt])
+  @@index([tableauId, createdAt])
 }
 
 model Testimonial {

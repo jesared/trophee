@@ -34,7 +34,7 @@ export default async function CheckEmailPage({ searchParams }: PageProps) {
                 <Link href="/login">Renvoyer un lien</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/">Retour à l'accueil</Link>
+                <Link href="/">Retour à l&apos;accueil</Link>
               </Button>
             </div>
           </CardContent>

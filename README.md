@@ -32,8 +32,8 @@ Documentation admin détaillée dans `/docs` :
 ## Démarrage rapide
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Ouvre `http://localhost:3000`.
@@ -76,16 +76,16 @@ FFTT_APP_PASSWORD="..."
 ## Prisma
 
 ```bash
-pnpm prisma migrate dev
-pnpm prisma generate
+npx prisma migrate dev
+npx prisma generate
 ```
 
 ## Scripts utiles
 
 ```bash
-pnpm dev
-pnpm build
-pnpm start
+npm run dev
+npm run build
+npm run start
 ```
 
 ## Structure
