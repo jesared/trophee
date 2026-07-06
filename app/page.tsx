@@ -181,23 +181,44 @@ export default async function Home() {
                   />
                 </Link>
               ) : (
-                <div className="relative hidden aspect-[16/8] overflow-hidden rounded-[1.5rem] border border-primary/20 bg-primary/10 sm:block">
-                  <div className="absolute inset-0 opacity-70 [background:linear-gradient(90deg,transparent_49%,color-mix(in_oklch,var(--primary)_35%,transparent)_50%,transparent_51%),linear-gradient(0deg,transparent_49%,color-mix(in_oklch,var(--primary)_25%,transparent)_50%,transparent_51%)]" />
-                  <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-primary/35" />
-                  <div className="absolute left-8 top-8 h-9 w-9 rounded-full bg-primary shadow-xl shadow-primary/30" />
-                  <div className="absolute bottom-7 left-7 space-y-2">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-primary text-xl font-bold text-primary-foreground shadow-lg">
-                      FG
+                <div className="hidden rounded-[1.5rem] border border-border/80 bg-background/75 p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:block">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary dark:bg-white/10">
+                      <Trophy className="h-6 w-6" />
                     </div>
-                    <p className="kicker text-primary/80 dark:text-white/60">
-                      Identité du trophée
-                    </p>
-                    <p className="max-w-xs font-heading text-2xl font-bold leading-tight tracking-[-0.04em]">
-                      Tennis de table, clubs et esprit régional.
-                    </p>
+                    <div className="min-w-0 space-y-2">
+                      <p className="kicker text-primary/75 dark:text-white/60">
+                        La saison en bref
+                      </p>
+                      <p className="font-heading text-2xl font-bold leading-tight tracking-[-0.04em]">
+                        {partnerClubs.length > 0
+                          ? `${partnerClubs.length} clubs engagés dans le trophée`
+                          : "Le calendrier du trophée se prépare"}
+                      </p>
+                      <p className="max-w-sm text-sm leading-6 text-foreground/70 dark:text-white/70">
+                        Tours, salles et classements sont centralisés pour suivre la compétition.
+                      </p>
+                    </div>
                   </div>
-                  <div className="absolute right-7 top-7 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground dark:border-white/10 dark:bg-white/10 dark:text-white/70">
-                    {seasonLabel}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-2 text-sm font-semibold dark:border-white/10 dark:bg-white/5">
+                      <Trophy className="h-4 w-4 text-primary" />
+                      <span>{seasonLabel}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-2 text-sm font-semibold dark:border-white/10 dark:bg-white/5">
+                      {partnerClubs.length > 0 ? (
+                        <Users className="h-4 w-4 text-primary" />
+                      ) : (
+                        <CalendarDays className="h-4 w-4 text-primary" />
+                      )}
+                      <span>
+                        {partnerClubs.length > 0
+                          ? `${partnerClubs.length} clubs`
+                          : "Clubs à venir"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
