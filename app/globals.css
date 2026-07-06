@@ -255,6 +255,13 @@ body {
   .surface {
     @apply rounded-[1.35rem] border border-border/70 bg-background shadow-sm;
   }
+  .club-marquee-track {
+    animation: scroll 56s linear infinite;
+  }
+  .club-marquee:hover .club-marquee-track,
+  .club-marquee:focus-within .club-marquee-track {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes scroll {
@@ -279,4 +286,11 @@ body {
 
 .fade-up {
   animation: fade-up 0.6s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-marquee-track,
+  .fade-up {
+    animation: none;
+  }
 }

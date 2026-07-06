@@ -1,6 +1,8 @@
 import {
   ArrowRight,
   CalendarDays,
+  ClipboardList,
+  FileText,
   MapPin,
   Quote,
   Trophy,
@@ -16,24 +18,30 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const highlights = [
+const quickLinks = [
   {
-    title: "Saison en cours",
-    description: "Suivez les dates clés et les classements mis à jour.",
+    title: "Agenda & salles",
+    description: "Dates, lieux et horaires des prochains tours.",
     href: "/agenda",
-    cta: "Voir l'agenda",
+    icon: CalendarDays,
   },
   {
-    title: "Classements officiels",
-    description: "Accédez aux PDF par saison, tour et tableau.",
+    title: "Classements",
+    description: "PDF officiels par saison, tour et tableau.",
     href: "/classement",
-    cta: "Consulter les classements",
+    icon: Trophy,
   },
   {
-    title: "Tours & infos pratiques",
-    description: "Consultez les détails des tours, des salles et du format.",
+    title: "Tours",
+    description: "Détails pratiques, tableaux et informations de chaque tour.",
     href: "/tours",
-    cta: "Voir les tours",
+    icon: ClipboardList,
+  },
+  {
+    title: "Le trophée",
+    description: "Règlement, format et esprit du challenge.",
+    href: "/trophee",
+    icon: FileText,
   },
 ];
 
@@ -102,6 +110,12 @@ export default async function Home() {
         .toUpperCase()
     : "DATE";
   const nextTourHref = nextTour ? `/tours/${nextTour.id}` : "/agenda";
+  const primaryCtaLabel = nextTour
+    ? "Voir le prochain tour"
+    : "Consulter l'agenda";
+  const nextTourPanelClass = nextTour?.coverUrl
+    ? "xl:row-span-3"
+    : "xl:self-start";
   const featuredTestimonials = testimonials.slice(0, 3);
   const heroSignals = [
     {
@@ -133,47 +147,13 @@ export default async function Home() {
                 et une ambiance associative.
               </p>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="gap-2">
-                <Link href="/agenda">
-                  Voir les tours
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="secondary" className="gap-2">
-                <Link href="/classement">
-                  Classements
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {heroSignals.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <div
-                    key={item.label}
-                    className="stat-panel rounded-2xl bg-background/90 px-4 py-4 backdrop-blur"
-                  >
-                    <div className="flex items-center gap-2 text-primary">
-                      <Icon className="h-4 w-4" />
-                      <p className="stat-label text-primary/80">{item.label}</p>
-                    </div>
-                    <p className="mt-3 font-heading text-2xl font-bold tracking-[-0.05em] text-foreground">
-                      {item.value}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[1.75rem] p-6 text-foreground dark:bg-slate-900 dark:text-white">
-            <div className="relative space-y-6">
-              <div className="flex items-center justify-between gap-4">
+          <div
+            className={`relative overflow-hidden rounded-[1.75rem] p-4 text-foreground dark:bg-slate-900 dark:text-white sm:p-6 xl:col-start-2 ${nextTourPanelClass}`}
+          >
+            <div className="relative space-y-4 sm:space-y-6">
+              <div className="hidden items-center justify-between gap-4 sm:flex">
                 <div>
                   <p className="kicker text-primary/75 dark:text-white/60">Panneau principal</p>
                   <h2 className="font-heading text-2xl font-bold tracking-[-0.04em]">
@@ -200,7 +180,27 @@ export default async function Home() {
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 </Link>
-              ) : null}
+              ) : (
+                <div className="relative hidden aspect-[16/8] overflow-hidden rounded-[1.5rem] border border-primary/20 bg-primary/10 sm:block">
+                  <div className="absolute inset-0 opacity-70 [background:linear-gradient(90deg,transparent_49%,color-mix(in_oklch,var(--primary)_35%,transparent)_50%,transparent_51%),linear-gradient(0deg,transparent_49%,color-mix(in_oklch,var(--primary)_25%,transparent)_50%,transparent_51%)]" />
+                  <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-primary/35" />
+                  <div className="absolute left-8 top-8 h-9 w-9 rounded-full bg-primary shadow-xl shadow-primary/30" />
+                  <div className="absolute bottom-7 left-7 space-y-2">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-primary text-xl font-bold text-primary-foreground shadow-lg">
+                      FG
+                    </div>
+                    <p className="kicker text-primary/80 dark:text-white/60">
+                      Identité du trophée
+                    </p>
+                    <p className="max-w-xs font-heading text-2xl font-bold leading-tight tracking-[-0.04em]">
+                      Tennis de table, clubs et esprit régional.
+                    </p>
+                  </div>
+                  <div className="absolute right-7 top-7 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground dark:border-white/10 dark:bg-white/10 dark:text-white/70">
+                    {seasonLabel}
+                  </div>
+                </div>
+              )}
 
               <div className="grid gap-4 rounded-[1.5rem] border border-border/80 bg-background/80 p-4 sm:grid-cols-[96px_1fr] dark:border-white/10 dark:bg-white/5">
                 <div className="flex flex-col items-center justify-center rounded-[1.25rem] bg-primary px-4 py-5 text-primary-foreground">
@@ -240,11 +240,47 @@ export default async function Home() {
 
               <Button asChild size="sm" className="w-fit gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                 <Link href={nextTourHref}>
-                  {nextTour ? "Voir la page du tour" : "Voir l'agenda"}
+                  {primaryCtaLabel}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3 xl:col-start-1 xl:row-start-2">
+            <Button asChild size="lg" className="gap-2">
+              <Link href={nextTourHref}>
+                {primaryCtaLabel}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary" className="gap-2">
+              <Link href="/classement">
+                Classements
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:col-start-1 xl:row-start-3">
+            {heroSignals.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={item.label}
+                  className="stat-panel rounded-2xl bg-background/90 px-4 py-4 backdrop-blur"
+                >
+                  <div className="flex items-center gap-2 text-primary">
+                    <Icon className="h-4 w-4" />
+                    <p className="stat-label text-primary/80">{item.label}</p>
+                  </div>
+                  <p className="mt-3 font-heading text-2xl font-bold tracking-[-0.05em] text-foreground">
+                    {item.value}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -265,15 +301,94 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="relative mt-6 overflow-hidden rounded-[1.35rem] border border-border/70 bg-background/70 px-3 py-3 backdrop-blur">
-          <div className="flex w-max gap-3 animate-[scroll_56s_linear_infinite]">
-            {scrollerClubs.concat(scrollerClubs).map((club, index) => {
+        <div className="mt-6 grid gap-3 sm:hidden">
+          {scrollerClubs.map((club) => {
+            return (
+              <div
+                key={club.name}
+                className="surface rounded-[1.2rem] px-4 py-3 text-sm font-medium tracking-tight"
+              >
+                <div className="flex items-center gap-3">
+                  {club.logoUrl ? (
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-background">
+                      <Image
+                        src={club.logoUrl}
+                        alt={`Logo ${club.name}`}
+                        fill
+                        sizes="40px"
+                        className="object-contain p-1.5"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="min-w-0 space-y-1">
+                    <div className="line-clamp-2 text-sm leading-tight font-semibold tracking-[-0.03em] text-foreground">
+                      {club.name}
+                    </div>
+                    {club.city ? (
+                      <div className="truncate text-xs text-muted-foreground">
+                        {club.city}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="club-marquee relative mt-6 hidden overflow-hidden rounded-[1.35rem] border border-border/70 bg-background/70 px-3 py-3 backdrop-blur sm:block">
+          <div className="club-marquee-track flex w-max gap-3">
+            {scrollerClubs.map((club) => {
               return (
                 <div
-                  key={`${club.name}-${index}`}
-                  className="group surface min-w-[248px] max-w-[248px] rounded-[1.2rem] px-4 py-3 text-sm font-medium tracking-tight transition-colors duration-200 hover:border-primary/30 hover:bg-accent/20 sm:min-w-[272px] sm:max-w-[272px] backdrop-blur supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:hover:bg-accent/20"
+                  key={club.name}
+                  className="group surface min-w-[272px] max-w-[272px] rounded-[1.2rem] px-4 py-3 text-sm font-medium tracking-tight transition-colors duration-200 hover:border-primary/30 hover:bg-accent/20 backdrop-blur supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:hover:bg-accent/20"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-3">
+                    {club.logoUrl ? (
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-background">
+                        <Image
+                          src={club.logoUrl}
+                          alt={`Logo ${club.name}`}
+                          fill
+                          sizes="44px"
+                          className="object-contain p-1.5"
+                        />
+                      </div>
+                    ) : null}
+                    <div className="min-w-0 space-y-1">
+                      <div className="line-clamp-2 text-sm leading-tight font-semibold tracking-[-0.03em] text-foreground sm:text-base">
+                        {club.name}
+                      </div>
+                      {club.city ? (
+                        <div className="truncate text-xs text-muted-foreground">
+                          {club.city}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {scrollerClubs.map((club) => {
+              return (
+                <div
+                  key={`${club.name}-duplicate`}
+                  aria-hidden="true"
+                  className="group surface min-w-[272px] max-w-[272px] rounded-[1.2rem] px-4 py-3 text-sm font-medium tracking-tight transition-colors duration-200 hover:border-primary/30 hover:bg-accent/20 backdrop-blur supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:hover:bg-accent/20"
+                >
+                  <div className="flex items-center gap-3">
+                    {club.logoUrl ? (
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-background">
+                        <Image
+                          src={club.logoUrl}
+                          alt=""
+                          fill
+                          sizes="44px"
+                          className="object-contain p-1.5"
+                        />
+                      </div>
+                    ) : null}
                     <div className="min-w-0 space-y-1">
                       <div className="line-clamp-2 text-sm leading-tight font-semibold tracking-[-0.03em] text-foreground sm:text-base">
                         {club.name}
@@ -343,84 +458,38 @@ export default async function Home() {
 
         <div className="rounded-[2rem] border border-border/60 bg-muted/30 p-6 sm:p-8">
           <div className="page-header">
-            <p className="kicker text-primary">Suivre la saison</p>
-            <h2 className="page-title text-2xl">Suivre la saison</h2>
+            <p className="kicker text-primary">Accès rapides</p>
+            <h2 className="page-title text-2xl">Accès rapides</h2>
             <p className="page-subtitle">
               Accédez rapidement aux informations essentielles du trophée.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4">
-            {highlights.map((item, index) => (
-              <Card
-                key={item.title}
-                className="group surface rounded-[1.6rem] border-border/70 bg-background/90 transition-colors duration-200 hover:border-primary/20 hover:bg-accent/20"
-              >
-                <CardHeader className="gap-3">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[0.8rem] font-bold tracking-[-0.04em] text-primary">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
-                  </div>
-                  <CardTitle>{item.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm text-muted-foreground">
-                  <p className="leading-7">{item.description}</p>
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href={item.href}>{item.cta}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            {quickLinks.map((item) => {
+              const Icon = item.icon;
+
+              return (
+              <Link key={item.title} href={item.href} className="group block">
+                <Card className="surface h-full rounded-[1.35rem] border-border/70 bg-background/90 transition-colors duration-200 group-hover:border-primary/20 group-hover:bg-accent/20">
+                  <CardHeader className="gap-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <Icon className="h-5 w-5 text-primary" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
+                    </div>
+                    <CardTitle>{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-sm text-muted-foreground">
+                    <p className="leading-7">{item.description}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="rounded-[2rem] border border-border/60 bg-background p-6 sm:p-8">
-          <div className="page-header">
-            <p className="kicker text-primary">Ressources clés</p>
-            <h2 className="page-title text-2xl">Ressources clés</h2>
-            <p className="page-subtitle">
-              Consultez le règlement, les tableaux et les informations pratiques
-              pour préparer votre prochain tour.
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="surface rounded-[1.5rem] px-5 py-5">
-              <p className="stat-label">Classements</p>
-              <p className="section-title mt-3">Voir les classements</p>
-            </div>
-            <div className="surface rounded-[1.5rem] px-5 py-5">
-              <p className="stat-label">Informations</p>
-              <p className="section-title mt-3">Règlement, tableaux et détails pratiques</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden rounded-[2rem] border border-primary/15 bg-accent/40 px-6 py-8 text-foreground shadow-xl dark:border-white/10 dark:bg-slate-900 dark:text-white sm:px-8">
-          <div className="relative space-y-5">
-            <p className="kicker text-primary/75 dark:text-white/65">Accès direct</p>
-            <h2 className="font-heading text-3xl font-bold leading-none tracking-[-0.05em] text-balance">
-              Consultez les classements ou l&apos;agenda en quelques secondes.
-            </h2>
-            <p className="max-w-xl text-sm leading-7 text-foreground/75 dark:text-white/75">
-              Retrouvez rapidement les informations essentielles du trophée pour
-              préparer votre prochain tour.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="sm" className="bg-background text-foreground hover:bg-background/90">
-                <Link href="/classement">Voir les classements</Link>
-              </Button>
-              <Button asChild size="sm" variant="secondary" className="border border-primary/15 bg-background/70 text-foreground hover:bg-background dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/18">
-                <Link href="/agenda">Agenda & salles</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

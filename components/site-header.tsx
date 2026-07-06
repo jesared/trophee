@@ -150,8 +150,8 @@ function HeaderAuthActions({
           mobile && "w-full justify-center",
         )}
       >
-        <Link href="/login" aria-label="se connecter" onClick={onNavigate}>
-          C&apos;est parti !
+        <Link href="/login" aria-label="Accéder à l'espace joueur" onClick={onNavigate}>
+          Espace joueur
         </Link>
       </Button>
     );

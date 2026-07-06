@@ -23,19 +23,51 @@ type ActionState = {
 
 type AdminClubDialogProps = {
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
+  club?: {
+    id: string;
+    name: string;
+    city: string | null;
+    ffttId: string | null;
+    ffttNumber: string | null;
+    hallName: string | null;
+    hallAddress1: string | null;
+    hallZip: string | null;
+    hallCity: string | null;
+    contactName: string | null;
+    contactFirstName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+  };
+  description?: string;
+  submitLabel?: string;
+  title?: string;
+  triggerLabel?: string;
 };
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
+function SubmitButton({
+  disabled,
+  label,
+}: {
+  disabled: boolean;
+  label: string;
+}) {
   const { pending } = useFormStatus();
 
   return (
     <Button type="submit" disabled={disabled || pending}>
-      {pending ? "Enregistrement..." : "Creer"}
+      {pending ? "Enregistrement..." : label}
     </Button>
   );
 }
 
-export function AdminClubDialog({ action }: AdminClubDialogProps) {
+export function AdminClubDialog({
+  action,
+  club,
+  description = "Ajoutez un club organisateur pour les tours.",
+  submitLabel = "Creer",
+  title = "Nouveau club",
+  triggerLabel = "Creer un club",
+}: AdminClubDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [state, formAction] = React.useActionState(action, {
     ok: false,
@@ -43,6 +75,7 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
   });
   const [ffttLoading, setFfttLoading] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement | null>(null);
+  const inputId = React.useId();
 
   React.useEffect(() => {
     if (!state.message) {
@@ -62,7 +95,8 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
   const handleFfttLookup = async () => {
     const form = formRef.current;
     if (!form) return;
-    const numberInput = form.querySelector<HTMLInputElement>("#ffttNumber");
+    const numberInput =
+      form.querySelector<HTMLInputElement>('[name="ffttNumber"]');
     const clubNumber = numberInput?.value?.trim();
     if (!clubNumber) {
       notifyError("Renseignez un numero de club.");
@@ -101,9 +135,9 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
       const payload = data.payload ?? {};
       const clubSearch = data.clubSearch ?? null;
 
-      const setValue = (id: string, value?: string | number) => {
+      const setValue = (name: string, value?: string | number) => {
         if (value === undefined || value === null || value === "") return;
-        const input = form.querySelector<HTMLInputElement>(`#${id}`);
+        const input = form.querySelector<HTMLInputElement>(`[name="${name}"]`);
         if (input) input.value = String(value);
       };
 
@@ -135,32 +169,51 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Creer un club</Button>
+        <Button variant={club ? "secondary" : "default"}>{triggerLabel}</Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouveau club</DialogTitle>
-          <DialogDescription>
-            Ajoutez un club organisateur pour les tours.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-4">
-          <input type="hidden" id="ffttId" name="ffttId" />
+          {club ? <input type="hidden" name="id" value={club.id} /> : null}
+          <input
+            type="hidden"
+            id={`ffttId-${inputId}`}
+            name="ffttId"
+            defaultValue={club?.ffttId ?? ""}
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">Nom</Label>
-              <Input id="name" name="name" placeholder="USC Reims" />
+              <Label htmlFor={`name-${inputId}`}>Nom</Label>
+              <Input
+                id={`name-${inputId}`}
+                name="name"
+                placeholder="USC Reims"
+                defaultValue={club?.name ?? ""}
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">Ville</Label>
-              <Input id="city" name="city" placeholder="Reims" />
+              <Label htmlFor={`city-${inputId}`}>Ville</Label>
+              <Input
+                id={`city-${inputId}`}
+                name="city"
+                placeholder="Reims"
+                defaultValue={club?.city ?? ""}
+              />
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <div className="space-y-2">
-              <Label htmlFor="ffttNumber">Numero FFTT</Label>
-              <Input id="ffttNumber" name="ffttNumber" placeholder="XXXX" />
+              <Label htmlFor={`ffttNumber-${inputId}`}>Numero FFTT</Label>
+              <Input
+                id={`ffttNumber-${inputId}`}
+                name="ffttNumber"
+                placeholder="XXXX"
+                defaultValue={club?.ffttNumber ?? ""}
+              />
             </div>
             <div className="flex items-end">
               <Button
@@ -182,23 +235,39 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
             <div className="mt-3 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="hallName">Salle</Label>
-                  <Input id="hallName" name="hallName" />
+                  <Label htmlFor={`hallName-${inputId}`}>Salle</Label>
+                  <Input
+                    id={`hallName-${inputId}`}
+                    name="hallName"
+                    defaultValue={club?.hallName ?? ""}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="hallCity">Ville salle</Label>
-                  <Input id="hallCity" name="hallCity" />
+                  <Label htmlFor={`hallCity-${inputId}`}>Ville salle</Label>
+                  <Input
+                    id={`hallCity-${inputId}`}
+                    name="hallCity"
+                    defaultValue={club?.hallCity ?? ""}
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hallAddress">Adresse salle</Label>
-                <Input id="hallAddress" name="hallAddress" />
+                <Label htmlFor={`hallAddress-${inputId}`}>Adresse salle</Label>
+                <Input
+                  id={`hallAddress-${inputId}`}
+                  name="hallAddress"
+                  defaultValue={club?.hallAddress1 ?? ""}
+                />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="hallZip">Code postal salle</Label>
-                  <Input id="hallZip" name="hallZip" />
+                  <Label htmlFor={`hallZip-${inputId}`}>Code postal salle</Label>
+                  <Input
+                    id={`hallZip-${inputId}`}
+                    name="hallZip"
+                    defaultValue={club?.hallZip ?? ""}
+                  />
                 </div>
               </div>
             </div>
@@ -211,29 +280,53 @@ export function AdminClubDialog({ action }: AdminClubDialogProps) {
             <div className="mt-3 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="contactName">Nom correspondant</Label>
-                  <Input id="contactName" name="contactName" />
+                  <Label htmlFor={`contactName-${inputId}`}>
+                    Nom correspondant
+                  </Label>
+                  <Input
+                    id={`contactName-${inputId}`}
+                    name="contactName"
+                    defaultValue={club?.contactName ?? ""}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contactFirstName">Prenom correspondant</Label>
-                  <Input id="contactFirstName" name="contactFirstName" />
+                  <Label htmlFor={`contactFirstName-${inputId}`}>
+                    Prenom correspondant
+                  </Label>
+                  <Input
+                    id={`contactFirstName-${inputId}`}
+                    name="contactFirstName"
+                    defaultValue={club?.contactFirstName ?? ""}
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="contactEmail">Email correspondant</Label>
-                  <Input id="contactEmail" name="contactEmail" />
+                  <Label htmlFor={`contactEmail-${inputId}`}>
+                    Email correspondant
+                  </Label>
+                  <Input
+                    id={`contactEmail-${inputId}`}
+                    name="contactEmail"
+                    defaultValue={club?.contactEmail ?? ""}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contactPhone">Telephone correspondant</Label>
-                  <Input id="contactPhone" name="contactPhone" />
+                  <Label htmlFor={`contactPhone-${inputId}`}>
+                    Telephone correspondant
+                  </Label>
+                  <Input
+                    id={`contactPhone-${inputId}`}
+                    name="contactPhone"
+                    defaultValue={club?.contactPhone ?? ""}
+                  />
                 </div>
               </div>
             </div>
           </details>
 
           <div className="flex justify-end">
-            <SubmitButton disabled={false} />
+            <SubmitButton disabled={false} label={submitLabel} />
           </div>
         </form>
       </DialogContent>

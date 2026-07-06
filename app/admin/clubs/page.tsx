@@ -110,6 +110,81 @@ async function createClub(
   return { ok: true, message: "Club cree." };
 }
 
+async function updateClub(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  "use server";
+
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    return { ok: false, message: "Club introuvable." };
+  }
+
+  const parsed = clubSchema.safeParse({
+    name: String(formData.get("name") ?? "").trim(),
+    city: String(formData.get("city") ?? "").trim(),
+    ffttId: String(formData.get("ffttId") ?? "").trim(),
+    ffttNumber: String(formData.get("ffttNumber") ?? "").trim(),
+    hallName: String(formData.get("hallName") ?? "").trim(),
+    hallAddress: String(formData.get("hallAddress") ?? "").trim(),
+    hallZip: String(formData.get("hallZip") ?? "").trim(),
+    hallCity: String(formData.get("hallCity") ?? "").trim(),
+    contactName: String(formData.get("contactName") ?? "").trim(),
+    contactFirstName: String(formData.get("contactFirstName") ?? "").trim(),
+    contactEmail: String(formData.get("contactEmail") ?? "").trim(),
+    contactPhone: String(formData.get("contactPhone") ?? "").trim(),
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Donnees invalides.",
+    };
+  }
+
+  const {
+    name,
+    city,
+    ffttId,
+    ffttNumber,
+    hallName,
+    hallAddress,
+    hallZip,
+    hallCity,
+    contactName,
+    contactFirstName,
+    contactEmail,
+    contactPhone,
+  } = parsed.data;
+
+  await prisma.club.update({
+    where: { id },
+    data: {
+      name,
+      city: city || null,
+      ffttId: ffttId || null,
+      ffttNumber: ffttNumber || null,
+      hallName: hallName || null,
+      hallAddress1: hallAddress || null,
+      hallZip: hallZip || null,
+      hallCity: hallCity || null,
+      contactName: contactName || null,
+      contactFirstName: contactFirstName || null,
+      contactEmail: contactEmail || null,
+      contactPhone: contactPhone || null,
+    },
+  });
+
+  revalidatePath("/admin/clubs");
+  revalidatePath("/");
+
+  return { ok: true, message: "Club modifie." };
+}
+
 async function deleteClub(
   _prevState: ActionState,
   formData: FormData,
@@ -151,10 +226,33 @@ export default async function AdminClubsPage() {
     id: string;
     name: string;
     city: string | null;
+    ffttId: string | null;
     ffttNumber: string | null;
+    hallName: string | null;
+    hallAddress1: string | null;
+    hallZip: string | null;
+    hallCity: string | null;
+    contactName: string | null;
+    contactFirstName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
   }> = await prisma.club.findMany({
     orderBy: [{ name: "asc" }],
-    select: { id: true, name: true, city: true, ffttNumber: true },
+    select: {
+      id: true,
+      name: true,
+      city: true,
+      ffttId: true,
+      ffttNumber: true,
+      hallName: true,
+      hallAddress1: true,
+      hallZip: true,
+      hallCity: true,
+      contactName: true,
+      contactFirstName: true,
+      contactEmail: true,
+      contactPhone: true,
+    },
   });
 
   return (
@@ -199,12 +297,22 @@ export default async function AdminClubsPage() {
                     <TableCell>{club.ffttNumber ?? "-"}</TableCell>
                     <TableCell>{club.city ?? "-"}</TableCell>
                     <TableCell className="text-right">
-                      <AdminDeleteDialog
-                        id={club.id}
-                        action={deleteClub}
-                        title="Supprimer ce club ?"
-                        description={`Cette action supprimera ${club.name}.`}
-                      />
+                      <div className="flex justify-end gap-2">
+                        <AdminClubDialog
+                          action={updateClub}
+                          club={club}
+                          title="Modifier le club"
+                          description={`Modifiez les informations de ${club.name}.`}
+                          triggerLabel="Modifier"
+                          submitLabel="Enregistrer"
+                        />
+                        <AdminDeleteDialog
+                          id={club.id}
+                          action={deleteClub}
+                          title="Supprimer ce club ?"
+                          description={`Cette action supprimera ${club.name}.`}
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
