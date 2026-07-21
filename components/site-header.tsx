@@ -11,6 +11,7 @@ import {
   UserCircleIcon,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -227,20 +228,25 @@ export function SiteHeader() {
           </Link>
         </div>
       </div>
-      <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-6">
+      <div className="mx-auto flex h-24 max-w-6xl items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary text-sm font-bold tracking-[-0.04em] text-primary-foreground shadow-sm">
-              FG
-            </span>
-            <span className="space-y-0.5">
-              <span className="block text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Circuit régional
-              </span>
-              <span className="block font-heading text-base font-bold tracking-[-0.04em] text-foreground">
-                Trophée FG
-              </span>
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/tfg-light-mode-20260721.png"
+              alt="Trophée FG"
+              width={208}
+              height={120}
+              priority
+              className="h-20 w-auto sm:h-[5.25rem] dark:hidden"
+            />
+            <Image
+              src="/tfg-dark-mode-20260721.png"
+              alt="Trophée FG"
+              width={208}
+              height={120}
+              priority
+              className="hidden h-20 w-auto sm:h-[5.25rem] dark:block"
+            />
           </Link>
           <nav className="hidden items-center gap-2 md:flex">
             {navItems.map((item) => {
