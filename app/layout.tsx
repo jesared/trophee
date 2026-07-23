@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AppShell } from "@/components/app-shell";
@@ -44,6 +45,7 @@ export default function RootLayout({
             <Toaster />
           </AuthSessionProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
